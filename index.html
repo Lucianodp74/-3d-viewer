@@ -356,7 +356,7 @@
                         <span>Zoom</span>
                         <span id="zoomValue">1.0x</span>
                     </div>
-                    <input type="range" id="zoomControl" class="control-input" min="0.1" max="10" step="0.1" value="1.0">
+                    <input type="range" id="zoomControl" class="control-input" min="0.2" max="5.0" step="0.1" value="1.0">
                 </div>
                 
                 <div class="control-group">
@@ -429,9 +429,7 @@
         let isAnimating = false;
         let rotationSpeed = 0.005;
         let cameraSpeed = 1.0;
-        let zoomLevel = 1.0;
-        let minZoom = 0.1;
-        let maxZoom = 10.0;
+        let cameraDistance = 10;
         
         // Inizializzazione
         function init() {
@@ -513,13 +511,15 @@
                 const deltaX = event.clientX - mouseX;
                 const deltaY = event.clientY - mouseY;
                 
-                // Ruota la camera attorno al modello
+                // Ruota la camera attorno al centro (0,0,0)
                 const spherical = new THREE.Spherical();
                 spherical.setFromVector3(camera.position);
-                spherical.theta += deltaX * 0.01 * cameraSpeed;
-                spherical.phi += deltaY * 0.01 * cameraSpeed;
+                spherical.theta -= deltaX * 0.01;
+                spherical.phi += deltaY * 0.01;
                 spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
                 
+                // Mantieni la distanza corrente
+                spherical.radius = cameraDistance;
                 camera.position.setFromSpherical(spherical);
                 camera.lookAt(0, 0, 0);
                 
@@ -537,24 +537,26 @@
                 renderer.domElement.style.cursor = 'grab';
             });
             
-            // Zoom migliorato con scroll
+            // Zoom SEMPLICE con scroll
             renderer.domElement.addEventListener('wheel', (event) => {
                 event.preventDefault();
                 
-                const zoomSpeed = 0.1;
+                const zoomSpeed = 0.5;
                 const delta = event.deltaY > 0 ? zoomSpeed : -zoomSpeed;
                 
-                // Calcola nuovo zoom
-                const newZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel + delta));
+                // Cambia distanza camera
+                cameraDistance += delta;
+                cameraDistance = Math.max(1, Math.min(50, cameraDistance));
                 
-                if (newZoom !== zoomLevel) {
-                    zoomLevel = newZoom;
-                    applyZoom();
-                    updateZoomDisplay();
-                }
+                // Applica nuova distanza mantenendo direzione
+                const direction = camera.position.clone().normalize();
+                camera.position.copy(direction.multiplyScalar(cameraDistance));
+                camera.lookAt(0, 0, 0);
+                
+                updateZoomDisplay();
             });
             
-            // Touch controls per mobile
+            // Touch controls SEMPLIFICATI
             let touchStartDistance = 0;
             let touchStartX = 0, touchStartY = 0;
             let isTouching = false;
@@ -563,12 +565,10 @@
                 event.preventDefault();
                 
                 if (event.touches.length === 1) {
-                    // Single touch - rotation
                     isTouching = true;
                     touchStartX = event.touches[0].clientX;
                     touchStartY = event.touches[0].clientY;
                 } else if (event.touches.length === 2) {
-                    // Multi-touch - zoom
                     const dx = event.touches[0].clientX - event.touches[1].clientX;
                     const dy = event.touches[0].clientY - event.touches[1].clientY;
                     touchStartDistance = Math.sqrt(dx * dx + dy * dy);
@@ -579,36 +579,38 @@
                 event.preventDefault();
                 
                 if (event.touches.length === 1 && isTouching) {
-                    // Rotation
+                    // Rotazione
                     const deltaX = event.touches[0].clientX - touchStartX;
                     const deltaY = event.touches[0].clientY - touchStartY;
                     
                     const spherical = new THREE.Spherical();
                     spherical.setFromVector3(camera.position);
-                    spherical.theta += deltaX * 0.01 * cameraSpeed;
-                    spherical.phi += deltaY * 0.01 * cameraSpeed;
+                    spherical.theta -= deltaX * 0.01;
+                    spherical.phi += deltaY * 0.01;
                     spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
                     
+                    spherical.radius = cameraDistance;
                     camera.position.setFromSpherical(spherical);
                     camera.lookAt(0, 0, 0);
                     
                     touchStartX = event.touches[0].clientX;
                     touchStartY = event.touches[0].clientY;
                 } else if (event.touches.length === 2) {
-                    // Pinch zoom
+                    // Zoom con pinch
                     const dx = event.touches[0].clientX - event.touches[1].clientX;
                     const dy = event.touches[0].clientY - event.touches[1].clientY;
                     const currentDistance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (touchStartDistance > 0) {
-                        const zoomDelta = (currentDistance - touchStartDistance) * 0.01;
-                        const newZoom = Math.max(minZoom, Math.min(maxZoom, zoomLevel + zoomDelta));
+                        const zoomDelta = (currentDistance - touchStartDistance) * 0.02;
+                        cameraDistance -= zoomDelta; // Invertito per essere naturale
+                        cameraDistance = Math.max(1, Math.min(50, cameraDistance));
                         
-                        if (newZoom !== zoomLevel) {
-                            zoomLevel = newZoom;
-                            applyZoom();
-                            updateZoomDisplay();
-                        }
+                        const direction = camera.position.clone().normalize();
+                        camera.position.copy(direction.multiplyScalar(cameraDistance));
+                        camera.lookAt(0, 0, 0);
+                        
+                        updateZoomDisplay();
                     }
                     
                     touchStartDistance = currentDistance;
@@ -620,38 +622,21 @@
                 touchStartDistance = 0;
             });
             
-            // Set initial cursor
             renderer.domElement.style.cursor = 'grab';
-        }
-        
-        function applyZoom() {
-            if (!camera) return;
-            
-            // Calcola la distanza base dal modello
-            let baseDistance = 8;
-            if (model) {
-                const box = new THREE.Box3().setFromObject(model);
-                const size = box.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                baseDistance = maxDim * 2;
-            }
-            
-            // Applica zoom mantenendo la direzione
-            const direction = camera.position.clone().normalize();
-            const targetDistance = baseDistance / zoomLevel;
-            camera.position.copy(direction.multiplyScalar(targetDistance));
-            camera.lookAt(0, 0, 0);
         }
         
         function updateZoomDisplay() {
             const zoomValueElement = document.getElementById('zoomValue');
             const zoomControlElement = document.getElementById('zoomControl');
             
+            // Calcola zoom come rapporto inverso della distanza
+            const zoomValue = 10 / cameraDistance;
+            
             if (zoomValueElement) {
-                zoomValueElement.textContent = zoomLevel.toFixed(1) + 'x';
+                zoomValueElement.textContent = zoomValue.toFixed(1) + 'x';
             }
             if (zoomControlElement) {
-                zoomControlElement.value = zoomLevel;
+                zoomControlElement.value = zoomValue;
             }
         }
         
@@ -692,8 +677,14 @@
             });
             
             document.getElementById('zoomControl').addEventListener('input', (e) => {
-                zoomLevel = parseFloat(e.target.value);
-                applyZoom();
+                const zoomValue = parseFloat(e.target.value);
+                cameraDistance = 10 / zoomValue; // Inverso del zoom
+                
+                // Applica nuova distanza
+                const direction = camera.position.clone().normalize();
+                camera.position.copy(direction.multiplyScalar(cameraDistance));
+                camera.lookAt(0, 0, 0);
+                
                 updateZoomDisplay();
             });
             
@@ -875,15 +866,18 @@
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
             
-            // Centra il modello
-            model.position.sub(center);
+            // CENTRA SEMPRE IL MODELLO ALL'ORIGINE
+            model.position.set(-center.x, -center.y, -center.z);
             
-            // Scala se troppo grande
+            // Scala il modello per renderlo di dimensione standard
             const maxDim = Math.max(size.x, size.y, size.z);
-            if (maxDim > 5) {
-                const scale = 5 / maxDim;
-                model.scale.multiplyScalar(scale);
+            if (maxDim > 0) {
+                const targetSize = 4; // Dimensione target standard
+                const scale = targetSize / maxDim;
+                model.scale.setScalar(scale);
             }
+            
+            console.log('Modello centrato e scalato - Dimensioni:', size);
         }
         
         function showLoadingScreen(message) {
@@ -905,21 +899,20 @@
         }
         
         function resetCamera() {
-            camera.position.set(5, 5, 5);
+            cameraDistance = 10;
+            camera.position.set(cameraDistance * 0.7, cameraDistance * 0.5, cameraDistance * 0.7);
             camera.lookAt(0, 0, 0);
+            updateZoomDisplay();
             showNotification('Camera ripristinata', 'success');
         }
         
         function fitToScreen() {
             if (model) {
-                const box = new THREE.Box3().setFromObject(model);
-                const center = box.getCenter(new THREE.Vector3());
-                const size = box.getSize(new THREE.Vector3());
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const distance = maxDim * 2;
-                
-                camera.position.set(distance, distance, distance);
-                camera.lookAt(center);
+                // Il modello è già centrato e scalato, quindi usiamo una distanza standard
+                cameraDistance = 8;
+                camera.position.set(cameraDistance * 0.7, cameraDistance * 0.5, cameraDistance * 0.7);
+                camera.lookAt(0, 0, 0);
+                updateZoomDisplay();
                 showNotification('Modello centrato', 'success');
             }
         }
