@@ -271,49 +271,253 @@
         .notification-error { background: #f44336; }
         .notification-info { background: #2196F3; }
         
-        /* Mobile */
+        /* Mobile First Design */
         @media (max-width: 768px) {
+            body {
+                background-size: 300% 300%;
+                animation: gradientShift 10s ease infinite;
+            }
+            
             .app-container {
                 flex-direction: column;
+                height: 100vh;
+                overflow: hidden;
             }
             
             .sidebar {
                 width: 100%;
-                height: auto;
+                height: 60vh;
                 position: fixed;
-                bottom: -50%;
-                transition: bottom 0.3s ease;
+                bottom: -60vh;
+                transition: bottom 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
                 z-index: 1000;
-                border-radius: 20px 20px 0 0;
+                border-radius: 25px 25px 0 0;
+                max-height: 70vh;
+                box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+                backdrop-filter: blur(25px);
+                background: rgba(255, 255, 255, 0.15);
             }
             
             .sidebar.open {
                 bottom: 0;
             }
             
+            .sidebar .section {
+                margin-bottom: 15px;
+                padding: 15px;
+            }
+            
+            .sidebar .section-title {
+                font-size: 14px;
+                margin-bottom: 10px;
+            }
+            
+            .control-group {
+                margin-bottom: 12px;
+            }
+            
+            .control-label {
+                font-size: 13px;
+                margin-bottom: 8px;
+            }
+            
+            .btn {
+                padding: 12px 16px;
+                margin: 3px;
+                font-size: 13px;
+                min-height: 44px; /* iOS touch target */
+                border-radius: 12px;
+            }
+            
             .viewer-container {
                 margin: 0;
                 border-radius: 0;
+                height: 100vh;
+                position: relative;
             }
             
             .mobile-menu-btn {
                 position: fixed;
-                bottom: 20px;
+                bottom: 30px;
                 right: 20px;
-                background: #667eea;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                 color: white;
                 border: none;
-                width: 60px;
-                height: 60px;
+                width: 64px;
+                height: 64px;
                 border-radius: 50%;
-                font-size: 20px;
+                font-size: 22px;
                 cursor: pointer;
                 z-index: 1001;
-                display: block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 20px rgba(102, 126, 234, 0.4);
+                transition: all 0.3s ease;
+                backdrop-filter: blur(10px);
+            }
+            
+            .mobile-menu-btn:active {
+                transform: scale(0.95);
+            }
+            
+            .mobile-menu-btn.open {
+                background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+                transform: rotate(45deg);
+            }
+            
+            /* Quick Controls Bar */
+            .quick-controls {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(255, 255, 255, 0.15);
+                backdrop-filter: blur(20px);
+                border-radius: 25px;
+                padding: 8px 12px;
+                display: flex;
+                gap: 10px;
+                z-index: 999;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            }
+            
+            .quick-btn {
+                background: rgba(255, 255, 255, 0.2);
+                border: none;
+                color: white;
+                width: 44px;
+                height: 44px;
+                border-radius: 50%;
+                font-size: 16px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            
+            .quick-btn:active {
+                transform: scale(0.9);
+                background: rgba(255, 255, 255, 0.3);
             }
             
             .welcome-screen {
-                width: 95%;
+                width: 90%;
+                padding: 20px;
+            }
+            
+            .welcome-title {
+                font-size: 32px;
+                margin-bottom: 15px;
+            }
+            
+            .welcome-icon {
+                font-size: 48px;
+                margin-bottom: 15px;
+            }
+            
+            .upload-zone-center {
+                padding: 25px 20px;
+                border-radius: 20px;
+                margin-top: 10px;
+            }
+            
+            .upload-text-center h3 {
+                font-size: 18px;
+                margin-bottom: 8px;
+            }
+            
+            .upload-text-center p {
+                font-size: 13px;
+                margin-bottom: 12px;
+            }
+            
+            .format-badge {
+                padding: 6px 12px;
+                font-size: 11px;
+                margin: 2px;
+            }
+            
+            /* Touch feedback */
+            .upload-zone-center:active {
+                transform: scale(0.98);
+            }
+            
+            /* Hide desktop scrollbars on mobile */
+            .sidebar::-webkit-scrollbar {
+                width: 3px;
+            }
+            
+            .sidebar::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            
+            .sidebar::-webkit-scrollbar-thumb {
+                background: rgba(255, 255, 255, 0.3);
+                border-radius: 3px;
+            }
+            
+            /* Loading screen mobile optimization */
+            .loading-screen {
+                backdrop-filter: blur(10px);
+            }
+            
+            .loading-spinner {
+                width: 40px;
+                height: 40px;
+                border-width: 3px;
+            }
+            
+            /* Notification mobile */
+            .notification {
+                top: 80px;
+                right: 15px;
+                left: 15px;
+                max-width: none;
+                text-align: center;
+                border-radius: 15px;
+                font-size: 14px;
+                padding: 12px 15px;
+            }
+        }
+        
+        /* Landscape mobile optimization */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .sidebar {
+                height: 50vh;
+                bottom: -50vh;
+            }
+            
+            .mobile-menu-btn {
+                bottom: 15px;
+                right: 15px;
+                width: 50px;
+                height: 50px;
+                font-size: 18px;
+            }
+            
+            .quick-controls {
+                bottom: 10px;
+                padding: 6px 10px;
+            }
+            
+            .quick-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+        }
+        
+        /* Extra small screens */
+        @media (max-width: 480px) {
+            .logo h1 {
+                font-size: 20px;
+            }
+            
+            .logo p {
+                font-size: 11px;
             }
             
             .welcome-title {
@@ -332,6 +536,13 @@
         <button class="mobile-menu-btn" onclick="toggleSidebar()" id="mobileMenuBtn" style="display: none;">
             ☰
         </button>
+        
+        <!-- Quick Controls for Mobile -->
+        <div class="quick-controls" id="quickControls" style="display: none;">
+            <button class="quick-btn" onclick="resetCamera()" title="Reset Vista">🏠</button>
+            <button class="quick-btn" onclick="toggleAnimation()" title="Anima">▶️</button>
+            <button class="quick-btn" onclick="fitToScreen()" title="Centra">🎯</button>
+        </div>
         
         <!-- Sidebar -->
         <div class="sidebar" id="sidebar">
@@ -604,13 +815,26 @@
                 updateZoomDisplay();
             });
             
-            // Touch controls migliorati
+            // Touch controls OTTIMIZZATI per mobile
             let touchStartDistance = 0;
             let touchStartX = 0, touchStartY = 0;
             let isTouching = false;
+            let lastTap = 0;
             
+            // Prevenzione scroll su mobile durante interazione
             renderer.domElement.addEventListener('touchstart', (event) => {
                 event.preventDefault();
+                
+                const currentTime = Date.now();
+                const tapLength = currentTime - lastTap;
+                
+                // Double tap per fit to screen
+                if (tapLength < 500 && tapLength > 0 && event.touches.length === 1) {
+                    fitToScreen();
+                    showNotification('Modello centrato', 'info');
+                    return;
+                }
+                lastTap = currentTime;
                 
                 if (event.touches.length === 1) {
                     isTouching = true;
@@ -620,14 +844,15 @@
                     const dx = event.touches[0].clientX - event.touches[1].clientX;
                     const dy = event.touches[0].clientY - event.touches[1].clientY;
                     touchStartDistance = Math.sqrt(dx * dx + dy * dy);
+                    isTouching = false; // Disabilita rotazione durante pinch
                 }
-            });
+            }, { passive: false });
             
             renderer.domElement.addEventListener('touchmove', (event) => {
                 event.preventDefault();
                 
                 if (event.touches.length === 1 && isTouching) {
-                    // Rotazione
+                    // Rotazione con sensibilità ottimizzata per mobile
                     const deltaX = event.touches[0].clientX - touchStartX;
                     const deltaY = event.touches[0].clientY - touchStartY;
                     
@@ -636,8 +861,9 @@
                     const cameraToTarget = camera.position.clone().sub(target);
                     spherical.setFromVector3(cameraToTarget);
                     
-                    spherical.theta -= deltaX * 0.01;
-                    spherical.phi += deltaY * 0.01;
+                    // Sensibilità ridotta per controllo più preciso
+                    spherical.theta -= deltaX * 0.008;
+                    spherical.phi += deltaY * 0.008;
                     spherical.phi = Math.max(0.1, Math.min(Math.PI - 0.1, spherical.phi));
                     
                     spherical.radius = cameraDistance;
@@ -652,14 +878,16 @@
                     touchStartX = event.touches[0].clientX;
                     touchStartY = event.touches[0].clientY;
                 } else if (event.touches.length === 2) {
-                    // Zoom con pinch
+                    // Zoom con pinch MIGLIORATO
                     const dx = event.touches[0].clientX - event.touches[1].clientX;
                     const dy = event.touches[0].clientY - event.touches[1].clientY;
                     const currentDistance = Math.sqrt(dx * dx + dy * dy);
                     
                     if (touchStartDistance > 0) {
-                        const zoomDelta = (currentDistance - touchStartDistance) * 0.005;
-                        cameraDistance *= (1 - zoomDelta);
+                        const distanceRatio = currentDistance / touchStartDistance;
+                        const zoomFactor = 1 / distanceRatio;
+                        
+                        cameraDistance *= zoomFactor;
                         cameraDistance = Math.max(0.5, Math.min(100, cameraDistance));
                         
                         const target = modelCenter || new THREE.Vector3(0, 0, 0);
@@ -672,14 +900,23 @@
                     
                     touchStartDistance = currentDistance;
                 }
-            });
+            }, { passive: false });
             
-            renderer.domElement.addEventListener('touchend', () => {
+            renderer.domElement.addEventListener('touchend', (event) => {
+                event.preventDefault();
                 isTouching = false;
                 touchStartDistance = 0;
-            });
+            }, { passive: false });
+            
+            // Prevenzione comportamenti indesiderati su mobile
+            renderer.domElement.addEventListener('touchcancel', (event) => {
+                event.preventDefault();
+                isTouching = false;
+                touchStartDistance = 0;
+            }, { passive: false });
             
             renderer.domElement.style.cursor = 'grab';
+            renderer.domElement.style.touchAction = 'none'; // Importante per iOS
         }
         
         function updateZoomDisplay() {
@@ -1021,7 +1258,23 @@
         
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
+            const menuBtn = document.getElementById('mobileMenuBtn');
+            const isOpen = sidebar.classList.contains('open');
+            
             sidebar.classList.toggle('open');
+            menuBtn.classList.toggle('open');
+            
+            // Cambia icona del menu
+            if (isOpen) {
+                menuBtn.innerHTML = '☰';
+            } else {
+                menuBtn.innerHTML = '✕';
+            }
+            
+            // Vibrazione tattile su dispositivi supportati
+            if (navigator.vibrate) {
+                navigator.vibrate(50);
+            }
         }
         
         function showNotification(message, type) {
@@ -1042,13 +1295,30 @@
             camera.updateProjectionMatrix();
             renderer.setSize(container.clientWidth, container.clientHeight);
             
-            // Mobile detection
+            // Mobile detection e UI adaptation
             const mobileBtn = document.getElementById('mobileMenuBtn');
-            if (window.innerWidth <= 768) {
-                mobileBtn.style.display = 'block';
+            const quickControls = document.getElementById('quickControls');
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isMobile) {
+                mobileBtn.style.display = 'flex';
+                quickControls.style.display = 'flex';
+                
+                // Chiudi sidebar se aperta quando si ridimensiona
+                const sidebar = document.getElementById('sidebar');
+                sidebar.classList.remove('open');
+                mobileBtn.classList.remove('open');
+                mobileBtn.innerHTML = '☰';
+                
+                // Ottimizza renderer per performance mobile
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             } else {
                 mobileBtn.style.display = 'none';
+                quickControls.style.display = 'none';
                 document.getElementById('sidebar').classList.remove('open');
+                
+                // Qualità massima per desktop
+                renderer.setPixelRatio(window.devicePixelRatio);
             }
         }
         
