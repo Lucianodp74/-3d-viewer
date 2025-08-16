@@ -1,4 +1,331 @@
-<!DOCTYPE html>
+function showShareSection() {
+            const shareSection = document.getElementById('shareSection');
+            const modelNameSpan = document.getElementById('modelName');
+            
+            if (shareSection && modelNameSpan) {
+                shareSection.style.display = 'block';
+                modelNameSpan.textContent = currentModelName;
+                console.log('Sezione condivisione mostrata per:', currentModelName);
+            }
+        }
+        
+        function shareViaWhatsApp() {
+            if (!currentModelData) {
+                showNotification('Carica prima un modello 3D', 'error');
+                return;
+            }
+            
+            const shareUrl = generateShareUrl();
+            const message = `🏗️ Visualizza il mio modello 3D: ${currentModelName}\n\n${shareUrl}\n\n💡 Apri il link su smartphone per una migliore esperienza!`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+            showNotification('WhatsApp aperto per condividere', 'success');
+        }
+        
+        function shareViaEmail() {
+            if (!currentModelData) {
+                showNotification('Carica prima un modello 3D', 'error');
+                return;
+            }
+            
+            const shareUrl = generateShareUrl();
+            const subject = `Visualizza il mio modello 3D: ${currentModelName}`;
+            const body = `Ciao!\n\nTi condivido il mio modello 3D "${currentModelName}".\n\nClicca qui per visualizzarlo: ${shareUrl}\n\n💡 Per una migliore esperienza, apri il link su smartphone o tablet.\n\nRealizzato con MarioPro 3D Viewer\n\nSaluti!`;
+            
+            const emailUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = emailUrl;
+            showNotification('Client email aperto', 'success');
+        }
+        
+        function shareViaLink() {
+            if (!currentModelData) {
+                showNotification('Carica prima un modello 3D', 'error');
+                return;
+            }
+            
+            const shareUrl = generateShareUrl();
+            
+            // Copia negli appunti
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(shareUrl).then(() => {
+                    showNotification('Link copiato negli appunti!', 'success');
+                }).catch(() => {
+                    fallbackCopyText(shareUrl);
+                });
+            } else {
+                fallbackCopyText(shareUrl);
+            }
+        }
+        
+        function fallbackCopyText(text) {
+            // Fallback per browser senza clipboard API
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                showNotification('Link copiato negli appunti!', 'success');
+            } catch (err) {
+                showNotification('Impossibile copiare il link', 'error');
+                console.error('Fallback copy failed:', err);
+            }
+            
+            document.body.removeChild(textArea);
+        }
+        
+        function generateShareUrl() {
+            // Genera URL con dati del modello nel fragment
+            const modelInfo = {
+                name: currentModelData.name,
+                type: currentModelData.type,
+                data: currentModelData.data,
+                timestamp: Date.now()
+            };
+            
+            // Comprimi e codifica i dati
+            const encodedData = btoa(JSON.stringify(modelInfo));
+            const baseUrl = window.location.origin + window.location.pathname;
+            
+            return `${baseUrl}#shared=${encodedData}`;
+        }
+        
+        function generateQRCode() {
+            if (!currentModelData) {
+                showNotification('Carica prima un modello 3D', 'error');
+                return;
+            }
+            
+            const shareUrl = generateShareUrl();
+            const modal = document.getElementById('qrModal');
+            const canvas = document.getElementById('qrCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Genera QR code semplice (implementazione basic)
+            generateSimpleQR(canvas, shareUrl);
+            
+            modal.style.display = 'flex';
+            showNotification('QR Code generato', 'success');
+        }
+        
+        function generateSimpleQR(canvas, text) {
+            const ctx = canvas.getContext('2d');
+            const size = 200;
+            const modules = 25; // Griglia 25x25 per semplicità
+            const moduleSize = size / modules;
+            
+            // Pulisci canvas
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, size, size);
+            
+            // Genera pattern semplice basato su hash del testo
+            ctx.fillStyle = 'black';
+            
+            // Header QR code pattern
+            for (let i = 0; i < modules; i++) {
+                for (let j = 0; j < modules; j++) {
+                    // Crea pattern pseudo-casuale basato sulla stringa
+                    const hash = simpleHash(text + i + j);
+                    if (hash % 3 === 0) {
+                        ctx.fillRect(i * moduleSize, j * moduleSize, moduleSize, moduleSize);
+                    }
+                }
+            }
+            
+            // Aggiungi corner markers (pattern riconoscibili)
+            drawCornerMarker(ctx, 0, 0, moduleSize);
+            drawCornerMarker(ctx, (modules - 7) * moduleSize, 0, moduleSize);
+            drawCornerMarker(ctx, 0, (modules - 7) * moduleSize, moduleSize);
+        }
+        
+        function drawCornerMarker(ctx, x, y, moduleSize) {
+            ctx.fillStyle = 'black';
+            // Outer square
+            ctx.fillRect(x, y, 7 * moduleSize, 7 * moduleSize);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(x + moduleSize, y + moduleSize, 5 * moduleSize, 5 * moduleSize);
+            ctx.fillStyle = 'black';
+            ctx.fillRect(x + 2 * moduleSize, y + 2 * moduleSize, 3 * moduleSize, 3 * moduleSize);
+        }
+        
+        function simpleHash(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash; // Convert to 32-bit integer
+            }
+            return Math.abs(hash);
+        }
+        
+        function closeQRModal() {
+            document.getElementById('qrModal').style.display = 'none';
+        }
+        
+        function downloadQR() {
+            const canvas = document.getElementById('qrCanvas');
+            const link = document.createElement('a');
+            link.download = `${currentModelName}-QRCode.png`;
+            link.href = canvas.toDataURL();
+            link.click();
+            showNotification('QR Code scaricato', 'success');
+        }
+        
+        function loadSharedModel() {
+            // Controlla se c'è un modello condiviso nell'URL
+            const hash = window.location.hash;
+            if (hash.startsWith('#shared=')) {
+                try {
+                    const encodedData = hash.substring(8);
+                    const modelInfo = JSON.parse(atob(encodedData));
+                    
+                    console.log('Modello condiviso rilevato:', modelInfo.name);
+                    
+                    // Nascondi welcome screen
+                    document.getElementById('welcomeScreen').style.display = 'none';
+                    showLoadingScreen('Caricamento modello condiviso...');
+                    
+                    // Simula file object
+                    const fakeFile = {
+                        name: modelInfo.name,
+                        type: modelInfo.type,
+                        data: modelInfo.data
+                    };
+                    
+                    currentModelName = modelInfo.name;
+                    currentModelData = modelInfo;
+                    
+                    // Carica il modello
+                    if (modelInfo.type === 'dae') {
+                        loadSharedDAE(modelInfo.data);
+                    } else {
+                        loadSharedGLTF(modelInfo.data, modelInfo.type === 'glb');
+                    }
+                    
+                } catch (error) {
+                    console.error('Errore nel caricamento del modello condiviso:', error);
+                    showNotification('Errore nel caricamento del modello condiviso', 'error');
+                }
+            }
+        }
+        
+        function loadSharedGLTF(data, isGLB) {
+            if (!window.THREE || !THREE.GLTFLoader) {
+                showNotification('GLTFLoader non disponibile', 'error');
+                hideLoadingScreen();
+                return;
+            }
+            
+            const loader = new THREE.GLTFLoader();
+            
+            try {
+                const onLoad = function(gltf) {
+                    modelGroup = new THREE.Group();
+                    modelGroup.add(gltf.scene);
+                    scene.add(modelGroup);
+                    
+                    gltf.scene.traverse(function(child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                        }
+                    });
+                    
+                    centerAndScaleModel();
+                    hideLoadingScreen();
+                    showNotification('Modello condiviso caricato!', 'success');
+                    fitToScreen();
+                    showShareSection();
+                };
+                
+                const onError = function(error) {
+                    console.error('Errore caricamento modello condiviso:', error);
+                    hideLoadingScreen();
+                    showNotification('Errore nel caricamento del modello condiviso', 'error');
+                };
+                
+                loader.parse(data, '', onLoad, onError);
+                
+            } catch (error) {
+                console.error('Errore parsing modello condiviso:', error);
+                hideLoadingScreen();
+                showNotification('Errore nel parsing del modello condiviso', 'error');
+            }
+        }
+        
+        function loadSharedDAE(data) {
+            if (!window.THREE || !THREE.ColladaLoader) {
+                showNotification('ColladaLoader non disponibile', 'error');
+                hideLoadingScreen();
+                return;
+            }
+            
+            const loader = new THREE.ColladaLoader();
+            
+            try {
+                const onLoad = function(collada) {
+                    modelGroup = new THREE.Group();
+                    modelGroup.add(collada.scene);
+                    scene.add(modelGroup);
+                    
+                    collada.scene.traverse(function(child) {
+                        if (child.isMesh) {
+                            child.castShadow = true;
+                            child.receiveShadow = true;
+                            
+                            if (child.material) {
+                                if (Array.isArray(child.material)) {
+                                    child.material.forEach(mat => {
+                                        if (mat.isMeshLambertMaterial) {
+                                            const standardMat = new THREE.MeshStandardMaterial({
+                                                color: mat.color,
+                                                map: mat.map,
+                                                transparent: mat.transparent,
+                                                opacity: mat.opacity
+                                            });
+                                            child.material = standardMat;
+                                        }
+                                    });
+                                } else if (child.material.isMeshLambertMaterial) {
+                                    const standardMat = new THREE.MeshStandardMaterial({
+                                        color: child.material.color,
+                                        map: child.material.map,
+                                        transparent: child.material.transparent,
+                                        opacity: child.material.opacity
+                                    });
+                                    child.material = standardMat;
+                                }
+                            }
+                        }
+                    });
+                    
+                    centerAndScaleModel();
+                    hideLoadingScreen();
+                    showNotification('Modello DAE condiviso caricato!', 'success');
+                    fitToScreen();
+                    showShareSection();
+                };
+                
+                const onError = function(error) {
+                    console.error('Errore caricamento DAE condiviso:', error);
+                    hideLoadingScreen();
+                    showNotification('Errore nel caricamento del modello DAE condiviso', 'error');
+                };
+                
+                loader.parse(data, onLoad, onError);
+                
+            } catch (error) {
+                console.error('Errore parsing DAE condiviso:', error);
+                hideLoadingScreen();
+                showNotification('Errore nel parsing del modello DAE condiviso', 'error');
+            }
+        }<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -161,6 +488,86 @@
         .btn:hover {
             background: rgba(255, 255, 255, 0.3);
             transform: translateY(-2px);
+        }
+        
+        .share-btn {
+            width: 100%;
+            margin: 2px 0;
+            text-align: left;
+        }
+        
+        .share-info {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        
+        /* QR Modal */
+        .qr-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .qr-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            max-width: 300px;
+            width: 90%;
+            color: #333;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .qr-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .qr-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        .qr-close {
+            background: #f44336;
+            border: none;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .qr-body canvas {
+            margin: 15px auto;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+        }
+        
+        .qr-body p {
+            margin: 15px 0;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .qr-body .btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
         }
         
         .viewer-container {
@@ -583,6 +990,44 @@
                 <button class="btn" onclick="fitToScreen()">🎯 Centra</button>
             </div>
             
+            <div class="section" id="shareSection" style="display: none;">
+                <div class="section-title">📤 Condividi Modello</div>
+                
+                <div class="share-info" id="shareInfo">
+                    <p style="font-size: 12px; opacity: 0.8; margin-bottom: 10px;">
+                        <span id="modelName">Nessun modello caricato</span>
+                    </p>
+                </div>
+                
+                <button class="btn share-btn" onclick="shareViaWhatsApp()">
+                    💬 WhatsApp
+                </button>
+                <button class="btn share-btn" onclick="shareViaEmail()">
+                    📧 Email
+                </button>
+                <button class="btn share-btn" onclick="shareViaLink()">
+                    🔗 Copia Link
+                </button>
+                <button class="btn share-btn" onclick="generateQRCode()">
+                    📱 QR Code
+                </button>
+                
+                <!-- QR Code Modal -->
+                <div class="qr-modal" id="qrModal" style="display: none;">
+                    <div class="qr-content">
+                        <div class="qr-header">
+                            <h3>📱 Condividi con QR Code</h3>
+                            <button class="qr-close" onclick="closeQRModal()">✕</button>
+                        </div>
+                        <div class="qr-body">
+                            <canvas id="qrCanvas" width="200" height="200"></canvas>
+                            <p>Fai scansionare questo QR code al tuo cliente</p>
+                            <button class="btn" onclick="downloadQR()">💾 Scarica QR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
             <div class="section">
                 <div class="section-title">💡 Illuminazione</div>
                 
@@ -642,6 +1087,8 @@
         let cameraSpeed = 1.0;
         let cameraDistance = 10;
         let modelBoundingBox, modelCenter, modelSize;
+        let currentModelData = null; // Per condivisione
+        let currentModelName = 'Modello 3D';
         
         // Inizializzazione
         function init() {
@@ -1063,6 +1510,9 @@
             console.log('- Dimensione:', fileSize + ' MB');
             console.log('- Tipo MIME:', file.type);
             
+            // Salva info modello per condivisione
+            currentModelName = file.name;
+            
             // Controllo dimensione file (limite 50MB per mobile)
             if (file.size > 50 * 1024 * 1024) {
                 showNotification('File troppo grande (max 50MB)', 'error');
@@ -1076,6 +1526,24 @@
                 return;
             }
             
+            // Salva dati file per condivisione
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                currentModelData = {
+                    name: file.name,
+                    type: fileExtension,
+                    data: e.target.result,
+                    size: fileSize
+                };
+                console.log('Dati modello salvati per condivisione');
+            };
+            
+            if (fileExtension === 'glb') {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
+            
             // Mostra loading
             showLoadingScreen('Caricamento ' + file.name + '...');
             
@@ -1087,13 +1555,169 @@
                 scene.remove(modelGroup);
             }
             
-            // Carica file GLTF/GLB
+            // Carica file in base al formato
             try {
-                loadGLTFFile(file);
+                if (fileExtension === 'dae') {
+                    loadDAEFile(file);
+                } else {
+                    loadGLTFFile(file);
+                }
             } catch (error) {
                 console.error('Errore durante il caricamento:', error);
                 hideLoadingScreen();
                 showNotification('Errore durante il caricamento del file', 'error');
+            }
+        }
+        
+        function loadDAEFile(file) {
+            console.log('=== Inizio caricamento DAE (Collada) ===');
+            console.log('File da caricare:', file.name, file.size, 'bytes');
+            
+            if (!window.THREE || !THREE.ColladaLoader) {
+                console.error('ColladaLoader non disponibile');
+                showNotification('ColladaLoader non disponibile', 'error');
+                hideLoadingScreen();
+                return;
+            }
+            
+            const loader = new THREE.ColladaLoader();
+            const reader = new FileReader();
+            
+            console.log('Lettura file DAE come testo...');
+            
+            reader.onload = function(e) {
+                console.log('FileReader completato, lunghezza dati:', e.target.result.length);
+                
+                try {
+                    console.log('Avvio parsing con ColladaLoader...');
+                    
+                    const onLoad = function(collada) {
+                        console.log('DAE caricato con successo!');
+                        console.log('Scene objects:', collada.scene.children.length);
+                        
+                        // Crea nuovo gruppo per il modello
+                        modelGroup = new THREE.Group();
+                        modelGroup.add(collada.scene);
+                        scene.add(modelGroup);
+                        
+                        // Abilita ombre e ottimizza materiali
+                        let meshCount = 0;
+                        collada.scene.traverse(function(child) {
+                            if (child.isMesh) {
+                                child.castShadow = true;
+                                child.receiveShadow = true;
+                                meshCount++;
+                                
+                                // Ottimizza materiali DAE per Three.js
+                                if (child.material) {
+                                    if (Array.isArray(child.material)) {
+                                        child.material.forEach(mat => {
+                                            if (mat.isMeshLambertMaterial) {
+                                                // Converti Lambert in Standard per migliori risultati
+                                                const standardMat = new THREE.MeshStandardMaterial({
+                                                    color: mat.color,
+                                                    map: mat.map,
+                                                    transparent: mat.transparent,
+                                                    opacity: mat.opacity
+                                                });
+                                                child.material = standardMat;
+                                            }
+                                        });
+                                    } else if (child.material.isMeshLambertMaterial) {
+                                        const standardMat = new THREE.MeshStandardMaterial({
+                                            color: child.material.color,
+                                            map: child.material.map,
+                                            transparent: child.material.transparent,
+                                            opacity: child.material.opacity
+                                        });
+                                        child.material = standardMat;
+                                    }
+                                }
+                            }
+                        });
+                        
+                        console.log('Mesh trovate:', meshCount);
+                        
+                        // Centra e scala il modello
+                        centerAndScaleModel();
+                        
+                        hideLoadingScreen();
+                        showNotification('File DAE caricato con successo!', 'success');
+                        fitToScreen();
+                        
+                        // Mostra sezione condivisione
+                        showShareSection();
+                    };
+                    
+                    const onProgress = function(progress) {
+                        if (progress.lengthComputable) {
+                            const percentComplete = (progress.loaded / progress.total) * 100;
+                            console.log('Progresso caricamento:', percentComplete.toFixed(2) + '%');
+                            
+                            const loadingText = document.getElementById('loadingText');
+                            if (loadingText) {
+                                loadingText.textContent = `Caricamento ${file.name}... ${percentComplete.toFixed(0)}%`;
+                            }
+                        }
+                    };
+                    
+                    const onError = function(error) {
+                        console.error('=== ERRORE CARICAMENTO DAE ===');
+                        console.error('Errore:', error);
+                        console.error('Tipo errore:', error.type || 'unknown');
+                        console.error('Messaggio:', error.message || 'no message');
+                        
+                        hideLoadingScreen();
+                        
+                        let errorMessage = 'Errore nel caricamento del file DAE';
+                        if (error.message) {
+                            if (error.message.includes('parse') || error.message.includes('XML')) {
+                                errorMessage = 'File DAE corrotto o XML non valido';
+                            } else if (error.message.includes('texture') || error.message.includes('image')) {
+                                errorMessage = 'Errore nel caricamento delle texture DAE';
+                            }
+                        }
+                        
+                        showNotification(errorMessage, 'error');
+                    };
+                    
+                    // Parse del contenuto DAE
+                    loader.parse(e.target.result, onLoad, onError);
+                    
+                } catch (error) {
+                    console.error('=== ERRORE PARSING DAE ===');
+                    console.error('Errore durante il parsing:', error);
+                    console.error('Stack trace:', error.stack);
+                    
+                    hideLoadingScreen();
+                    showNotification('Errore nel parsing del file DAE: ' + error.message, 'error');
+                }
+            };
+            
+            reader.onerror = function(e) {
+                console.error('=== ERRORE FILEREADER DAE ===');
+                console.error('Errore FileReader:', e);
+                console.error('ReadyState:', reader.readyState);
+                console.error('Error code:', e.target.error?.code);
+                
+                hideLoadingScreen();
+                showNotification('Errore nella lettura del file DAE', 'error');
+            };
+            
+            reader.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    console.log('FileReader progresso:', percent.toFixed(2) + '%');
+                }
+            };
+            
+            // Inizio lettura file DAE come testo
+            try {
+                reader.readAsText(file);
+            } catch (error) {
+                console.error('Errore durante la lettura del file DAE:', error);
+                hideLoadingScreen();
+                showNotification('Impossibile leggere il file DAE', 'error');
             }
         }
         
@@ -1145,6 +1769,9 @@
                         hideLoadingScreen();
                         showNotification('File ' + (isGLB ? 'GLB' : 'GLTF') + ' caricato con successo!', 'success');
                         fitToScreen();
+                        
+                        // Mostra sezione condivisione
+                        showShareSection();
                     };
                     
                     const onProgress = function(progress) {
