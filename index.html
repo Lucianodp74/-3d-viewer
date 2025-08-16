@@ -8,8 +8,8 @@
     <!-- Three.js CDN stabile -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- Loader per formati 3D -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/OBJLoader.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/ColladaLoader.js"></script>
     
     <style>
         * {
@@ -617,12 +617,12 @@
                         <h3>📁 Carica Modello 3D</h3>
                         <p>Trascina file o tocca per selezionare</p>
                         <div class="supported-formats">
-                            <span class="format-badge">OBJ</span>
                             <span class="format-badge">GLTF</span>
                             <span class="format-badge">GLB</span>
+                            <span class="format-badge">DAE</span>
                         </div>
                     </div>
-                    <input type="file" id="fileInputCenter" class="file-input" accept=".obj,.gltf,.glb">
+                    <input type="file" id="fileInputCenter" class="file-input" accept=".gltf,.glb,.dae" capture="environment">
                 </div>
             </div>
             
@@ -937,16 +937,45 @@
         }
         
         function setupEventListeners() {
-            // File input
+            // File input con debug migliorato
             const fileInput = document.getElementById('fileInputCenter');
             fileInput.addEventListener('change', handleFileUpload);
             
-            // Drag & Drop
+            // Debug per mobile - log di tutti gli eventi
+            fileInput.addEventListener('click', () => {
+                console.log('File input clicked on mobile');
+            });
+            
+            // Drag & Drop con supporto mobile migliorato
             const uploadZone = document.querySelector('.upload-zone-center');
             if (uploadZone) {
+                // Click event per mobile
+                uploadZone.addEventListener('click', (e) => {
+                    console.log('Upload zone clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Trigger file input
+                    fileInput.click();
+                });
+                
+                // Touch events per mobile
+                uploadZone.addEventListener('touchend', (e) => {
+                    console.log('Upload zone touched');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    // Piccolo delay per evitare problemi di touch
+                    setTimeout(() => {
+                        fileInput.click();
+                    }, 100);
+                });
+                
+                // Drag over
                 uploadZone.addEventListener('dragover', (e) => {
                     e.preventDefault();
                     uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                    console.log('Drag over detected');
                 });
                 
                 uploadZone.addEventListener('dragleave', (e) => {
@@ -958,6 +987,7 @@
                     e.preventDefault();
                     uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                     
+                    console.log('Files dropped:', e.dataTransfer.files.length);
                     const files = e.dataTransfer.files;
                     if (files.length > 0) {
                         const fakeEvent = { target: { files: files } };
@@ -1012,16 +1042,37 @@
         
         function handleFileUpload(event) {
             const file = event.target.files[0];
-            if (!file) return;
+            
+            console.log('handleFileUpload called');
+            console.log('Files in event:', event.target.files.length);
+            console.log('File object:', file);
+            
+            if (!file) {
+                console.log('No file selected');
+                showNotification('Nessun file selezionato', 'error');
+                return;
+            }
             
             const fileName = file.name.toLowerCase();
             const fileExtension = fileName.split('.').pop();
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2); // MB
             
-            console.log('File caricato:', file.name, 'Tipo:', fileExtension);
+            console.log('File details:');
+            console.log('- Nome:', file.name);
+            console.log('- Estensione:', fileExtension);
+            console.log('- Dimensione:', fileSize + ' MB');
+            console.log('- Tipo MIME:', file.type);
+            
+            // Controllo dimensione file (limite 50MB per mobile)
+            if (file.size > 50 * 1024 * 1024) {
+                showNotification('File troppo grande (max 50MB)', 'error');
+                return;
+            }
             
             // Verifica formato supportato
-            if (!['obj', 'gltf', 'glb'].includes(fileExtension)) {
-                showNotification('Formato non supportato. Usa OBJ, GLTF o GLB', 'error');
+            if (!['gltf', 'glb', 'dae'].includes(fileExtension)) {
+                console.log('Formato non supportato:', fileExtension);
+                showNotification('Formato non supportato. Usa GLTF, GLB o DAE', 'error');
                 return;
             }
             
@@ -1036,77 +1087,22 @@
                 scene.remove(modelGroup);
             }
             
-            // Carica in base al formato
-            if (fileExtension === 'obj') {
-                loadOBJFile(file);
-            } else if (fileExtension === 'gltf' || fileExtension === 'glb') {
+            // Carica file GLTF/GLB
+            try {
                 loadGLTFFile(file);
-            }
-        }
-        
-        function loadOBJFile(file) {
-            console.log('Caricamento file OBJ...');
-            
-            if (!window.THREE || !THREE.OBJLoader) {
-                showNotification('OBJLoader non disponibile', 'error');
+            } catch (error) {
+                console.error('Errore durante il caricamento:', error);
                 hideLoadingScreen();
-                return;
+                showNotification('Errore durante il caricamento del file', 'error');
             }
-            
-            const loader = new THREE.OBJLoader();
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                try {
-                    const objData = e.target.result;
-                    const loadedModel = loader.parse(objData);
-                    
-                    // Applica materiale migliorato
-                    const material = new THREE.MeshStandardMaterial({ 
-                        color: 0x888888,
-                        metalness: 0.3,
-                        roughness: 0.7
-                    });
-                    
-                    loadedModel.traverse(function(child) {
-                        if (child.isMesh) {
-                            child.material = material;
-                            child.castShadow = true;
-                            child.receiveShadow = true;
-                        }
-                    });
-                    
-                    // Crea nuovo gruppo per il modello
-                    modelGroup = new THREE.Group();
-                    modelGroup.add(loadedModel);
-                    scene.add(modelGroup);
-                    
-                    // Centra e scala il modello
-                    centerAndScaleModel();
-                    
-                    hideLoadingScreen();
-                    showNotification('File OBJ caricato con successo!', 'success');
-                    fitToScreen();
-                    
-                } catch (error) {
-                    console.error('Errore caricamento OBJ:', error);
-                    hideLoadingScreen();
-                    showNotification('Errore nel caricamento del file OBJ', 'error');
-                }
-            };
-            
-            reader.onerror = function() {
-                hideLoadingScreen();
-                showNotification('Errore nella lettura del file', 'error');
-            };
-            
-            reader.readAsText(file);
         }
         
         function loadGLTFFile(file) {
-            console.log('Caricamento file GLTF/GLB...');
+            console.log('=== Inizio caricamento GLTF/GLB ===');
+            console.log('File da caricare:', file.name, file.size, 'bytes');
             
             if (!window.THREE || !THREE.GLTFLoader) {
+                console.error('GLTFLoader non disponibile');
                 showNotification('GLTFLoader non disponibile', 'error');
                 hideLoadingScreen();
                 return;
@@ -1116,21 +1112,32 @@
             const reader = new FileReader();
             const isGLB = file.name.toLowerCase().endsWith('.glb');
             
+            console.log('Tipo file rilevato:', isGLB ? 'GLB (binary)' : 'GLTF (text)');
+            
             reader.onload = function(e) {
+                console.log('FileReader completato, dimensione dati:', e.target.result.byteLength || e.target.result.length);
+                
                 try {
                     const onLoad = function(gltf) {
+                        console.log('GLTF caricato con successo!');
+                        console.log('Scene objects:', gltf.scene.children.length);
+                        
                         // Crea nuovo gruppo per il modello
                         modelGroup = new THREE.Group();
                         modelGroup.add(gltf.scene);
                         scene.add(modelGroup);
                         
                         // Abilita ombre per tutti i mesh
+                        let meshCount = 0;
                         gltf.scene.traverse(function(child) {
                             if (child.isMesh) {
                                 child.castShadow = true;
                                 child.receiveShadow = true;
+                                meshCount++;
                             }
                         });
+                        
+                        console.log('Mesh trovate:', meshCount);
                         
                         // Centra e scala il modello
                         centerAndScaleModel();
@@ -1140,34 +1147,88 @@
                         fitToScreen();
                     };
                     
-                    const onError = function(error) {
-                        console.error('Errore caricamento GLTF:', error);
-                        hideLoadingScreen();
-                        showNotification('Errore nel caricamento del file GLTF', 'error');
+                    const onProgress = function(progress) {
+                        if (progress.lengthComputable) {
+                            const percentComplete = (progress.loaded / progress.total) * 100;
+                            console.log('Progresso caricamento:', percentComplete.toFixed(2) + '%');
+                            
+                            const loadingText = document.getElementById('loadingText');
+                            if (loadingText) {
+                                loadingText.textContent = `Caricamento ${file.name}... ${percentComplete.toFixed(0)}%`;
+                            }
+                        }
                     };
                     
+                    const onError = function(error) {
+                        console.error('=== ERRORE CARICAMENTO GLTF ===');
+                        console.error('Errore:', error);
+                        console.error('Tipo errore:', error.type || 'unknown');
+                        console.error('Messaggio:', error.message || 'no message');
+                        
+                        hideLoadingScreen();
+                        
+                        let errorMessage = 'Errore nel caricamento del file GLTF';
+                        if (error.message) {
+                            if (error.message.includes('fetch')) {
+                                errorMessage = 'Errore di rete durante il caricamento';
+                            } else if (error.message.includes('parse')) {
+                                errorMessage = 'File GLTF corrotto o non valido';
+                            }
+                        }
+                        
+                        showNotification(errorMessage, 'error');
+                    };
+                    
+                    console.log('Avvio parsing con GLTFLoader...');
+                    
                     if (isGLB) {
+                        console.log('Parsing file GLB...');
                         loader.parse(e.target.result, '', onLoad, onError);
                     } else {
+                        console.log('Parsing file GLTF...');
                         loader.parse(e.target.result, '', onLoad, onError);
                     }
                     
                 } catch (error) {
-                    console.error('Errore parsing GLTF:', error);
+                    console.error('=== ERRORE PARSING ===');
+                    console.error('Errore durante il parsing:', error);
+                    console.error('Stack trace:', error.stack);
+                    
                     hideLoadingScreen();
-                    showNotification('Errore nel parsing del file', 'error');
+                    showNotification('Errore nel parsing del file: ' + error.message, 'error');
                 }
             };
             
-            reader.onerror = function() {
+            reader.onerror = function(e) {
+                console.error('=== ERRORE FILEREADER ===');
+                console.error('Errore FileReader:', e);
+                console.error('ReadyState:', reader.readyState);
+                console.error('Error code:', e.target.error?.code);
+                
                 hideLoadingScreen();
                 showNotification('Errore nella lettura del file', 'error');
             };
             
-            if (isGLB) {
-                reader.readAsArrayBuffer(file);
-            } else {
-                reader.readAsText(file);
+            reader.onprogress = function(e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    console.log('FileReader progresso:', percent.toFixed(2) + '%');
+                }
+            };
+            
+            // Inizio lettura file
+            try {
+                if (isGLB) {
+                    console.log('Lettura file GLB come ArrayBuffer...');
+                    reader.readAsArrayBuffer(file);
+                } else {
+                    console.log('Lettura file GLTF come testo...');
+                    reader.readAsText(file);
+                }
+            } catch (error) {
+                console.error('Errore durante la lettura del file:', error);
+                hideLoadingScreen();
+                showNotification('Impossibile leggere il file', 'error');
             }
         }
         
