@@ -388,7 +388,7 @@
                         </div>
                     </div>
                 </div>
-                <input type="file" id="fileInput" class="file-input" accept=".gltf,.glb,.dae">
+                <input type="file" id="fileInputCenter" class="file-input" accept=".gltf,.glb,.dae">
             </div>
             
             <!-- Loading Screen -->
@@ -1119,9 +1119,16 @@
             
             // Test click programmatico
             setTimeout(() => {
-                const fileInput = document.getElementById('fileInput');
+                const fileInput = document.getElementById('fileInputCenter');
                 console.log('File input trovato:', !!fileInput);
                 console.log('Upload zone trovata:', !!document.querySelector('.upload-zone-center'));
+                
+                // Test manuale del click
+                if (fileInput) {
+                    console.log('File input pronto per essere cliccato');
+                } else {
+                    console.error('ERRORE: File input non trovato dopo il caricamento!');
+                }
             }, 1000);
         });
     </script>
