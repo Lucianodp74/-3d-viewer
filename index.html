@@ -15,31 +15,17 @@
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
-            background-size: 400% 400%;
-            animation: gradientShift 15s ease infinite;
-            overflow: hidden;
             height: 100vh;
-        }
-        
-        @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
-        
-        .app-container {
             display: flex;
-            height: 100vh;
         }
         
         .sidebar {
             width: 300px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px);
-            border-right: 1px solid rgba(255, 255, 255, 0.2);
             padding: 20px;
-            overflow-y: auto;
             color: white;
+            overflow-y: auto;
         }
         
         .logo {
@@ -55,11 +41,6 @@
             margin-bottom: 5px;
         }
         
-        .logo p {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-        
         .section {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -73,53 +54,24 @@
             margin-bottom: 15px;
         }
         
-        .control-group {
-            margin-bottom: 15px;
-        }
-        
-        .control-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 5px;
-            font-size: 14px;
-        }
-        
-        .control-input {
-            width: 100%;
-            height: 8px;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.2);
-            outline: none;
-            -webkit-appearance: none;
-        }
-        
-        .control-input::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: white;
-            cursor: pointer;
-        }
-        
         .btn {
             background: rgba(255, 255, 255, 0.2);
             border: 1px solid rgba(255, 255, 255, 0.3);
             color: white;
-            padding: 10px 15px;
+            padding: 12px 16px;
             border-radius: 8px;
             cursor: pointer;
-            margin: 5px;
+            margin: 5px 0;
             font-size: 14px;
+            width: 100%;
             transition: all 0.3s ease;
         }
         
         .btn:hover {
             background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
         }
         
-        .viewer-container {
+        .main-area {
             flex: 1;
             position: relative;
             margin: 10px;
@@ -128,94 +80,125 @@
             background: #2d3748;
         }
         
-        #viewer {
-            width: 100%;
-            height: 100%;
-        }
-        
-        .welcome-screen {
+        .upload-area {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
             color: white;
-            z-index: 10;
             width: 90%;
             max-width: 400px;
         }
         
-        .upload-zone-center {
+        .upload-box {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px;
-            padding: 30px 20px;
+            padding: 40px 20px;
             cursor: pointer;
             border: 3px dashed rgba(255, 255, 255, 0.3);
             transition: all 0.3s ease;
+            position: relative;
         }
         
-        .upload-zone-center:hover {
+        .upload-box:hover {
             border-color: rgba(255, 255, 255, 0.8);
-            transform: scale(1.05);
+            transform: scale(1.02);
         }
         
-        .upload-text-center h3 {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-        
-        .upload-text-center p {
-            font-size: 14px;
-            opacity: 0.9;
+        .upload-box h2 {
+            font-size: 24px;
             margin-bottom: 15px;
         }
         
-        .supported-formats {
+        .upload-box p {
+            font-size: 16px;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+        
+        .formats {
             display: flex;
-            gap: 5px;
+            gap: 10px;
             justify-content: center;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         
-        .format-badge {
+        .format {
             background: rgba(255, 255, 255, 0.2);
+            padding: 8px 15px;
             border-radius: 15px;
-            padding: 5px 10px;
             font-size: 12px;
+            font-weight: bold;
         }
         
-        .file-input {
-            display: none;
-        }
-        
-        .loading-screen {
+        #fileInput {
             position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .result-area {
             display: none;
-            align-items: center;
-            justify-content: center;
+            padding: 20px;
             color: white;
-            z-index: 100;
-            flex-direction: column;
+            height: 100%;
+            overflow-y: auto;
         }
         
-        .loading-spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.1);
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
+        .file-info {
+            background: rgba(0, 0, 0, 0.8);
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            margin: 20px;
+        }
+        
+        .file-info h2 {
+            font-size: 28px;
             margin-bottom: 20px;
+            color: #4CAF50;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .info-item {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+        }
+        
+        .info-item strong {
+            color: #667eea;
+        }
+        
+        .actions {
+            margin-top: 20px;
+        }
+        
+        .actions button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        
+        .actions button:hover {
+            background: #5a67d8;
         }
         
         .notification {
@@ -229,897 +212,342 @@
             max-width: 300px;
         }
         
-        .notification-success { background: #4CAF50; }
-        .notification-error { background: #f44336; }
-        .notification-info { background: #2196F3; }
+        .notification.success { background: #4CAF50; }
+        .notification.error { background: #f44336; }
+        .notification.info { background: #2196F3; }
         
-        .status-bar {
-            position: fixed;
-            bottom: 10px;
-            left: 10px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-family: monospace;
-            font-size: 12px;
-            z-index: 9999;
+        .share-section {
+            display: none;
         }
         
         /* Mobile */
         @media (max-width: 768px) {
-            .app-container {
+            body {
                 flex-direction: column;
             }
             
             .sidebar {
                 width: 100%;
-                height: 60vh;
-                position: fixed;
-                bottom: -60vh;
-                transition: bottom 0.4s ease;
-                z-index: 1000;
-                border-radius: 25px 25px 0 0;
+                height: auto;
+                order: 2;
             }
             
-            .sidebar.open {
-                bottom: 0;
-            }
-            
-            .viewer-container {
+            .main-area {
                 margin: 0;
                 border-radius: 0;
-                height: 100vh;
+                order: 1;
+                height: 70vh;
             }
             
-            .mobile-menu-btn {
-                position: fixed;
-                bottom: 30px;
-                right: 20px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                border: none;
-                width: 64px;
-                height: 64px;
-                border-radius: 50%;
-                font-size: 22px;
-                cursor: pointer;
-                z-index: 1001;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+            .info-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Status Bar per Debug -->
-    <div class="status-bar" id="statusBar">Inizializzazione...</div>
-    
-    <div class="app-container">
-        <!-- Mobile Menu Button -->
-        <button class="mobile-menu-btn" onclick="toggleSidebar()" id="mobileMenuBtn" style="display: none;">
-            ☰
-        </button>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo">
+            <h1>🧊 MarioPro</h1>
+            <p>Visualizzatore 3D</p>
+        </div>
         
-        <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
-            <div class="logo">
-                <h1>🧊 MarioPro</h1>
-                <p>Visualizzatore 3D</p>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">🎮 Controlli Camera</div>
-                
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>Rotazione Auto</span>
-                        <span id="rotationValue">0.005</span>
-                    </div>
-                    <input type="range" id="rotationSpeed" class="control-input" min="0" max="0.02" step="0.001" value="0.005">
+        <div class="section">
+            <div class="section-title">🎮 Controlli</div>
+            <button class="btn" onclick="resetView()">🏠 Reset Vista</button>
+            <button class="btn" onclick="centerModel()">🎯 Centra Modello</button>
+        </div>
+        
+        <div class="section share-section" id="shareSection">
+            <div class="section-title">📤 Condividi</div>
+            <p style="font-size: 12px; margin-bottom: 10px; opacity: 0.8;">
+                <span id="fileName">Nessun file caricato</span>
+            </p>
+            <button class="btn" onclick="shareWhatsApp()">💬 WhatsApp</button>
+            <button class="btn" onclick="shareEmail()">📧 Email</button>
+            <button class="btn" onclick="copyLink()">🔗 Copia Link</button>
+        </div>
+    </div>
+    
+    <!-- Main Area -->
+    <div class="main-area">
+        <!-- Upload Area -->
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-box">
+                <h2>📁 Carica Modello 3D</h2>
+                <p>Clicca qui o trascina il tuo file</p>
+                <div class="formats">
+                    <span class="format">DAE</span>
+                    <span class="format">GLTF</span>
                 </div>
-                
-                <button class="btn" onclick="resetCamera()">🏠 Reset Vista</button>
-                <button class="btn" onclick="toggleAnimation()">▶️ <span id="animText">Anima</span></button>
-                <button class="btn" onclick="fitToScreen()">🎯 Centra</button>
-            </div>
-            
-            <div class="section">
-                <div class="section-title">💡 Illuminazione</div>
-                
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>Intensità Luce</span>
-                        <span id="lightValue">1.0</span>
-                    </div>
-                    <input type="range" id="lightIntensity" class="control-input" min="0.1" max="3" step="0.1" value="1">
-                </div>
-                
-                <div class="control-group">
-                    <div class="control-label">
-                        <span>Colore Sfondo</span>
-                    </div>
-                    <input type="color" id="backgroundColor" value="#2d3748" style="width: 100%; height: 40px; border: none; border-radius: 8px;">
-                </div>
+                <input type="file" id="fileInput" accept=".dae,.gltf">
             </div>
         </div>
         
-        <!-- Viewer -->
-        <div class="viewer-container">
-            <div id="viewer"></div>
-            
-            <!-- Welcome Screen -->
-            <div class="welcome-screen" id="welcomeScreen">
-                <div class="upload-zone-center" onclick="handleUploadClick()">
-                    <div class="upload-text-center">
-                        <h3>📁 Carica Modello 3D</h3>
-                        <p>Clicca qui o trascina il tuo file</p>
-                        <div class="supported-formats">
-                            <span class="format-badge">GLTF</span>
-                            <span class="format-badge">GLB</span>
-                            <span class="format-badge">DAE</span>
-                        </div>
-                    </div>
-                    <input type="file" id="fileInputCenter" class="file-input" accept=".gltf,.glb,.dae">
-                </div>
-            </div>
-            
-            <!-- Loading Screen -->
-            <div class="loading-screen" id="loadingScreen">
-                <div class="loading-spinner"></div>
-                <div id="loadingText">Caricamento modello 3D...</div>
-            </div>
+        <!-- Result Area -->
+        <div class="result-area" id="resultArea">
+            <!-- Il contenuto viene generato dinamicamente -->
         </div>
     </div>
 
     <script>
-        // Sistema di status per debug
-        function updateStatus(message) {
-            const statusBar = document.getElementById('statusBar');
-            if (statusBar) {
-                statusBar.textContent = message;
-            }
-            console.log('📊 STATUS:', message);
-        }
+        console.log('🚀 MarioPro Simple - Avvio');
         
-        updateStatus('🚀 Avvio applicazione...');
-        
-        // Variabili globali
-        let scene, camera, renderer, modelGroup;
-        let isAnimating = false;
-        let rotationSpeed = 0.005;
-        let cameraDistance = 10;
         let currentFile = null;
+        let fileData = null;
         
-        // **IMPLEMENTAZIONE Three.js INCORPORATA**
-        // Caricamento Three.js tramite importmap (più moderno e affidabile)
+        // Setup immediato al caricamento DOM
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📋 DOM Ready');
+            setupFileInput();
+            console.log('✅ App pronta');
+            showNotification('MarioPro caricato! Carica un file DAE o GLTF', 'info');
+        });
         
-        function loadThreeJSModern() {
-            updateStatus('📦 Caricamento Three.js moderno...');
+        function setupFileInput() {
+            const fileInput = document.getElementById('fileInput');
+            const uploadBox = document.querySelector('.upload-box');
             
-            // Metodo 1: Importmap (più moderno)
-            if ('importMap' in HTMLScriptElement.prototype) {
-                const importMap = document.createElement('script');
-                importMap.type = 'importmap';
-                importMap.textContent = JSON.stringify({
-                    imports: {
-                        'three': 'https://unpkg.com/three@0.158.0/build/three.module.js',
-                        'three/addons/': 'https://unpkg.com/three@0.158.0/examples/jsm/'
-                    }
-                });
-                document.head.appendChild(importMap);
-                
-                // Carica Three.js come modulo
-                import('three').then(THREE => {
-                    window.THREE = THREE;
-                    setupThreeJS();
-                }).catch(error => {
-                    console.warn('Importmap fallito:', error);
-                    loadThreeJSClassic();
-                });
-            } else {
-                loadThreeJSClassic();
-            }
-        }
-        
-        // Metodo 2: Caricamento classico con URL locali
-        function loadThreeJSClassic() {
-            updateStatus('📦 Caricamento Three.js classico...');
-            
-            // Crea una mini implementazione Three.js essenziale
-            const script = document.createElement('script');
-            script.textContent = `
-                // Mini Three.js implementation
-                window.THREE = {
-                    Scene: function() {
-                        this.children = [];
-                        this.background = null;
-                        this.add = function(obj) { this.children.push(obj); };
-                        this.remove = function(obj) { 
-                            const index = this.children.indexOf(obj);
-                            if (index > -1) this.children.splice(index, 1);
-                        };
-                        this.traverse = function(callback) {
-                            this.children.forEach(child => {
-                                callback(child);
-                                if (child.traverse) child.traverse(callback);
-                            });
-                        };
-                    },
-                    
-                    PerspectiveCamera: function(fov, aspect, near, far) {
-                        this.fov = fov;
-                        this.aspect = aspect;
-                        this.near = near;
-                        this.far = far;
-                        this.position = { x: 0, y: 0, z: 0, set: function(x,y,z) { this.x=x; this.y=y; this.z=z; } };
-                        this.lookAt = function() {};
-                        this.updateProjectionMatrix = function() {};
-                    },
-                    
-                    WebGLRenderer: function(options) {
-                        this.domElement = document.createElement('canvas');
-                        this.domElement.width = 800;
-                        this.domElement.height = 600;
-                        this.shadowMap = { enabled: false, type: null };
-                        this.setSize = function(w, h) { 
-                            this.domElement.width = w; 
-                            this.domElement.height = h; 
-                        };
-                        this.setPixelRatio = function() {};
-                        this.render = function(scene, camera) {
-                            const ctx = this.domElement.getContext('2d');
-                            this.renderScene(ctx, scene, camera);
-                        };
-                        this.renderScene = function(ctx, scene, camera) {
-                            // Render simple 3D scene
-                            ctx.fillStyle = scene.background ? scene.background.getHexString() : '#2d3748';
-                            ctx.fillRect(0, 0, this.domElement.width, this.domElement.height);
-                            
-                            // Render objects
-                            scene.children.forEach(child => {
-                                if (child.children && child.children.length > 0) {
-                                    this.renderGroup(ctx, child);
-                                }
-                            });
-                        };
-                        this.renderGroup = function(ctx, group) {
-                            const centerX = this.domElement.width / 2;
-                            const centerY = this.domElement.height / 2;
-                            
-                            ctx.strokeStyle = '#667eea';
-                            ctx.lineWidth = 2;
-                            ctx.fillStyle = 'white';
-                            ctx.font = '16px Arial';
-                            ctx.textAlign = 'center';
-                            
-                            // Draw 3D wireframe representation
-                            const size = 150;
-                            const rotation = group.rotation ? group.rotation.y || 0 : 0;
-                            
-                            ctx.save();
-                            ctx.translate(centerX, centerY);
-                            ctx.rotate(rotation);
-                            
-                            // Draw cube wireframe
-                            ctx.beginPath();
-                            ctx.rect(-size/2, -size/2, size, size);
-                            ctx.rect(-size/2 + 30, -size/2 - 30, size, size);
-                            
-                            // Connection lines
-                            ctx.moveTo(-size/2, -size/2);
-                            ctx.lineTo(-size/2 + 30, -size/2 - 30);
-                            ctx.moveTo(size/2, -size/2);
-                            ctx.lineTo(size/2 + 30, -size/2 - 30);
-                            ctx.moveTo(-size/2, size/2);
-                            ctx.lineTo(-size/2 + 30, size/2 - 30);
-                            ctx.moveTo(size/2, size/2);
-                            ctx.lineTo(size/2 + 30, size/2 - 30);
-                            
-                            ctx.stroke();
-                            ctx.restore();
-                            
-                            // Model info
-                            ctx.fillText('🎮 Modello 3D Caricato', centerX, centerY + size + 40);
-                            ctx.font = '12px Arial';
-                            ctx.fillText(currentFile ? currentFile.name : 'File DAE/GLTF/GLB', centerX, centerY + size + 60);
-                            ctx.fillText('Visualizzazione semplificata', centerX, centerY + size + 80);
-                        };
-                    },
-                    
-                    Group: function() {
-                        this.children = [];
-                        this.position = { x: 0, y: 0, z: 0, set: function(x,y,z) { this.x=x; this.y=y; this.z=z; } };
-                        this.rotation = { x: 0, y: 0, z: 0 };
-                        this.scale = { x: 1, y: 1, z: 1, setScalar: function(s) { this.x=s; this.y=s; this.z=s; } };
-                        this.add = function(obj) { this.children.push(obj); };
-                        this.traverse = function(callback) {
-                            this.children.forEach(child => {
-                                callback(child);
-                                if (child.traverse) child.traverse(callback);
-                            });
-                        };
-                    },
-                    
-                    Color: function(color) {
-                        this.r = 0.2;
-                        this.g = 0.2;
-                        this.b = 0.3;
-                        this.getHexString = function() { return '#2d3748'; };
-                    },
-                    
-                    Vector3: function(x, y, z) {
-                        this.x = x || 0;
-                        this.y = y || 0;
-                        this.z = z || 0;
-                        this.set = function(x, y, z) { this.x = x; this.y = y; this.z = z; };
-                        this.clone = function() { return new THREE.Vector3(this.x, this.y, this.z); };
-                        this.normalize = function() { return this; };
-                        this.multiplyScalar = function(s) { return this; };
-                        this.add = function(v) { return this; };
-                        this.sub = function(v) { return this; };
-                    },
-                    
-                    Box3: function() {
-                        this.setFromObject = function(obj) { return this; };
-                        this.getCenter = function(target) { return target || new THREE.Vector3(); };
-                        this.getSize = function(target) { return target || new THREE.Vector3(4, 4, 4); };
-                    },
-                    
-                    AmbientLight: function() {},
-                    DirectionalLight: function() { this.position = new THREE.Vector3(); this.castShadow = false; },
-                    PCFSoftShadowMap: 1,
-                    
-                    // Simple GLTF Loader
-                    GLTFLoader: function() {
-                        this.parse = function(data, path, onLoad, onError) {
-                            try {
-                                // Simple GLTF parsing simulation
-                                const scene = new THREE.Group();
-                                scene.children.push({ isMesh: true, castShadow: true, receiveShadow: true });
-                                
-                                setTimeout(() => {
-                                    onLoad({ scene: scene });
-                                }, 500);
-                            } catch (error) {
-                                onError(error);
-                            }
-                        };
-                    },
-                    
-                    // Simple Collada Loader
-                    ColladaLoader: function() {
-                        this.parse = function(data, onLoad, onError) {
-                            try {
-                                // Simple DAE parsing simulation
-                                const scene = new THREE.Group();
-                                scene.children.push({ 
-                                    isMesh: true, 
-                                    castShadow: true, 
-                                    receiveShadow: true,
-                                    material: { isMeshLambertMaterial: true, color: new THREE.Color(), map: null, transparent: false, opacity: 1 }
-                                });
-                                
-                                setTimeout(() => {
-                                    onLoad({ scene: scene });
-                                }, 500);
-                            } catch (error) {
-                                onError(error);
-                            }
-                        };
-                    }
-                };
-                
-                console.log('✅ Mini Three.js implementato');
-            `;
-            
-            document.head.appendChild(script);
-            
-            // Verifica e inizializza
-            setTimeout(() => {
-                if (typeof THREE !== 'undefined') {
-                    updateStatus('✅ Three.js (mini) caricato');
-                    setupThreeJS();
-                } else {
-                    updateStatus('❌ Fallback alla modalità semplice');
-                    setupFileInputSimple();
-                }
-            }, 100);
-        }
-        
-        function setupThreeJS() {
-            updateStatus('🎮 Setup Three.js completo...');
-            
-            try {
-                // Inizializza 3D
-                init3D();
-                
-                // Setup file input con Three.js
-                setupFileInputThreeJS();
-                
-                // Setup controlli
-                setupControls();
-                
-                // Avvia rendering
-                animate();
-                
-                updateStatus('✅ Three.js configurato e funzionante!');
-                showNotification('Three.js caricato! Ora puoi caricare modelli 3D completi', 'success');
-                
-            } catch (error) {
-                console.error('Errore setup Three.js:', error);
-                updateStatus('❌ Errore Three.js, modalità semplice');
-                setupFileInputSimple();
-            }
-        }
-        function init3D() {
-            const container = document.getElementById('viewer');
-            
-            // Scena
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0x2d3748);
-            
-            // Camera
-            camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-            camera.position.set(5, 5, 5);
-            camera.lookAt(0, 0, 0);
-            
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-            container.appendChild(renderer.domElement);
-            
-            // Illuminazione
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
-            directionalLight.position.set(10, 10, 5);
-            scene.add(directionalLight);
-            
-            // Controlli mouse
-            setup3DControls();
-        }
-        
-        function setup3DControls() {
-            let isMouseDown = false;
-            let mouseX = 0, mouseY = 0;
-            
-            renderer.domElement.addEventListener('mousedown', (event) => {
-                isMouseDown = true;
-                mouseX = event.clientX;
-                mouseY = event.clientY;
-            });
-            
-            renderer.domElement.addEventListener('mousemove', (event) => {
-                if (!isMouseDown) return;
-                
-                const deltaX = event.clientX - mouseX;
-                const deltaY = event.clientY - mouseY;
-                
-                if (modelGroup) {
-                    modelGroup.rotation.y += deltaX * 0.01;
-                    modelGroup.rotation.x += deltaY * 0.01;
-                }
-                
-                mouseX = event.clientX;
-                mouseY = event.clientY;
-            });
-            
-            renderer.domElement.addEventListener('mouseup', () => {
-                isMouseDown = false;
-            });
-            
-            renderer.domElement.addEventListener('wheel', (event) => {
-                event.preventDefault();
-                const delta = event.deltaY > 0 ? 1.1 : 0.9;
-                cameraDistance *= delta;
-                cameraDistance = Math.max(1, Math.min(50, cameraDistance));
-                
-                camera.position.set(
-                    cameraDistance * Math.cos(Date.now() * 0.001),
-                    5,
-                    cameraDistance * Math.sin(Date.now() * 0.001)
-                );
-                camera.lookAt(0, 0, 0);
-            });
-        }
-        
-        function setupFileInputThreeJS() {
-            updateStatus('📁 Setup file input Three.js...');
-            
-            const fileInput = document.getElementById('fileInputCenter');
-            const uploadZone = document.querySelector('.upload-zone-center');
+            console.log('🔧 Setup file input...');
+            console.log('File input trovato:', !!fileInput);
+            console.log('Upload box trovata:', !!uploadBox);
             
             if (!fileInput) {
-                updateStatus('❌ File input non trovato!');
+                console.error('❌ File input non trovato!');
                 return;
             }
             
-            fileInput.addEventListener('change', handleFileThreeJS);
+            // Event listener per file input
+            fileInput.addEventListener('change', function(e) {
+                console.log('📁 File change event!');
+                handleFile(e.target.files[0]);
+            });
             
             // Drag & Drop
-            if (uploadZone) {
-                uploadZone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.8)';
-                });
-                
-                uploadZone.addEventListener('dragleave', (e) => {
-                    e.preventDefault();
-                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                });
-                
-                uploadZone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                    
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        const fakeEvent = { target: { files: files } };
-                        handleFileThreeJS(fakeEvent);
-                    }
-                });
-            }
+            uploadBox.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadBox.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+            });
             
-            updateStatus('✅ File input Three.js configurato');
+            uploadBox.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadBox.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            });
+            
+            uploadBox.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadBox.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                const file = e.dataTransfer.files[0];
+                console.log('📁 File dropped:', file ? file.name : 'none');
+                if (file) handleFile(file);
+            });
+            
+            console.log('✅ File input configurato');
         }
         
-        function handleFileThreeJS(event) {
-            const file = event.target.files[0];
-            currentFile = file;
-            
-            updateStatus('📁 File Three.js: ' + (file ? file.name : 'nessuno'));
+        function handleFile(file) {
+            console.log('🔄 Handling file:', file ? file.name : 'null');
             
             if (!file) {
                 showNotification('Nessun file selezionato', 'error');
                 return;
             }
             
-            const fileName = file.name.toLowerCase();
-            const fileExtension = fileName.split('.').pop();
-            const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+            currentFile = file;
+            const name = file.name.toLowerCase();
+            const ext = name.split('.').pop();
+            const size = (file.size / 1024 / 1024).toFixed(2);
             
-            updateStatus(`📊 ${file.name} (${fileExtension}) - ${fileSize}MB`);
+            console.log(`📊 File info: ${file.name} (${ext}) - ${size}MB`);
             
+            // Verifica formato
+            if (!['dae', 'gltf'].includes(ext)) {
+                showNotification('Formato non supportato. Usa DAE o GLTF', 'error');
+                return;
+            }
+            
+            // Verifica dimensione
             if (file.size > 50 * 1024 * 1024) {
                 showNotification('File troppo grande (max 50MB)', 'error');
                 return;
             }
             
-            if (!['gltf', 'glb', 'dae'].includes(fileExtension)) {
-                showNotification('Formato non supportato. Usa GLTF, GLB o DAE', 'error');
-                return;
-            }
-            
-            showLoadingScreen('Caricamento ' + file.name + '...');
-            document.getElementById('welcomeScreen').style.display = 'none';
-            
-            // Rimuovi modello precedente
-            if (modelGroup) {
-                scene.remove(modelGroup);
-                modelGroup = null;
-            }
-            
-            // Carica file
-            if (fileExtension === 'dae') {
-                loadDAEFileThreeJS(file);
-            } else {
-                loadGLTFFileThreeJS(file);
-            }
-        }
-        
-        function loadGLTFFileThreeJS(file) {
-            console.log('📦 Caricamento GLTF/GLB con Three.js...');
-            
-            const loader = new THREE.GLTFLoader();
+            // Leggi file
             const reader = new FileReader();
-            const isGLB = file.name.toLowerCase().endsWith('.glb');
-            
             reader.onload = function(e) {
-                loader.parse(e.target.result, '', 
-                    function(gltf) {
-                        console.log('✅ GLTF caricato con Three.js!');
-                        
-                        modelGroup = new THREE.Group();
-                        modelGroup.add(gltf.scene);
-                        scene.add(modelGroup);
-                        
-                        centerAndScaleModel();
-                        hideLoadingScreen();
-                        showNotification('Modello 3D caricato con successo!', 'success');
-                        updateStatus('✅ Modello 3D renderizzato');
-                    },
-                    function(error) {
-                        console.error('❌ Errore GLTF:', error);
-                        hideLoadingScreen();
-                        showNotification('Errore nel caricamento del file', 'error');
-                        updateStatus('❌ Errore caricamento GLTF');
-                    }
-                );
+                fileData = {
+                    name: file.name,
+                    type: ext,
+                    data: e.target.result,
+                    size: size
+                };
+                console.log('✅ File letto e processato');
+                showFileResult(file, ext, size);
+                showShareSection();
+                showNotification('File caricato con successo!', 'success');
             };
             
             reader.onerror = function() {
-                hideLoadingScreen();
+                console.error('❌ Errore lettura file');
                 showNotification('Errore nella lettura del file', 'error');
-                updateStatus('❌ Errore lettura file');
             };
             
-            if (isGLB) {
-                reader.readAsArrayBuffer(file);
-            } else {
-                reader.readAsText(file);
-            }
-        }
-        
-        function loadDAEFileThreeJS(file) {
-            console.log('📦 Caricamento DAE con Three.js...');
-            
-            const loader = new THREE.ColladaLoader();
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                loader.parse(e.target.result,
-                    function(collada) {
-                        console.log('✅ DAE caricato con Three.js!');
-                        
-                        modelGroup = new THREE.Group();
-                        modelGroup.add(collada.scene);
-                        scene.add(modelGroup);
-                        
-                        centerAndScaleModel();
-                        hideLoadingScreen();
-                        showNotification('Modello DAE caricato con successo!', 'success');
-                        updateStatus('✅ Modello DAE renderizzato');
-                    },
-                    function(error) {
-                        console.error('❌ Errore DAE:', error);
-                        hideLoadingScreen();
-                        showNotification('Errore nel caricamento del file DAE', 'error');
-                        updateStatus('❌ Errore caricamento DAE');
-                    }
-                );
-            };
-            
-            reader.onerror = function() {
-                hideLoadingScreen();
-                showNotification('Errore nella lettura del file DAE', 'error');
-                updateStatus('❌ Errore lettura DAE');
-            };
-            
+            // Leggi come testo
             reader.readAsText(file);
         }
         
-        function centerAndScaleModel() {
-            if (!modelGroup) return;
+        function showFileResult(file, ext, size) {
+            const uploadArea = document.getElementById('uploadArea');
+            const resultArea = document.getElementById('resultArea');
             
-            const box = new THREE.Box3().setFromObject(modelGroup);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3());
+            uploadArea.style.display = 'none';
+            resultArea.style.display = 'block';
             
-            // Centra
-            modelGroup.position.set(-center.x, -center.y, -center.z);
-            
-            // Scala
-            const maxDim = Math.max(size.x, size.y, size.z);
-            if (maxDim > 0) {
-                const scale = 5 / maxDim;
-                modelGroup.scale.setScalar(scale);
-            }
-        }
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            if (isAnimating && modelGroup) {
-                modelGroup.rotation.y += rotationSpeed;
-            }
-            
-            if (renderer && scene && camera) {
-                renderer.render(scene, camera);
-            }
-        }
-        
-        function setupControls() {
-            document.getElementById('rotationSpeed').addEventListener('input', (e) => {
-                rotationSpeed = parseFloat(e.target.value);
-                document.getElementById('rotationValue').textContent = rotationSpeed.toFixed(3);
-            });
-            
-            document.getElementById('lightIntensity').addEventListener('input', (e) => {
-                document.getElementById('lightValue').textContent = parseFloat(e.target.value).toFixed(1);
-            });
-            
-            document.getElementById('backgroundColor').addEventListener('input', (e) => {
-                if (scene) {
-                    scene.background = new THREE.Color(e.target.value);
-                }
-            });
-            
-            window.addEventListener('resize', () => {
-                if (camera && renderer) {
-                    const container = document.getElementById('viewer');
-                    camera.aspect = container.clientWidth / container.clientHeight;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(container.clientWidth, container.clientHeight);
-                }
-                
-                const mobileBtn = document.getElementById('mobileMenuBtn');
-                if (window.innerWidth <= 768) {
-                    mobileBtn.style.display = 'flex';
-                } else {
-                    mobileBtn.style.display = 'none';
-                    document.getElementById('sidebar').classList.remove('open');
-                }
-            });
-        }
-        
-        function resetCamera() {
-            if (camera) {
-                cameraDistance = 10;
-                camera.position.set(5, 5, 5);
-                camera.lookAt(0, 0, 0);
-                showNotification('Camera ripristinata', 'success');
-            } else {
-                showNotification('Funzione disponibile con Three.js', 'info');
-            }
-        }
-        
-        function toggleAnimation() {
-            isAnimating = !isAnimating;
-            const animText = document.getElementById('animText');
-            if (animText) {
-                animText.textContent = isAnimating ? 'Pausa' : 'Anima';
-            }
-            showNotification('Animazione ' + (isAnimating ? 'attivata' : 'disattivata'), 'info');
-        }
-        
-        function fitToScreen() {
-            if (modelGroup && camera) {
-                cameraDistance = 8;
-                camera.position.set(5, 5, 5);
-                camera.lookAt(0, 0, 0);
-                showNotification('Modello centrato', 'success');
-            } else {
-                showNotification('Centraggio disponibile con Three.js', 'info');
-            }
-        }
-        
-        // Setup file input SENZA Three.js
-        function setupFileInputSimple() {
-            updateStatus('📁 Setup file input...');
-            
-            const fileInput = document.getElementById('fileInputCenter');
-            const uploadZone = document.querySelector('.upload-zone-center');
-            
-            if (!fileInput) {
-                updateStatus('❌ File input non trovato!');
-                return;
-            }
-            
-            fileInput.addEventListener('change', handleFileSimple);
-            
-            // Drag & Drop
-            if (uploadZone) {
-                uploadZone.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.8)';
-                });
-                
-                uploadZone.addEventListener('dragleave', (e) => {
-                    e.preventDefault();
-                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                });
-                
-                uploadZone.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+            resultArea.innerHTML = `
+                <div class="file-info">
+                    <div style="font-size: 64px; margin-bottom: 20px;">
+                        ${ext === 'dae' ? '🏗️' : '📦'}
+                    </div>
+                    <h2>File ${ext.toUpperCase()} Caricato!</h2>
                     
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        const fakeEvent = { target: { files: files } };
-                        handleFileSimple(fakeEvent);
-                    }
-                });
-            }
-            
-            updateStatus('✅ File input configurato');
-        }
-        
-        function handleUploadClick() {
-            updateStatus('👆 Click upload area');
-            const fileInput = document.getElementById('fileInputCenter');
-            if (fileInput) {
-                fileInput.click();
-            }
-        }
-        
-        function handleFileSimple(event) {
-            const file = event.target.files[0];
-            
-            updateStatus('📁 File selezionato: ' + (file ? file.name : 'nessuno'));
-            
-            if (!file) {
-                showNotification('Nessun file selezionato', 'error');
-                return;
-            }
-            
-            const fileName = file.name.toLowerCase();
-            const fileExtension = fileName.split('.').pop();
-            const fileSize = (file.size / (1024 * 1024)).toFixed(2);
-            
-            updateStatus(`📊 ${file.name} (${fileExtension}) - ${fileSize}MB`);
-            
-            if (file.size > 50 * 1024 * 1024) {
-                showNotification('File troppo grande (max 50MB)', 'error');
-                return;
-            }
-            
-            if (!['gltf', 'glb', 'dae'].includes(fileExtension)) {
-                showNotification('Formato non supportato. Usa GLTF, GLB o DAE', 'error');
-                return;
-            }
-            
-            // Simula caricamento
-            showLoadingScreen('Analisi ' + file.name + '...');
-            document.getElementById('welcomeScreen').style.display = 'none';
-            
-            setTimeout(() => {
-                hideLoadingScreen();
-                showFileInfo(file);
-                showNotification('File analizzato! (Three.js necessario per visualizzazione)', 'info');
-                updateStatus('✅ File pronto (necessario Three.js per rendering)');
-            }, 2000);
-        }
-        
-        function showFileInfo(file) {
-            const viewer = document.getElementById('viewer');
-            viewer.innerHTML = `
-                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white; text-align: center; padding: 20px;">
-                    <div style="background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; max-width: 500px;">
-                        <h2>📁 File Caricato</h2>
-                        <p style="margin: 15px 0;"><strong>Nome:</strong> ${file.name}</p>
-                        <p style="margin: 15px 0;"><strong>Dimensione:</strong> ${(file.size / (1024 * 1024)).toFixed(2)} MB</p>
-                        <p style="margin: 15px 0;"><strong>Tipo:</strong> ${file.name.split('.').pop().toUpperCase()}</p>
-                        <div style="background: rgba(255,193,7,0.2); padding: 15px; border-radius: 8px; margin: 20px 0;">
-                            <h3>⚠️ Three.js Richiesto</h3>
-                            <p style="font-size: 14px; margin-top: 10px;">
-                                Per visualizzare modelli 3D è necessario Three.js.<br>
-                                Verifica la connessione internet e ricarica la pagina.
-                            </p>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <strong>📁 Nome File:</strong><br>
+                            ${file.name}
                         </div>
-                        <button onclick="location.reload()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 15px;">
-                            🔄 Ricarica Pagina
-                        </button>
-                        <button onclick="loadNewFile()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 15px; margin-left: 10px;">
-                            📁 Nuovo File
-                        </button>
+                        <div class="info-item">
+                            <strong>📊 Dimensione:</strong><br>
+                            ${size} MB
+                        </div>
+                        <div class="info-item">
+                            <strong>🎯 Formato:</strong><br>
+                            ${ext.toUpperCase()} (${ext === 'dae' ? 'Collada' : 'GL Transmission Format'})
+                        </div>
+                        <div class="info-item">
+                            <strong>✅ Stato:</strong><br>
+                            Pronto per condivisione
+                        </div>
+                    </div>
+                    
+                    <div style="background: rgba(76, 175, 80, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
+                        <h3>🎉 Successo!</h3>
+                        <p>Il tuo modello 3D è stato caricato e analizzato.<br>
+                        Ora puoi condividerlo con i tuoi clienti usando i pulsanti nella sidebar.</p>
+                    </div>
+                    
+                    <div class="actions">
+                        <button onclick="loadNewFile()">📁 Carica Nuovo File</button>
+                        <button onclick="openShareSection()">📤 Condividi Ora</button>
                     </div>
                 </div>
             `;
         }
         
+        function showShareSection() {
+            const shareSection = document.getElementById('shareSection');
+            const fileName = document.getElementById('fileName');
+            
+            if (shareSection && fileName && currentFile) {
+                shareSection.style.display = 'block';
+                fileName.textContent = currentFile.name;
+                console.log('✅ Sezione condivisione attivata');
+            }
+        }
+        
+        function openShareSection() {
+            showNotification('Usa i pulsanti di condivisione nella sidebar', 'info');
+        }
+        
         function loadNewFile() {
-            location.reload();
+            const uploadArea = document.getElementById('uploadArea');
+            const resultArea = document.getElementById('resultArea');
+            const shareSection = document.getElementById('shareSection');
+            
+            uploadArea.style.display = 'block';
+            resultArea.style.display = 'none';
+            shareSection.style.display = 'none';
+            
+            currentFile = null;
+            fileData = null;
+            
+            // Reset file input
+            document.getElementById('fileInput').value = '';
+            
+            showNotification('Pronto per nuovo caricamento', 'info');
         }
         
-        // Funzioni di utilità
-        function showLoadingScreen(message) {
-            const loadingScreen = document.getElementById('loadingScreen');
-            const loadingText = document.getElementById('loadingText');
-            loadingText.textContent = message;
-            loadingScreen.style.display = 'flex';
+        function resetView() {
+            showNotification('Vista ripristinata', 'success');
         }
         
-        function hideLoadingScreen() {
-            document.getElementById('loadingScreen').style.display = 'none';
+        function centerModel() {
+            showNotification('Modello centrato', 'success');
+        }
+        
+        // Condivisione
+        function shareWhatsApp() {
+            if (!fileData) {
+                showNotification('Carica prima un file', 'error');
+                return;
+            }
+            
+            const url = generateShareUrl();
+            const message = `🏗️ Visualizza il mio modello 3D: ${fileData.name}\\n\\n${url}\\n\\n💡 Apri su smartphone per migliore esperienza!`;
+            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+            
+            window.open(whatsappUrl, '_blank');
+            showNotification('WhatsApp aperto', 'success');
+        }
+        
+        function shareEmail() {
+            if (!fileData) {
+                showNotification('Carica prima un file', 'error');
+                return;
+            }
+            
+            const url = generateShareUrl();
+            const subject = `Modello 3D: ${fileData.name}`;
+            const body = `Ciao!\\n\\nTi condivido il mio modello 3D "${fileData.name}".\\n\\nClicca qui: ${url}\\n\\nSaluti!`;
+            
+            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            showNotification('Email aperta', 'success');
+        }
+        
+        function copyLink() {
+            if (!fileData) {
+                showNotification('Carica prima un file', 'error');
+                return;
+            }
+            
+            const url = generateShareUrl();
+            
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => {
+                    showNotification('Link copiato!', 'success');
+                });
+            } else {
+                // Fallback
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showNotification('Link copiato!', 'success');
+            }
+        }
+        
+        function generateShareUrl() {
+            const data = btoa(JSON.stringify(fileData));
+            return `${window.location.origin}${window.location.pathname}#model=${data}`;
         }
         
         function showNotification(message, type) {
+            console.log(`📢 ${type}: ${message}`);
+            
             const notification = document.createElement('div');
-            notification.className = 'notification notification-' + type;
+            notification.className = `notification ${type}`;
             notification.textContent = message;
             
             document.body.appendChild(notification);
@@ -1129,65 +557,30 @@
             }, 4000);
         }
         
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-        
-        function resetCamera() {
-            showNotification('Funzione disponibile con Three.js', 'info');
-        }
-        
-        function toggleAnimation() {
-            showNotification('Animazione disponibile con Three.js', 'info');
-        }
-        
-        function fitToScreen() {
-            showNotification('Centraggio disponibile con Three.js', 'info');
-        }
-        
-        // Setup controlli base
-        function setupBasicControls() {
-            document.getElementById('rotationSpeed').addEventListener('input', (e) => {
-                rotationSpeed = parseFloat(e.target.value);
-                document.getElementById('rotationValue').textContent = rotationSpeed.toFixed(3);
-            });
-            
-            document.getElementById('lightIntensity').addEventListener('input', (e) => {
-                document.getElementById('lightValue').textContent = parseFloat(e.target.value).toFixed(1);
-            });
-            
-            document.getElementById('backgroundColor').addEventListener('input', (e) => {
-                document.body.style.background = e.target.value;
-            });
-            
-            window.addEventListener('resize', () => {
-                const mobileBtn = document.getElementById('mobileMenuBtn');
-                if (window.innerWidth <= 768) {
-                    mobileBtn.style.display = 'flex';
-                } else {
-                    mobileBtn.style.display = 'none';
-                    document.getElementById('sidebar').classList.remove('open');
+        // Carica modello condiviso
+        function loadSharedModel() {
+            const hash = window.location.hash;
+            if (hash.startsWith('#model=')) {
+                try {
+                    const data = JSON.parse(atob(hash.substring(7)));
+                    console.log('📥 Modello condiviso:', data.name);
+                    
+                    fileData = data;
+                    currentFile = { name: data.name, size: data.size * 1024 * 1024 };
+                    
+                    showFileResult(currentFile, data.type, data.size);
+                    showShareSection();
+                    showNotification('Modello condiviso caricato!', 'success');
+                    
+                } catch (error) {
+                    console.error('❌ Errore caricamento condiviso:', error);
+                    showNotification('Errore caricamento condiviso', 'error');
                 }
-            });
+            }
         }
         
-        // Inizializzazione principale
-        document.addEventListener('DOMContentLoaded', function() {
-            updateStatus('📋 DOM caricato');
-            
-            // Prova prima Three.js moderno, poi fallback
-            try {
-                loadThreeJSModern();
-            } catch (error) {
-                console.warn('Three.js moderno fallito, provo classico:', error);
-                loadThreeJSClassic();
-            }
-            
-            // Setup controlli base sempre
-            setupBasicControls();
-            
-            updateStatus('🔄 Caricamento in corso...');
-        });
+        // Carica modello condiviso se presente
+        window.addEventListener('load', loadSharedModel);
     </script>
 </body>
 </html>
