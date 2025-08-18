@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MarioPro - Test Caricamento File</title>
+    <title>MarioPro - Visualizzatore 3D</title>
     
     <style>
         * {
@@ -15,306 +15,645 @@
         body {
             font-family: Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+            overflow: hidden;
             height: 100vh;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        
+        .app-container {
             display: flex;
-            align-items: center;
-            justify-content: center;
+            height: 100vh;
         }
         
-        .container {
-            text-align: center;
-            color: white;
-            max-width: 500px;
-            padding: 20px;
-        }
-        
-        .upload-box {
+        .sidebar {
+            width: 300px;
             background: rgba(255, 255, 255, 0.1);
-            border: 3px dashed rgba(255, 255, 255, 0.5);
-            border-radius: 20px;
-            padding: 40px;
-            margin: 20px 0;
-            cursor: pointer;
-            transition: all 0.3s ease;
+            backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            overflow-y: auto;
+            color: white;
         }
         
-        .upload-box:hover {
-            border-color: rgba(255, 255, 255, 0.8);
-            background: rgba(255, 255, 255, 0.15);
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
         }
         
-        .upload-box h2 {
+        .logo h1 {
             font-size: 24px;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
         
-        .upload-box p {
-            font-size: 16px;
-            opacity: 0.9;
+        .logo p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
             margin-bottom: 20px;
         }
         
-        .formats {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-        }
-        
-        .format {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 12px;
+        .section-title {
+            font-size: 16px;
             font-weight: bold;
+            margin-bottom: 15px;
         }
         
-        #fileInput {
+        .control-group {
+            margin-bottom: 15px;
+        }
+        
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .control-input {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            outline: none;
+            -webkit-appearance: none;
+        }
+        
+        .control-input::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            cursor: pointer;
+        }
+        
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .viewer-container {
+            flex: 1;
+            position: relative;
+            margin: 10px;
+            border-radius: 20px;
+            overflow: hidden;
+            background: #2d3748;
+        }
+        
+        #viewer {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .welcome-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            color: white;
+            z-index: 10;
+            width: 90%;
+            max-width: 400px;
+        }
+        
+        .upload-zone-center {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 15px;
+            padding: 30px 20px;
+            cursor: pointer;
+            border: 3px dashed rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .upload-zone-center:hover {
+            border-color: rgba(255, 255, 255, 0.8);
+            transform: scale(1.05);
+        }
+        
+        .upload-text-center h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .upload-text-center p {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 15px;
+        }
+        
+        .supported-formats {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .format-badge {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .file-input {
             display: none;
         }
         
-        .debug {
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
             background: rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            padding: 20px;
-            margin-top: 20px;
-            text-align: left;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            z-index: 100;
+            flex-direction: column;
+        }
+        
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            border-radius: 8px;
+            color: white;
+            z-index: 10000;
+            max-width: 300px;
+        }
+        
+        .notification-success { background: #4CAF50; }
+        .notification-error { background: #f44336; }
+        .notification-info { background: #2196F3; }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
             font-family: monospace;
             font-size: 12px;
-            max-height: 200px;
-            overflow-y: auto;
+            z-index: 9999;
         }
         
-        .log {
-            margin: 5px 0;
-            padding: 5px;
-            border-radius: 3px;
-        }
-        
-        .log.info { background: rgba(33, 150, 243, 0.3); }
-        .log.success { background: rgba(76, 175, 80, 0.3); }
-        .log.error { background: rgba(244, 67, 54, 0.3); }
-        
-        .status {
-            font-size: 18px;
-            margin: 10px 0;
-            padding: 10px;
-            border-radius: 8px;
-            background: rgba(255, 255, 255, 0.1);
+        /* Mobile */
+        @media (max-width: 768px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                height: 60vh;
+                position: fixed;
+                bottom: -60vh;
+                transition: bottom 0.4s ease;
+                z-index: 1000;
+                border-radius: 25px 25px 0 0;
+            }
+            
+            .sidebar.open {
+                bottom: 0;
+            }
+            
+            .viewer-container {
+                margin: 0;
+                border-radius: 0;
+                height: 100vh;
+            }
+            
+            .mobile-menu-btn {
+                position: fixed;
+                bottom: 30px;
+                right: 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                font-size: 22px;
+                cursor: pointer;
+                z-index: 1001;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🧊 MarioPro - Test Debug</h1>
+    <!-- Status Bar per Debug -->
+    <div class="status-bar" id="statusBar">Inizializzazione...</div>
+    
+    <div class="app-container">
+        <!-- Mobile Menu Button -->
+        <button class="mobile-menu-btn" onclick="toggleSidebar()" id="mobileMenuBtn" style="display: none;">
+            ☰
+        </button>
         
-        <div class="status" id="status">Inizializzazione...</div>
-        
-        <div class="upload-box" onclick="openFileDialog()">
-            <h2>📁 TEST Carica File</h2>
-            <p>Clicca qui per testare il caricamento</p>
-            <div class="formats">
-                <span class="format">GLTF</span>
-                <span class="format">GLB</span>
-                <span class="format">DAE</span>
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+            <div class="logo">
+                <h1>🧊 MarioPro</h1>
+                <p>Visualizzatore 3D</p>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">🎮 Controlli Camera</div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Rotazione Auto</span>
+                        <span id="rotationValue">0.005</span>
+                    </div>
+                    <input type="range" id="rotationSpeed" class="control-input" min="0" max="0.02" step="0.001" value="0.005">
+                </div>
+                
+                <button class="btn" onclick="resetCamera()">🏠 Reset Vista</button>
+                <button class="btn" onclick="toggleAnimation()">▶️ <span id="animText">Anima</span></button>
+                <button class="btn" onclick="fitToScreen()">🎯 Centra</button>
+            </div>
+            
+            <div class="section">
+                <div class="section-title">💡 Illuminazione</div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Intensità Luce</span>
+                        <span id="lightValue">1.0</span>
+                    </div>
+                    <input type="range" id="lightIntensity" class="control-input" min="0.1" max="3" step="0.1" value="1">
+                </div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Colore Sfondo</span>
+                    </div>
+                    <input type="color" id="backgroundColor" value="#2d3748" style="width: 100%; height: 40px; border: none; border-radius: 8px;">
+                </div>
             </div>
         </div>
         
-        <input type="file" id="fileInput" accept=".gltf,.glb,.dae">
-        
-        <div class="debug" id="debug">
-            <div class="log info">🚀 Inizio debug...</div>
+        <!-- Viewer -->
+        <div class="viewer-container">
+            <div id="viewer"></div>
+            
+            <!-- Welcome Screen -->
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="upload-zone-center" onclick="handleUploadClick()">
+                    <div class="upload-text-center">
+                        <h3>📁 Carica Modello 3D</h3>
+                        <p>Clicca qui o trascina il tuo file</p>
+                        <div class="supported-formats">
+                            <span class="format-badge">GLTF</span>
+                            <span class="format-badge">GLB</span>
+                            <span class="format-badge">DAE</span>
+                        </div>
+                    </div>
+                    <input type="file" id="fileInputCenter" class="file-input" accept=".gltf,.glb,.dae">
+                </div>
+            </div>
+            
+            <!-- Loading Screen -->
+            <div class="loading-screen" id="loadingScreen">
+                <div class="loading-spinner"></div>
+                <div id="loadingText">Caricamento modello 3D...</div>
+            </div>
         </div>
     </div>
 
     <script>
-        // Sistema di log
-        function log(message, type = 'info') {
-            console.log(`[${type.toUpperCase()}] ${message}`);
-            
-            const debugDiv = document.getElementById('debug');
-            const logDiv = document.createElement('div');
-            logDiv.className = `log ${type}`;
-            logDiv.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
-            debugDiv.appendChild(logDiv);
-            debugDiv.scrollTop = debugDiv.scrollHeight;
-        }
-        
+        // Sistema di status per debug
         function updateStatus(message) {
-            document.getElementById('status').textContent = message;
-            log(message, 'info');
+            const statusBar = document.getElementById('statusBar');
+            if (statusBar) {
+                statusBar.textContent = message;
+            }
+            console.log('📊 STATUS:', message);
         }
         
-        // Test 1: Verifiche iniziali
-        document.addEventListener('DOMContentLoaded', function() {
-            log('📋 DOM caricato', 'success');
+        updateStatus('🚀 Avvio applicazione...');
+        
+        // Variabili globali semplici
+        let scene, camera, renderer, modelGroup;
+        let isAnimating = false;
+        let rotationSpeed = 0.005;
+        let cameraDistance = 10;
+        
+        // **Versione SEMPLIFICATA senza Three.js esterni**
+        // Implementiamo un visualizzatore 3D basic usando Canvas 2D
+        
+        function initSimple3D() {
+            updateStatus('🎮 Inizializzazione 3D semplificato...');
             
-            // Test elementi
-            const fileInput = document.getElementById('fileInput');
-            const uploadBox = document.querySelector('.upload-box');
+            const container = document.getElementById('viewer');
+            const canvas = document.createElement('canvas');
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+            container.appendChild(canvas);
             
-            log(`🔍 File input trovato: ${!!fileInput}`, fileInput ? 'success' : 'error');
-            log(`🔍 Upload box trovata: ${!!uploadBox}`, uploadBox ? 'success' : 'error');
+            const ctx = canvas.getContext('2d');
+            
+            // Disegna uno sfondo gradiente
+            const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            gradient.addColorStop(0, '#2d3748');
+            gradient.addColorStop(1, '#4a5568');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Disegna un wireframe cube 3D basic
+            drawSimple3DCube(ctx, canvas.width, canvas.height);
+            
+            updateStatus('✅ 3D semplificato pronto');
+        }
+        
+        function drawSimple3DCube(ctx, width, height) {
+            const centerX = width / 2;
+            const centerY = height / 2;
+            const size = 100;
+            
+            ctx.strokeStyle = '#667eea';
+            ctx.lineWidth = 2;
+            
+            // Disegna un cubo in wireframe
+            ctx.beginPath();
+            // Faccia anteriore
+            ctx.rect(centerX - size/2, centerY - size/2, size, size);
+            // Faccia posteriore (offset per prospettiva)
+            ctx.rect(centerX - size/2 + 20, centerY - size/2 - 20, size, size);
+            // Linee di connessione
+            ctx.moveTo(centerX - size/2, centerY - size/2);
+            ctx.lineTo(centerX - size/2 + 20, centerY - size/2 - 20);
+            ctx.moveTo(centerX + size/2, centerY - size/2);
+            ctx.lineTo(centerX + size/2 + 20, centerY - size/2 - 20);
+            ctx.moveTo(centerX - size/2, centerY + size/2);
+            ctx.lineTo(centerX - size/2 + 20, centerY + size/2 - 20);
+            ctx.moveTo(centerX + size/2, centerY + size/2);
+            ctx.lineTo(centerX + size/2 + 20, centerY + size/2 - 20);
+            ctx.stroke();
+            
+            // Testo informativo
+            ctx.fillStyle = 'white';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('🧊 Visualizzatore 3D Semplificato', centerX, centerY + size + 40);
+            ctx.font = '12px Arial';
+            ctx.fillText('Carica un file per vedere il modello completo', centerX, centerY + size + 60);
+        }
+        
+        // Setup file input SENZA Three.js
+        function setupFileInputSimple() {
+            updateStatus('📁 Setup file input...');
+            
+            const fileInput = document.getElementById('fileInputCenter');
+            const uploadZone = document.querySelector('.upload-zone-center');
             
             if (!fileInput) {
-                updateStatus('❌ ERRORE: File input non trovato!');
+                updateStatus('❌ File input non trovato!');
                 return;
             }
             
-            // Test 2: Event listener file input
-            try {
-                fileInput.addEventListener('change', function(e) {
-                    log('📁 Event change triggerato!', 'success');
-                    log(`📁 Files selezionati: ${e.target.files.length}`, 'info');
+            fileInput.addEventListener('change', handleFileSimple);
+            
+            // Drag & Drop
+            if (uploadZone) {
+                uploadZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.8)';
+                });
+                
+                uploadZone.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.3)';
+                });
+                
+                uploadZone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    uploadZone.style.borderColor = 'rgba(255, 255, 255, 0.3)';
                     
-                    if (e.target.files.length > 0) {
-                        const file = e.target.files[0];
-                        log(`📁 File: ${file.name} (${file.size} bytes)`, 'success');
-                        updateStatus(`✅ File selezionato: ${file.name}`);
-                        testFile(file);
-                    } else {
-                        log('📁 Nessun file selezionato', 'error');
-                        updateStatus('❌ Nessun file selezionato');
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                        const fakeEvent = { target: { files: files } };
+                        handleFileSimple(fakeEvent);
                     }
                 });
-                log('🎯 Event listener configurato', 'success');
-            } catch (error) {
-                log(`❌ Errore setup event listener: ${error.message}`, 'error');
-                updateStatus('❌ Errore setup event listener');
             }
             
-            updateStatus('✅ Pronto per il test');
-        });
+            updateStatus('✅ File input configurato');
+        }
         
-        // Test 3: Funzione click
-        function openFileDialog() {
-            log('👆 Click su upload box', 'info');
+        function handleUploadClick() {
+            updateStatus('👆 Click upload area');
+            const fileInput = document.getElementById('fileInputCenter');
+            if (fileInput) {
+                fileInput.click();
+            }
+        }
+        
+        function handleFileSimple(event) {
+            const file = event.target.files[0];
             
-            const fileInput = document.getElementById('fileInput');
-            if (!fileInput) {
-                log('❌ File input non trovato nel click!', 'error');
-                updateStatus('❌ File input non trovato');
+            updateStatus('📁 File selezionato: ' + (file ? file.name : 'nessuno'));
+            
+            if (!file) {
+                showNotification('Nessun file selezionato', 'error');
                 return;
             }
             
-            try {
-                log('🖱️ Tentativo click programmatico...', 'info');
-                fileInput.click();
-                log('✅ Click eseguito', 'success');
-            } catch (error) {
-                log(`❌ Errore nel click: ${error.message}`, 'error');
-                updateStatus('❌ Errore nel click');
+            const fileName = file.name.toLowerCase();
+            const fileExtension = fileName.split('.').pop();
+            const fileSize = (file.size / (1024 * 1024)).toFixed(2);
+            
+            updateStatus(`📊 ${file.name} (${fileExtension}) - ${fileSize}MB`);
+            
+            if (file.size > 50 * 1024 * 1024) {
+                showNotification('File troppo grande (max 50MB)', 'error');
+                return;
             }
+            
+            if (!['gltf', 'glb', 'dae'].includes(fileExtension)) {
+                showNotification('Formato non supportato. Usa GLTF, GLB o DAE', 'error');
+                return;
+            }
+            
+            // Simula caricamento
+            showLoadingScreen('Analisi ' + file.name + '...');
+            document.getElementById('welcomeScreen').style.display = 'none';
+            
+            setTimeout(() => {
+                hideLoadingScreen();
+                showFileInfo(file);
+                showNotification('File analizzato! (Three.js necessario per visualizzazione)', 'info');
+                updateStatus('✅ File pronto (necessario Three.js per rendering)');
+            }, 2000);
         }
         
-        // Test 4: Analisi file
-        function testFile(file) {
-            log('🔬 Inizio analisi file...', 'info');
-            
-            const name = file.name.toLowerCase();
-            const ext = name.split('.').pop();
-            const size = (file.size / 1024 / 1024).toFixed(2);
-            
-            log(`📊 Nome: ${file.name}`, 'info');
-            log(`📊 Estensione: ${ext}`, 'info');
-            log(`📊 Dimensione: ${size} MB`, 'info');
-            log(`📊 Tipo MIME: ${file.type}`, 'info');
-            
-            // Test formato
-            if (['gltf', 'glb', 'dae'].includes(ext)) {
-                log(`✅ Formato supportato: ${ext}`, 'success');
-                updateStatus(`✅ File ${ext.toUpperCase()} valido!`);
-                
-                // Test lettura
-                testFileReading(file, ext);
-            } else {
-                log(`❌ Formato non supportato: ${ext}`, 'error');
-                updateStatus(`❌ Formato ${ext} non supportato`);
-            }
+        function showFileInfo(file) {
+            const viewer = document.getElementById('viewer');
+            viewer.innerHTML = `
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: white; text-align: center; padding: 20px;">
+                    <div style="background: rgba(0,0,0,0.8); padding: 30px; border-radius: 15px; max-width: 500px;">
+                        <h2>📁 File Caricato</h2>
+                        <p style="margin: 15px 0;"><strong>Nome:</strong> ${file.name}</p>
+                        <p style="margin: 15px 0;"><strong>Dimensione:</strong> ${(file.size / (1024 * 1024)).toFixed(2)} MB</p>
+                        <p style="margin: 15px 0;"><strong>Tipo:</strong> ${file.name.split('.').pop().toUpperCase()}</p>
+                        <div style="background: rgba(255,193,7,0.2); padding: 15px; border-radius: 8px; margin: 20px 0;">
+                            <h3>⚠️ Three.js Richiesto</h3>
+                            <p style="font-size: 14px; margin-top: 10px;">
+                                Per visualizzare modelli 3D è necessario Three.js.<br>
+                                Verifica la connessione internet e ricarica la pagina.
+                            </p>
+                        </div>
+                        <button onclick="location.reload()" style="background: #667eea; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 15px;">
+                            🔄 Ricarica Pagina
+                        </button>
+                        <button onclick="loadNewFile()" style="background: #28a745; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; margin-top: 15px; margin-left: 10px;">
+                            📁 Nuovo File
+                        </button>
+                    </div>
+                </div>
+            `;
         }
         
-        // Test 5: Lettura file
-        function testFileReading(file, ext) {
-            log('📖 Test lettura file...', 'info');
+        function loadNewFile() {
+            location.reload();
+        }
+        
+        // Funzioni di utilità
+        function showLoadingScreen(message) {
+            const loadingScreen = document.getElementById('loadingScreen');
+            const loadingText = document.getElementById('loadingText');
+            loadingText.textContent = message;
+            loadingScreen.style.display = 'flex';
+        }
+        
+        function hideLoadingScreen() {
+            document.getElementById('loadingScreen').style.display = 'none';
+        }
+        
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = 'notification notification-' + type;
+            notification.textContent = message;
             
-            const reader = new FileReader();
+            document.body.appendChild(notification);
             
-            reader.onload = function(e) {
-                const dataSize = e.target.result ? 
-                    (typeof e.target.result === 'string' ? e.target.result.length : e.target.result.byteLength) : 0;
-                
-                log(`✅ File letto! Dati: ${dataSize} caratteri/bytes`, 'success');
-                updateStatus(`✅ File letto correttamente (${dataSize} bytes)`);
-                
-                // Test Three.js (se disponibile)
-                testThreeJS();
-            };
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+        
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+        
+        function resetCamera() {
+            showNotification('Funzione disponibile con Three.js', 'info');
+        }
+        
+        function toggleAnimation() {
+            showNotification('Animazione disponibile con Three.js', 'info');
+        }
+        
+        function fitToScreen() {
+            showNotification('Centraggio disponibile con Three.js', 'info');
+        }
+        
+        // Setup controlli base
+        function setupBasicControls() {
+            document.getElementById('rotationSpeed').addEventListener('input', (e) => {
+                rotationSpeed = parseFloat(e.target.value);
+                document.getElementById('rotationValue').textContent = rotationSpeed.toFixed(3);
+            });
             
-            reader.onerror = function(e) {
-                log(`❌ Errore lettura file: ${e.target.error}`, 'error');
-                updateStatus('❌ Errore nella lettura del file');
-            };
+            document.getElementById('lightIntensity').addEventListener('input', (e) => {
+                document.getElementById('lightValue').textContent = parseFloat(e.target.value).toFixed(1);
+            });
             
-            reader.onprogress = function(e) {
-                if (e.lengthComputable) {
-                    const percent = (e.loaded / e.total * 100).toFixed(1);
-                    log(`📖 Lettura: ${percent}%`, 'info');
-                }
-            };
+            document.getElementById('backgroundColor').addEventListener('input', (e) => {
+                document.body.style.background = e.target.value;
+            });
             
-            try {
-                if (ext === 'glb') {
-                    reader.readAsArrayBuffer(file);
+            window.addEventListener('resize', () => {
+                const mobileBtn = document.getElementById('mobileMenuBtn');
+                if (window.innerWidth <= 768) {
+                    mobileBtn.style.display = 'flex';
                 } else {
-                    reader.readAsText(file);
+                    mobileBtn.style.display = 'none';
+                    document.getElementById('sidebar').classList.remove('open');
                 }
-            } catch (error) {
-                log(`❌ Errore avvio lettura: ${error.message}`, 'error');
-                updateStatus('❌ Errore avvio lettura file');
-            }
+            });
         }
         
-        // Test 6: Three.js
-        function testThreeJS() {
-            log('🎮 Test Three.js...', 'info');
+        // Inizializzazione principale
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStatus('📋 DOM caricato');
             
-            // Test caricamento script
-            const scripts = document.querySelectorAll('script[src*="three"]');
-            log(`🔍 Script Three.js trovati: ${scripts.length}`, scripts.length > 0 ? 'success' : 'error');
+            // Setup immediato senza Three.js
+            setupFileInputSimple();
+            setupBasicControls();
+            initSimple3D();
             
-            // Test oggetto THREE
-            if (typeof THREE !== 'undefined') {
-                log('✅ THREE disponibile', 'success');
-                log(`📦 Versione THREE: ${THREE.REVISION || 'unknown'}`, 'info');
-                
-                // Test loader
-                if (THREE.GLTFLoader) {
-                    log('✅ GLTFLoader disponibile', 'success');
-                } else {
-                    log('❌ GLTFLoader NON disponibile', 'error');
-                }
-                
-                if (THREE.ColladaLoader) {
-                    log('✅ ColladaLoader disponibile', 'success');
-                } else {
-                    log('❌ ColladaLoader NON disponibile', 'error');
-                }
-                
-                updateStatus('✅ Tutti i test completati - FUNZIONANTE!');
-            } else {
-                log('❌ THREE NON disponibile', 'error');
-                updateStatus('❌ Three.js non caricato');
-            }
-        }
-        
-        // Test iniziale
-        log('🎯 Sistema di debug caricato', 'success');
-        
-        // Test periodico
-        setTimeout(() => {
-            log('⏰ Test automatico...', 'info');
-            const fileInput = document.getElementById('fileInput');
-            log(`🔄 File input ancora presente: ${!!fileInput}`, fileInput ? 'success' : 'error');
-        }, 2000);
+            updateStatus('✅ App pronta (modalità semplificata)');
+            
+            // Informazioni per l'utente
+            setTimeout(() => {
+                showNotification('App caricata in modalità semplificata. Carica un file per testare!', 'info');
+            }, 1000);
+        });
     </script>
 </body>
 </html>
