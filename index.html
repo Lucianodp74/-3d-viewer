@@ -815,24 +815,23 @@
         }
         
         function createDemoModel() {
-            const geometry = new THREE.BoxGeometry(2, 2, 2);
-            const material = new THREE.MeshStandardMaterial({ 
-                color: 0x667eea,
-                metalness: 0.3,
-                roughness: 0.4
-            });
+            // Non creare modello visibile, ma inizializza le variabili necessarie
+            modelGroup = null;
+            modelBoundingBox = null;
+            modelCenter = new THREE.Vector3(0, 0, 0);
+            modelSize = new THREE.Vector3(4, 4, 4); // Dimensione di default
             
-            model = new THREE.Mesh(geometry, material);
-            
-            modelGroup = new THREE.Group();
-            modelGroup.add(model);
-            scene.add(modelGroup);
-            
-            calculateModelBounds();
+            console.log('Scena inizializzata senza modello demo - variabili inizializzate');
         }
         
         function calculateModelBounds() {
-            if (!modelGroup) return;
+            if (!modelGroup) {
+                // Se non c'è modello, usa valori di default
+                modelBoundingBox = null;
+                modelCenter = new THREE.Vector3(0, 0, 0);
+                modelSize = new THREE.Vector3(4, 4, 4);
+                return;
+            }
             
             modelBoundingBox = new THREE.Box3().setFromObject(modelGroup);
             modelCenter = modelBoundingBox.getCenter(new THREE.Vector3());
