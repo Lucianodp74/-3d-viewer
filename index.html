@@ -1,123 +1,222 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>3D Viewer DAE - Funzionante</title>
+    <title>3D Viewer Pro - Stile Kubity</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
-            font-family: Arial, sans-serif;
-            background: #f0f0f0;
-            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #1a1a1a;
+            color: white;
             overflow: hidden;
+            height: 100vh;
+        }
+        
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        .sidebar {
+            width: 300px;
+            background: #2d2d2d;
+            border-right: 1px solid #444;
+            display: flex;
+            flex-direction: column;
         }
         
         .header {
-            background: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding: 20px;
+            background: #333;
+            border-bottom: 1px solid #444;
         }
         
-        .title {
-            font-size: 20px;
+        .logo {
+            font-size: 18px;
             font-weight: bold;
-            color: #333;
+            color: #4fc3f7;
+            margin-bottom: 5px;
         }
         
-        .buttons {
-            display: flex;
-            gap: 10px;
+        .subtitle {
+            font-size: 12px;
+            color: #999;
         }
         
-        button {
-            padding: 10px 20px;
+        .section {
+            padding: 20px;
+            border-bottom: 1px solid #444;
+        }
+        
+        .section h3 {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            color: #ccc;
+        }
+        
+        .upload-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
+            color: white;
             cursor: pointer;
             font-weight: 500;
-            transition: all 0.2s;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
         }
         
-        .btn-primary {
-            background: #3b82f6;
+        .upload-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(79, 195, 247, 0.4);
+        }
+        
+        .sample-btn {
+            width: 100%;
+            padding: 10px;
+            background: transparent;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: #ccc;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .sample-btn:hover {
+            background: #404040;
+        }
+        
+        .view-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .view-btn {
+            padding: 10px;
+            background: #404040;
+            border: none;
+            border-radius: 6px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        
+        .view-btn:hover {
+            background: #4a4a4a;
+        }
+        
+        .view-btn.active {
+            background: #4fc3f7;
             color: white;
         }
         
-        .btn-primary:hover {
-            background: #2563eb;
+        .info-card {
+            background: #383838;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
         }
         
-        .btn-secondary {
-            background: #10b981;
-            color: white;
+        .info-card h4 {
+            font-size: 12px;
+            color: #4fc3f7;
+            margin-bottom: 10px;
         }
         
-        .btn-secondary:hover {
-            background: #059669;
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+            font-size: 11px;
         }
+        
+        .info-label { color: #aaa; }
+        .info-value { color: white; font-weight: 500; }
         
         .viewer {
-            height: calc(100vh - 70px);
+            flex: 1;
             position: relative;
-            background: #f8f9fa;
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
         }
         
-        #canvas-container {
+        #canvas {
             width: 100%;
             height: 100%;
         }
         
-        .controls {
+        .toolbar {
             position: absolute;
             top: 20px;
             right: 20px;
-            background: white;
-            border-radius: 8px;
-            padding: 10px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            display: flex;
+            background: rgba(45, 45, 45, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 10px;
+            padding: 8px;
+            gap: 4px;
         }
         
-        .control-btn {
+        .tool-btn {
             width: 40px;
             height: 40px;
-            margin: 5px;
-            background: #f3f4f6;
+            background: transparent;
             border: none;
             border-radius: 6px;
+            color: #ccc;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: all 0.2s ease;
         }
         
-        .control-btn:hover {
-            background: #e5e7eb;
-        }
-        
-        .control-btn.active {
-            background: #3b82f6;
+        .tool-btn:hover {
+            background: #555;
             color: white;
         }
         
-        .info {
+        .tool-btn.active {
+            background: #4fc3f7;
+            color: white;
+        }
+        
+        .nav-controls {
             position: absolute;
             bottom: 20px;
-            left: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-            max-width: 300px;
-            font-size: 14px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background: rgba(45, 45, 45, 0.9);
+            backdrop-filter: blur(10px);
+            border-radius: 25px;
+            padding: 10px;
+            gap: 10px;
+        }
+        
+        .nav-btn {
+            width: 45px;
+            height: 45px;
+            background: transparent;
+            border: none;
+            border-radius: 50%;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-btn:hover {
+            background: #4fc3f7;
+            color: white;
+            transform: scale(1.1);
         }
         
         .loading {
@@ -126,25 +225,25 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.5);
+            background: rgba(26, 26, 26, 0.8);
             display: none;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
         
         .loading-box {
-            background: white;
+            background: rgba(45, 45, 45, 0.95);
             padding: 30px;
-            border-radius: 8px;
+            border-radius: 15px;
             text-align: center;
         }
         
         .spinner {
-            width: 30px;
-            height: 30px;
-            border: 3px solid #f3f3f6;
-            border-top: 3px solid #3b82f6;
+            width: 40px;
+            height: 40px;
+            border: 3px solid #444;
+            border-top: 3px solid #4fc3f7;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
@@ -155,67 +254,153 @@
             100% { transform: rotate(360deg); }
         }
         
-        .status {
-            background: #e0f2fe;
-            border: 1px solid #81d4fa;
-            padding: 10px;
-            border-radius: 6px;
-            margin-top: 10px;
-            font-size: 13px;
+        .progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #4fc3f7, #29b6f6);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
         }
         
-        .error {
-            background: #ffebee;
-            border: 1px solid #ffcdd2;
-            color: #c62828;
+        .progress.active {
+            animation: progress 2s ease-in-out infinite;
         }
         
-        .success {
-            background: #e8f5e8;
-            border: 1px solid #a5d6a7;
-            color: #2e7d32;
+        @keyframes progress {
+            0% { transform: scaleX(0); }
+            50% { transform: scaleX(0.7); }
+            100% { transform: scaleX(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: absolute;
+                z-index: 100;
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .menu-btn {
+                position: absolute;
+                top: 20px;
+                left: 20px;
+                width: 40px;
+                height: 40px;
+                background: rgba(45, 45, 45, 0.9);
+                border: none;
+                border-radius: 8px;
+                color: white;
+                cursor: pointer;
+                z-index: 200;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="title">🎯 3D Viewer DAE</div>
-        <div class="buttons">
-            <button class="btn-secondary" onclick="loadExample()">🏠 Esempio</button>
-            <button class="btn-primary" onclick="openFileDialog()">📁 Carica DAE</button>
-            <input type="file" id="fileInput" accept=".dae,.obj,.gltf" style="display: none;" onchange="handleFileSelect(event)">
-        </div>
-    </div>
-    
-    <div class="viewer">
-        <div id="canvas-container"></div>
-        
-        <div class="controls">
-            <button class="control-btn" onclick="resetView()" title="Vista iniziale">🏠</button>
-            <button class="control-btn" onclick="toggleWireframe()" title="Wireframe">📐</button>
-            <button class="control-btn active" onclick="toggleGrid()" title="Griglia">⚏</button>
-            <button class="control-btn" onclick="showInfo()" title="Info">ℹ️</button>
-        </div>
-        
-        <div class="info">
-            <h4>📋 Stato Viewer</h4>
-            <p>Pronto per caricare modelli 3D</p>
-            
-            <div class="status">
-                <strong>Formati supportati:</strong><br>
-                • .DAE (Collada da SketchUp)<br>
-                • .OBJ (Wavefront)<br>
-                • .GLTF (Standard web)
+    <div class="container">
+        <div class="sidebar" id="sidebar">
+            <div class="header">
+                <div class="logo">🎯 3D Viewer Pro</div>
+                <div class="subtitle">Stile Kubity - Alternativa SketchUp</div>
             </div>
             
-            <div id="modelInfo" style="display: none;"></div>
+            <div class="section">
+                <h3>File</h3>
+                <input type="file" id="fileInput" accept=".dae,.obj,.gltf,.glb" style="display: none;" onchange="handleFile(event)">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    📁 Carica Modello
+                </button>
+                <button class="sample-btn" onclick="loadSample()">🏠 Villa Esempio</button>
+            </div>
+            
+            <div class="section">
+                <h3>Visualizzazione</h3>
+                <div class="view-grid">
+                    <button class="view-btn active" onclick="setMode('solid', this)">🎨 Solido</button>
+                    <button class="view-btn" onclick="setMode('wireframe', this)">📐 Wireframe</button>
+                    <button class="view-btn" onclick="setMode('xray', this)">👻 X-Ray</button>
+                    <button class="view-btn" onclick="setMode('material', this)">🌟 Materiali</button>
+                </div>
+                
+                <h3>Ambiente</h3>
+                <div class="view-grid">
+                    <button class="view-btn" onclick="setEnv('studio', this)">💡 Studio</button>
+                    <button class="view-btn active" onclick="setEnv('outdoor', this)">🌤️ Esterno</button>
+                    <button class="view-btn" onclick="setEnv('night', this)">🌙 Notte</button>
+                    <button class="view-btn" onclick="setEnv('sunset', this)">🌅 Tramonto</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>Informazioni</h3>
+                <div class="info-card" id="modelInfo" style="display: none;">
+                    <h4>📊 Statistiche</h4>
+                    <div class="info-row">
+                        <span class="info-label">File:</span>
+                        <span class="info-value" id="fileName">-</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Mesh:</span>
+                        <span class="info-value" id="meshCount">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Vertici:</span>
+                        <span class="info-value" id="vertexCount">0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Triangoli:</span>
+                        <span class="info-value" id="triangleCount">0</span>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🎮 Controlli</h4>
+                    <div style="font-size: 10px; line-height: 1.5; color: #aaa;">
+                        <div><strong>Orbita:</strong> Click + trascina</div>
+                        <div><strong>Pan:</strong> Click destro + trascina</div>
+                        <div><strong>Zoom:</strong> Rotella mouse</div>
+                        <div><strong>Focus:</strong> Doppio click</div>
+                    </div>
+                </div>
+            </div>
         </div>
         
-        <div class="loading" id="loading">
-            <div class="loading-box">
-                <div class="spinner"></div>
-                <p><strong>Caricamento modello...</strong></p>
-                <p style="font-size: 12px; color: #666;">Parsing geometria DAE</p>
+        <div class="viewer">
+            <button class="menu-btn" onclick="toggleSidebar()" style="display: none;">☰</button>
+            
+            <div class="progress" id="progress"></div>
+            
+            <div class="toolbar">
+                <button class="tool-btn active" onclick="setTool('orbit', this)" title="Orbita">🔄</button>
+                <button class="tool-btn" onclick="setTool('pan', this)" title="Pan">✋</button>
+                <button class="tool-btn" onclick="setTool('zoom', this)" title="Zoom">🔍</button>
+                <button class="tool-btn" onclick="takeScreenshot()" title="Screenshot">📸</button>
+            </div>
+            
+            <div id="canvas"></div>
+            
+            <div class="nav-controls">
+                <button class="nav-btn" onclick="setView('front')" title="Fronte">⬅️</button>
+                <button class="nav-btn" onclick="setView('back')" title="Retro">➡️</button>
+                <button class="nav-btn" onclick="setView('left')" title="Sinistra">⬆️</button>
+                <button class="nav-btn" onclick="setView('right')" title="Destra">⬇️</button>
+                <button class="nav-btn" onclick="setView('top')" title="Alto">🔝</button>
+                <button class="nav-btn" onclick="setView('home')" title="Home">🏠</button>
+            </div>
+            
+            <div class="loading" id="loading">
+                <div class="loading-box">
+                    <div class="spinner"></div>
+                    <h3>Caricamento modello...</h3>
+                    <p style="color: #aaa; margin-top: 10px;" id="loadingText">Parsing geometria</p>
+                </div>
             </div>
         </div>
     </div>
@@ -223,87 +408,244 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
     <script>
-        // Variabili globali
+        // Global variables
         let scene, camera, renderer, controls;
         let loadedModel = null;
         let grid = null;
-        let isWireframe = false;
-        let showGridFlag = true;
+        let currentMode = 'solid';
+        let currentEnv = 'outdoor';
+        let currentTool = 'orbit';
         
-        // Funzioni di controllo file
-        function openFileDialog() {
-            console.log('🖱️ Apertura dialog file...');
-            const fileInput = document.getElementById('fileInput');
-            fileInput.click();
+        // Mouse/touch tracking
+        let isRotating = false;
+        let isPanning = false;
+        let lastMouse = { x: 0, y: 0 };
+        let spherical = { theta: Math.PI * 0.25, phi: Math.PI * 0.3, radius: 15 };
+        let target = { x: 0, y: 0, z: 0 };
+        
+        // Initialize
+        function init() {
+            console.log('🚀 Initializing Kubity-style viewer...');
+            
+            const container = document.getElementById('canvas');
+            
+            // Scene
+            scene = new THREE.Scene();
+            setupEnvironment();
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            updateCamera();
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            container.appendChild(renderer.domElement);
+            
+            setupLighting();
+            setupGrid();
+            setupControls();
+            
+            // Start rendering
+            animate();
+            
+            // Resize handler
+            window.addEventListener('resize', onResize);
+            
+            console.log('✅ Viewer initialized');
         }
         
-        function handleFileSelect(event) {
-            const file = event.target.files[0];
-            if (file) {
-                console.log('📁 File selezionato:', file.name);
-                loadFile(file);
+        function setupEnvironment() {
+            scene.background = new THREE.Color(0x87ceeb).lerp(new THREE.Color(0xe6f3ff), 0.5);
+            scene.fog = new THREE.Fog(0x87ceeb, 50, 300);
+        }
+        
+        function setupLighting() {
+            // Ambient
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
+            scene.add(ambientLight);
+            
+            // Main directional
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
+            directionalLight.position.set(20, 30, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Fill light
+            const fillLight = new THREE.DirectionalLight(0x4fc3f7, 0.3);
+            fillLight.position.set(-10, 10, -10);
+            scene.add(fillLight);
+            
+            // Hemisphere
+            const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x8b7355, 0.8);
+            scene.add(hemisphereLight);
+        }
+        
+        function setupGrid() {
+            grid = new THREE.GridHelper(50, 50, 0x888888, 0xcccccc);
+            grid.material.opacity = 0.3;
+            grid.material.transparent = true;
+            scene.add(grid);
+        }
+        
+        function setupControls() {
+            const canvas = renderer.domElement;
+            
+            canvas.addEventListener('mousedown', onMouseDown);
+            canvas.addEventListener('mousemove', onMouseMove);
+            canvas.addEventListener('mouseup', onMouseUp);
+            canvas.addEventListener('wheel', onWheel);
+            canvas.addEventListener('dblclick', onDoubleClick);
+            canvas.addEventListener('contextmenu', e => e.preventDefault());
+            
+            // Touch events
+            canvas.addEventListener('touchstart', onTouchStart);
+            canvas.addEventListener('touchmove', onTouchMove);
+            canvas.addEventListener('touchend', onTouchEnd);
+        }
+        
+        function onMouseDown(event) {
+            if (currentTool === 'orbit' && event.button === 0) {
+                isRotating = true;
+            } else if (currentTool === 'pan' || event.button === 2) {
+                isPanning = true;
+            }
+            lastMouse = { x: event.clientX, y: event.clientY };
+        }
+        
+        function onMouseMove(event) {
+            if (!isRotating && !isPanning) return;
+            
+            const deltaX = event.clientX - lastMouse.x;
+            const deltaY = event.clientY - lastMouse.y;
+            
+            if (isRotating) {
+                spherical.theta -= deltaX * 0.01;
+                spherical.phi += deltaY * 0.01;
+                spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+            }
+            
+            if (isPanning) {
+                const distance = spherical.radius;
+                const panSpeed = distance * 0.001;
+                
+                const left = new THREE.Vector3();
+                const up = new THREE.Vector3();
+                left.setFromMatrixColumn(camera.matrix, 0);
+                up.setFromMatrixColumn(camera.matrix, 1);
+                
+                left.multiplyScalar(-deltaX * panSpeed);
+                up.multiplyScalar(deltaY * panSpeed);
+                
+                target.x += left.x + up.x;
+                target.y += left.y + up.y;
+                target.z += left.z + up.z;
+            }
+            
+            lastMouse = { x: event.clientX, y: event.clientY };
+        }
+        
+        function onMouseUp() {
+            isRotating = false;
+            isPanning = false;
+        }
+        
+        function onWheel(event) {
+            const scale = event.deltaY > 0 ? 1.1 : 0.9;
+            spherical.radius = Math.max(1, Math.min(200, spherical.radius * scale));
+            event.preventDefault();
+        }
+        
+        function onDoubleClick(event) {
+            if (loadedModel) {
+                const rect = renderer.domElement.getBoundingClientRect();
+                const mouse = new THREE.Vector2();
+                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                
+                const raycaster = new THREE.Raycaster();
+                raycaster.setFromCamera(mouse, camera);
+                
+                const intersects = raycaster.intersectObject(loadedModel, true);
+                if (intersects.length > 0) {
+                    const point = intersects[0].point;
+                    target.x = point.x;
+                    target.y = point.y;
+                    target.z = point.z;
+                    spherical.radius = Math.max(spherical.radius * 0.5, 2);
+                }
             }
         }
         
-        function loadExample() {
-            console.log('🏠 Caricamento esempio...');
-            showLoading(true);
-            
-            // Simula un file DAE di esempio
-            const exampleDAE = `<?xml version="1.0"?>
-<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
-  <library_geometries>
-    <geometry id="House-mesh">
-      <mesh>
-        <source id="House-positions">
-          <float_array count="24">
-            -2 0 -2  2 0 -2  2 4 -2 -2 4 -2
-            -2 0  2  2 0  2  2 4  2 -2 4  2
-          </float_array>
-          <technique_common>
-            <accessor source="#House-positions" count="8" stride="3">
-              <param name="X" type="float"/>
-              <param name="Y" type="float"/>
-              <param name="Z" type="float"/>
-            </accessor>
-          </technique_common>
-        </source>
-        <vertices id="House-vertices">
-          <input semantic="POSITION" source="#House-positions"/>
-        </vertices>
-        <triangles count="12">
-          <input semantic="VERTEX" source="#House-vertices"/>
-          <p>0 1 2 0 2 3 4 7 6 4 6 5 0 4 5 0 5 1 2 6 7 2 7 3 0 3 7 0 7 4 1 5 6 1 6 2</p>
-        </triangles>
-      </mesh>
-    </geometry>
-  </library_geometries>
-</COLLADA>`;
-            
-            setTimeout(() => {
-                try {
-                    const model = parseDAE(exampleDAE, 'esempio_casa.dae');
-                    if (model) {
-                        addModelToScene(model);
-                        updateStatus('✅ Esempio caricato: Casa semplice', 'success');
-                    }
-                } catch (error) {
-                    updateStatus('❌ Errore esempio: ' + error.message, 'error');
-                }
-                showLoading(false);
-            }, 1000);
+        function onTouchStart(event) {
+            event.preventDefault();
+            if (event.touches.length === 1) {
+                isRotating = true;
+                lastMouse = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+            }
         }
         
-        async function loadFile(file) {
+        function onTouchMove(event) {
+            event.preventDefault();
+            if (event.touches.length === 1 && isRotating) {
+                const deltaX = event.touches[0].clientX - lastMouse.x;
+                const deltaY = event.touches[0].clientY - lastMouse.y;
+                
+                spherical.theta -= deltaX * 0.01;
+                spherical.phi += deltaY * 0.01;
+                spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
+                
+                lastMouse = { x: event.touches[0].clientX, y: event.touches[0].clientY };
+            }
+        }
+        
+        function onTouchEnd() {
+            isRotating = false;
+            isPanning = false;
+        }
+        
+        function updateCamera() {
+            const offset = new THREE.Vector3();
+            offset.setFromSpherical(new THREE.Spherical(spherical.radius, spherical.phi, spherical.theta));
+            camera.position.set(target.x + offset.x, target.y + offset.y, target.z + offset.z);
+            camera.lookAt(target.x, target.y, target.z);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            updateCamera();
+            renderer.render(scene, camera);
+        }
+        
+        function onResize() {
+            const container = document.getElementById('canvas');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+        
+        // File handling
+        async function handleFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
             showLoading(true);
-            updateStatus('📖 Lettura file: ' + file.name, '');
+            updateLoadingText('Lettura file...');
             
             try {
                 const text = await file.text();
                 const extension = file.name.toLowerCase().split('.').pop();
                 
-                let model = null;
+                updateLoadingText('Parsing geometria...');
                 
+                let model = null;
                 switch (extension) {
                     case 'dae':
                         model = parseDAE(text, file.name);
@@ -316,15 +658,13 @@
                 }
                 
                 if (model) {
-                    addModelToScene(model);
-                    updateStatus(`✅ ${file.name} caricato con successo`, 'success');
-                } else {
-                    throw new Error('Nessuna geometria valida trovata');
+                    addModel(model);
+                    updateModelInfo(model, file.name);
+                    focusOnModel(model);
                 }
                 
             } catch (error) {
-                console.error('Errore caricamento:', error);
-                updateStatus('❌ Errore: ' + error.message, 'error');
+                alert('Errore: ' + error.message);
             } finally {
                 showLoading(false);
             }
@@ -333,326 +673,97 @@
         function parseDAE(daeText, filename) {
             console.log('🔍 Parsing DAE:', filename);
             
-            try {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(daeText, 'text/xml');
-                
-                // Verifica errori parsing
-                const parseError = doc.querySelector('parsererror');
-                if (parseError) {
-                    throw new Error('File DAE non valido (errore XML)');
-                }
-                
-                const group = new THREE.Group();
-                group.name = filename;
-                
-                // Estrai materiali e texture
-                const materials = extractMaterials(doc);
-                console.log(`🎨 Materiali trovati: ${Object.keys(materials).length}`);
-                
-                // Cerca geometrie
-                const meshes = doc.querySelectorAll('mesh');
-                console.log(`📐 Trovate ${meshes.length} mesh`);
-                
-                let geometryCount = 0;
-                
-                meshes.forEach((mesh, index) => {
-                    try {
-                        const geometry = extractGeometryFromMesh(mesh);
-                        if (geometry) {
-                            // Cerca materiale associato
-                            let material = materials[`material_${index}`] || 
-                                         Object.values(materials)[index] ||
-                                         new THREE.MeshLambertMaterial({
-                                            color: new THREE.Color().setHSL((index * 0.2) % 1, 0.7, 0.6)
-                                         });
-                            
-                            const meshObj = new THREE.Mesh(geometry, material);
-                            meshObj.castShadow = true;
-                            meshObj.receiveShadow = true;
-                            group.add(meshObj);
-                            geometryCount++;
-                        }
-                    } catch (err) {
-                        console.warn(`⚠️ Errore mesh ${index}:`, err);
-                    }
-                });
-                
-                if (geometryCount === 0) {
-                    // Fallback: crea geometria semplice
-                    const geometry = new THREE.BoxGeometry(2, 2, 2);
-                    const material = new THREE.MeshLambertMaterial({ color: 0x8888aa });
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.position.y = 1;
-                    group.add(mesh);
-                    console.log('⚠️ Usando geometria fallback');
-                }
-                
-                console.log(`✅ DAE processato: ${geometryCount} geometrie`);
-                return group;
-                
-            } catch (error) {
-                console.error('❌ Errore parsing DAE:', error);
-                throw error;
-            }
-        }
-        
-        function extractMaterials(doc) {
-            const materials = {};
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(daeText, 'text/xml');
             
-            // Cerca definizioni materiali
-            const materialElements = doc.querySelectorAll('material');
-            const effectElements = doc.querySelectorAll('effect');
-            const imageElements = doc.querySelectorAll('image');
+            const group = new THREE.Group();
+            group.name = filename;
             
-            console.log(`🔍 Trovati: ${materialElements.length} materiali, ${effectElements.length} effetti, ${imageElements.length} immagini`);
+            const meshes = doc.querySelectorAll('mesh');
+            console.log(`Found ${meshes.length} meshes`);
             
-            // Mappa delle immagini
-            const images = {};
-            imageElements.forEach(img => {
-                const id = img.getAttribute('id');
-                const initFrom = img.querySelector('init_from');
-                if (id && initFrom) {
-                    images[id] = initFrom.textContent.trim();
-                    console.log(`🖼️ Immagine ${id}: ${images[id]}`);
-                }
-            });
+            let geometryCount = 0;
             
-            // Processa materiali
-            materialElements.forEach((material, index) => {
-                const materialId = material.getAttribute('id') || `material_${index}`;
-                
-                // Cerca effetto associato
-                const instanceEffect = material.querySelector('instance_effect');
-                if (instanceEffect) {
-                    const effectUrl = instanceEffect.getAttribute('url');
-                    if (effectUrl) {
-                        const effectId = effectUrl.replace('#', '');
-                        const effect = doc.querySelector(`effect[id="${effectId}"]`);
+            meshes.forEach((mesh, index) => {
+                try {
+                    const geometry = extractGeometry(mesh);
+                    if (geometry) {
+                        const material = new THREE.MeshLambertMaterial({
+                            color: new THREE.Color().setHSL((index * 0.1) % 1, 0.7, 0.6)
+                        });
                         
-                        if (effect) {
-                            const mat = createMaterialFromEffect(effect, images);
-                            materials[materialId] = mat;
-                            console.log(`✅ Materiale ${materialId} creato`);
-                        }
+                        const meshObj = new THREE.Mesh(geometry, material);
+                        meshObj.castShadow = true;
+                        meshObj.receiveShadow = true;
+                        group.add(meshObj);
+                        geometryCount++;
                     }
-                }
-                
-                // Fallback: materiale colorato
-                if (!materials[materialId]) {
-                    materials[materialId] = new THREE.MeshLambertMaterial({
-                        color: new THREE.Color().setHSL((index * 0.15) % 1, 0.8, 0.6)
-                    });
+                } catch (err) {
+                    console.warn(`Error mesh ${index}:`, err);
                 }
             });
             
-            return materials;
-        }
-        
-        function createMaterialFromEffect(effect, images) {
-            const materialData = {
-                color: 0xffffff,
-                map: null,
-                transparent: false,
-                opacity: 1.0
-            };
-            
-            // Cerca proprietà diffuse
-            const diffuse = effect.querySelector('diffuse');
-            if (diffuse) {
-                // Cerca colore
-                const color = diffuse.querySelector('color');
-                if (color) {
-                    const colorValues = color.textContent.trim().split(/\s+/).map(Number);
-                    if (colorValues.length >= 3) {
-                        materialData.color = new THREE.Color(colorValues[0], colorValues[1], colorValues[2]);
-                        console.log(`🎨 Colore diffuse: ${colorValues.join(', ')}`);
-                    }
-                }
-                
-                // Cerca texture
-                const texture = diffuse.querySelector('texture');
-                if (texture) {
-                    const textureId = texture.getAttribute('texture');
-                    const sampler = effect.querySelector(`newparam[sid="${textureId}"] sampler2D source`);
-                    if (sampler) {
-                        const surfaceId = sampler.textContent.trim();
-                        const surface = effect.querySelector(`newparam[sid="${surfaceId}"] surface init_from`);
-                        if (surface) {
-                            const imageId = surface.textContent.trim();
-                            const imagePath = images[imageId];
-                            if (imagePath) {
-                                try {
-                                    // Carica texture
-                                    const loader = new THREE.TextureLoader();
-                                    materialData.map = loader.load(
-                                        imagePath,
-                                        (texture) => {
-                                            console.log(`✅ Texture caricata: ${imagePath}`);
-                                            texture.wrapS = THREE.RepeatWrapping;
-                                            texture.wrapT = THREE.RepeatWrapping;
-                                            texture.flipY = false; // Fix per DAE
-                                        },
-                                        undefined,
-                                        (error) => {
-                                            console.warn(`⚠️ Errore caricamento texture ${imagePath}:`, error);
-                                        }
-                                    );
-                                    console.log(`🖼️ Applicando texture: ${imagePath}`);
-                                } catch (error) {
-                                    console.warn(`⚠️ Errore texture: ${error}`);
-                                }
-                            }
-                        }
-                    }
-                }
+            if (geometryCount === 0) {
+                // Fallback
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const material = new THREE.MeshLambertMaterial({ color: 0x8888aa });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.y = 1;
+                group.add(mesh);
             }
             
-            // Cerca trasparenza
-            const transparency = effect.querySelector('transparency');
-            if (transparency) {
-                const transparencyValue = parseFloat(transparency.textContent);
-                if (transparencyValue < 1.0) {
-                    materialData.transparent = true;
-                    materialData.opacity = transparencyValue;
-                    console.log(`👻 Trasparenza: ${transparencyValue}`);
-                }
-            }
-            
-            // Crea materiale Three.js
-            return new THREE.MeshLambertMaterial({
-                color: materialData.color,
-                map: materialData.map,
-                transparent: materialData.transparent,
-                opacity: materialData.opacity,
-                side: THREE.DoubleSide // Utile per modelli SketchUp
-            });
+            return group;
         }
         
-        function extractGeometryFromMesh(meshElement) {
-            // Cerca posizioni
+        function extractGeometry(meshElement) {
             const sources = meshElement.querySelectorAll('source');
             const triangles = meshElement.querySelector('triangles, polylist, polygons');
             
             if (!triangles) return null;
             
             let positions = [];
-            let normals = [];
-            let uvs = [];
             
-            // Estrai dati da sources
+            // Extract positions
             for (let source of sources) {
                 const floatArray = source.querySelector('float_array');
-                if (!floatArray) continue;
-                
-                const values = floatArray.textContent.trim().split(/\s+/).map(Number);
-                const sourceId = source.getAttribute('id');
-                
-                if (sourceId && sourceId.includes('position')) {
-                    positions = values;
-                    console.log(`📍 Posizioni: ${values.length/3} vertici`);
-                } else if (sourceId && sourceId.includes('normal')) {
-                    normals = values;
-                    console.log(`🔺 Normali: ${values.length/3} normali`);
-                } else if (sourceId && (sourceId.includes('uv') || sourceId.includes('map'))) {
-                    uvs = values;
-                    console.log(`🗺️ UV: ${values.length/2} coordinate texture`);
-                } else if (positions.length === 0) {
-                    // Fallback: primo array di numeri trovato
-                    positions = values;
+                if (floatArray) {
+                    const values = floatArray.textContent.trim().split(/\s+/).map(Number);
+                    if (values.length > 0) {
+                        positions = values;
+                        break;
+                    }
                 }
             }
             
             if (positions.length === 0) return null;
             
-            // Estrai indici
+            // Extract indices
             const pElement = triangles.querySelector('p');
             if (!pElement) return null;
             
             const indices = pElement.textContent.trim().split(/\s+/).map(Number);
-            const inputs = triangles.querySelectorAll('input');
-            const inputCount = inputs.length || 1;
+            const inputCount = triangles.querySelectorAll('input').length || 1;
             
-            // Mappa degli offset per ogni tipo di input
-            const inputMap = {};
-            inputs.forEach((input, i) => {
-                const semantic = input.getAttribute('semantic');
-                inputMap[semantic] = i;
-            });
-            
-            // Filtra indici per vertici
             const vertexIndices = [];
-            const normalIndices = [];
-            const uvIndices = [];
-            
             for (let i = 0; i < indices.length; i += inputCount) {
-                // Indici vertici
-                const vertexOffset = inputMap['VERTEX'] || inputMap['POSITION'] || 0;
-                vertexIndices.push(indices[i + vertexOffset]);
-                
-                // Indici normali
-                if (inputMap['NORMAL'] !== undefined && normals.length > 0) {
-                    normalIndices.push(indices[i + inputMap['NORMAL']]);
-                }
-                
-                // Indici UV
-                if (inputMap['TEXCOORD'] !== undefined && uvs.length > 0) {
-                    uvIndices.push(indices[i + inputMap['TEXCOORD']]);
-                }
+                vertexIndices.push(indices[i]);
             }
             
-            // Crea geometria
+            // Create geometry
             const geometry = new THREE.BufferGeometry();
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geometry.setIndex(vertexIndices);
-            
-            // Aggiungi normali se disponibili
-            if (normals.length > 0 && normalIndices.length > 0) {
-                // Riordina normali secondo gli indici
-                const orderedNormals = [];
-                for (let i = 0; i < normalIndices.length; i++) {
-                    const normalIndex = normalIndices[i];
-                    orderedNormals.push(
-                        normals[normalIndex * 3],
-                        normals[normalIndex * 3 + 1],
-                        normals[normalIndex * 3 + 2]
-                    );
-                }
-                geometry.setAttribute('normal', new THREE.Float32BufferAttribute(orderedNormals, 3));
-                console.log('✅ Normali applicate');
-            } else {
-                geometry.computeVertexNormals();
-                console.log('🔄 Normali calcolate automaticamente');
-            }
-            
-            // Aggiungi UV se disponibili
-            if (uvs.length > 0 && uvIndices.length > 0) {
-                const orderedUVs = [];
-                for (let i = 0; i < uvIndices.length; i++) {
-                    const uvIndex = uvIndices[i];
-                    orderedUVs.push(
-                        uvs[uvIndex * 2],
-                        uvs[uvIndex * 2 + 1]
-                    );
-                }
-                geometry.setAttribute('uv', new THREE.Float32BufferAttribute(orderedUVs, 2));
-                console.log('✅ Coordinate UV applicate');
-            }
-            
-            console.log(`📊 Geometria: ${positions.length/3} vertici, ${vertexIndices.length/3} triangoli`);
+            geometry.computeVertexNormals();
             
             return geometry;
         }
         
         function parseOBJ(objText, filename) {
-            console.log('🔍 Parsing OBJ:', filename);
-            
             const group = new THREE.Group();
             group.name = filename;
             
             const vertices = [];
             const faces = [];
-            
             const lines = objText.split('\n');
             
             for (let line of lines) {
@@ -663,10 +774,9 @@
                     vertices.push(...coords);
                 } else if (line.startsWith('f ')) {
                     const faceData = line.split(/\s+/).slice(1);
-                    const triangle = faceData.slice(0, 3).map(data => {
-                        return parseInt(data.split('/')[0]) - 1;
-                    });
-                    faces.push(...triangle);
+                    for (let i = 0; i < 3; i++) {
+                        faces.push(parseInt(faceData[i].split('/')[0]) - 1);
+                    }
                 }
             }
             
@@ -680,251 +790,45 @@
                 const mesh = new THREE.Mesh(geometry, material);
                 mesh.castShadow = true;
                 mesh.receiveShadow = true;
-                
                 group.add(mesh);
-                console.log(`✅ OBJ: ${vertices.length/3} vertici, ${faces.length/3} triangoli`);
-            } else {
-                throw new Error('File OBJ vuoto o non valido');
             }
             
             return group;
         }
         
-        function addModelToScene(model) {
-            // Rimuovi modello precedente
-            if (loadedModel) {
-                scene.remove(loadedModel);
-            }
+        function loadSample() {
+            showLoading(true);
+            updateLoadingText('Caricamento villa...');
             
-            scene.add(model);
-            loadedModel = model;
-            
-            // Centra camera
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3()).length();
-            
-            camera.position.set(
-                center.x + size * 0.8,
-                center.y + size * 0.6,
-                center.z + size * 0.8
-            );
-            camera.lookAt(center);
-            
-            // Aggiorna info
-            updateModelInfo(model);
-        }
-        
-        function updateModelInfo(model) {
-            let meshCount = 0;
-            let vertexCount = 0;
-            
-            model.traverse((child) => {
-                if (child.isMesh) {
-                    meshCount++;
-                    if (child.geometry && child.geometry.attributes.position) {
-                        vertexCount += child.geometry.attributes.position.count;
-                    }
+            setTimeout(() => {
+                try {
+                    const villa = createSampleVilla();
+                    addModel(villa);
+                    updateModelInfo(villa, 'villa_moderna.dae');
+                    focusOnModel(villa);
+                } catch (error) {
+                    alert('Errore esempio: ' + error.message);
+                } finally {
+                    showLoading(false);
                 }
-            });
-            
-            const info = document.getElementById('modelInfo');
-            info.innerHTML = `
-                <div class="status success">
-                    <strong>📁 ${model.name}</strong><br>
-                    🔷 ${meshCount} mesh<br>
-                    📐 ${vertexCount} vertici
-                </div>
-            `;
-            info.style.display = 'block';
+            }, 1500);
         }
         
-        function updateStatus(message, type) {
-            const info = document.querySelector('.info p');
-            info.innerHTML = message;
+        function createSampleVilla() {
+            const villa = new THREE.Group();
+            villa.name = 'Villa Moderna';
             
-            // Cambia colore in base al tipo
-            if (type === 'error') {
-                info.style.color = '#c62828';
-            } else if (type === 'success') {
-                info.style.color = '#2e7d32';
-            } else {
-                info.style.color = '#333';
-            }
-        }
-        
-        function showLoading(show) {
-            const loading = document.getElementById('loading');
-            loading.style.display = show ? 'flex' : 'none';
-        }
-        
-        // Controlli
-        function resetView() {
-            camera.position.set(5, 5, 5);
-            camera.lookAt(0, 0, 0);
-        }
-        
-        function toggleWireframe() {
-            isWireframe = !isWireframe;
-            if (loadedModel) {
-                loadedModel.traverse((child) => {
-                    if (child.isMesh && child.material) {
-                        child.material.wireframe = isWireframe;
-                    }
-                });
-            }
+            // Main house
+            const houseGeometry = new THREE.BoxGeometry(12, 6, 8);
+            const houseMaterial = new THREE.MeshLambertMaterial({ color: 0xf5f5dc });
+            const house = new THREE.Mesh(houseGeometry, houseMaterial);
+            house.position.y = 3;
+            house.castShadow = true;
+            house.receiveShadow = true;
+            villa.add(house);
             
-            const btn = document.querySelector('[onclick="toggleWireframe()"]');
-            btn.classList.toggle('active', isWireframe);
-        }
-        
-        function toggleGrid() {
-            showGridFlag = !showGridFlag;
-            if (grid) {
-                grid.visible = showGridFlag;
-            }
-            
-            const btn = document.querySelector('[onclick="toggleGrid()"]');
-            btn.classList.toggle('active', showGridFlag);
-        }
-        
-        function showInfo() {
-            if (loadedModel) {
-                const box = new THREE.Box3().setFromObject(loadedModel);
-                const size = box.getSize(new THREE.Vector3());
-                alert(`📊 Info Modello:\n\n📁 Nome: ${loadedModel.name}\n📏 Dimensioni: ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}`);
-            } else {
-                alert('Nessun modello caricato');
-            }
-        }
-        
-        // Inizializzazione Three.js
-        function init() {
-            console.log('🚀 Inizializzazione 3D Viewer...');
-            
-            const container = document.getElementById('canvas-container');
-            
-            // Scene
-            scene = new THREE.Scene();
-            scene.background = new THREE.Color(0xf0f4f8);
-            
-            // Camera
-            camera = new THREE.PerspectiveCamera(
-                60,
-                container.clientWidth / container.clientHeight,
-                0.1,
-                1000
-            );
-            camera.position.set(5, 5, 5);
-            
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.shadowMap.enabled = true;
-            container.appendChild(renderer.domElement);
-            
-            // Luci migliorate
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.8); // Aumentata da 0.4 a 0.8
-            scene.add(ambientLight);
-            
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); // Aumentata da 0.8 a 1.2
-            directionalLight.position.set(10, 20, 10);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            scene.add(directionalLight);
-            
-            // Aggiunge una seconda luce per eliminare ombre troppo scure
-            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
-            directionalLight2.position.set(-10, 10, -10);
-            scene.add(directionalLight2);
-            
-            // Luce hemisferica per illuminazione più naturale
-            const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x8b7355, 0.5);
-            scene.add(hemisphereLight);
-            
-            // Griglia
-            grid = new THREE.GridHelper(10, 10, 0x888888, 0xcccccc);
-            scene.add(grid);
-            
-            // Controlli mouse semplici
-            setupSimpleControls();
-            
-            // Resize
-            window.addEventListener('resize', onWindowResize);
-            
-            // Avvia rendering
-            animate();
-            
-            console.log('✅ Viewer pronto!');
-            updateStatus('✅ Viewer inizializzato - Pronto per caricare file', 'success');
-        }
-        
-        function setupSimpleControls() {
-            let isMouseDown = false;
-            let mouseX = 0, mouseY = 0;
-            let targetRotationX = 0, targetRotationY = 0;
-            let currentRotationX = 0, currentRotationY = 0;
-            
-            renderer.domElement.addEventListener('mousedown', (event) => {
-                isMouseDown = true;
-                mouseX = event.clientX;
-                mouseY = event.clientY;
-            });
-            
-            renderer.domElement.addEventListener('mousemove', (event) => {
-                if (!isMouseDown) return;
-                
-                const deltaX = event.clientX - mouseX;
-                const deltaY = event.clientY - mouseY;
-                
-                targetRotationY += deltaX * 0.01;
-                targetRotationX += deltaY * 0.01;
-                
-                mouseX = event.clientX;
-                mouseY = event.clientY;
-            });
-            
-            renderer.domElement.addEventListener('mouseup', () => {
-                isMouseDown = false;
-            });
-            
-            renderer.domElement.addEventListener('wheel', (event) => {
-                const scale = event.deltaY > 0 ? 1.1 : 0.9;
-                camera.position.multiplyScalar(scale);
-                event.preventDefault();
-            });
-            
-            // Smooth rotation
-            function updateCamera() {
-                currentRotationX += (targetRotationX - currentRotationX) * 0.1;
-                currentRotationY += (targetRotationY - currentRotationY) * 0.1;
-                
-                const distance = camera.position.length();
-                camera.position.x = distance * Math.sin(currentRotationY) * Math.cos(currentRotationX);
-                camera.position.y = distance * Math.sin(currentRotationX);
-                camera.position.z = distance * Math.cos(currentRotationY) * Math.cos(currentRotationX);
-                camera.lookAt(0, 0, 0);
-                
-                requestAnimationFrame(updateCamera);
-            }
-            updateCamera();
-        }
-        
-        function onWindowResize() {
-            const container = document.getElementById('canvas-container');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            renderer.render(scene, camera);
-        }
-        
-        // Avvia quando il DOM è pronto
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
-</html>
+            // Roof
+            const roofGeometry = new THREE.ConeGeometry(8, 2, 4);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof
