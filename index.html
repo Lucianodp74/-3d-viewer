@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MarioPro - Visualizzatore 3D</title>
-    
+    <title>3D Viewer DAE - Funzionante</title>
     <style>
         * {
             margin: 0;
@@ -14,573 +13,918 @@
         
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            background: #f0f0f0;
             height: 100vh;
-            display: flex;
-        }
-        
-        .sidebar {
-            width: 300px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            padding: 20px;
-            color: white;
-            overflow-y: auto;
-        }
-        
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-        }
-        
-        .logo h1 {
-            font-size: 24px;
-            margin-bottom: 5px;
-        }
-        
-        .section {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-        
-        .section-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 15px;
-        }
-        
-        .btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 12px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 5px 0;
-            font-size: 14px;
-            width: 100%;
-            transition: all 0.3s ease;
-        }
-        
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-        }
-        
-        .main-area {
-            flex: 1;
-            position: relative;
-            margin: 10px;
-            border-radius: 20px;
             overflow: hidden;
-            background: #2d3748;
         }
         
-        .upload-area {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            color: white;
-            width: 90%;
-            max-width: 400px;
+        .header {
+            background: white;
+            padding: 15px 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
-        .upload-box {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-radius: 15px;
-            padding: 40px 20px;
-            cursor: pointer;
-            border: 3px dashed rgba(255, 255, 255, 0.3);
-            transition: all 0.3s ease;
-            position: relative;
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
         }
         
-        .upload-box:hover {
-            border-color: rgba(255, 255, 255, 0.8);
-            transform: scale(1.02);
-        }
-        
-        .upload-box h2 {
-            font-size: 24px;
-            margin-bottom: 15px;
-        }
-        
-        .upload-box p {
-            font-size: 16px;
-            margin-bottom: 20px;
-            opacity: 0.9;
-        }
-        
-        .formats {
+        .buttons {
             display: flex;
             gap: 10px;
+        }
+        
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+        }
+        
+        .btn-secondary {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #059669;
+        }
+        
+        .viewer {
+            height: calc(100vh - 70px);
+            position: relative;
+            background: #f8f9fa;
+        }
+        
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border-radius: 8px;
+            padding: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            margin: 5px;
+            background: #f3f4f6;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
             justify-content: center;
-            margin-top: 15px;
         }
         
-        .format {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 8px 15px;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
+        .control-btn:hover {
+            background: #e5e7eb;
         }
         
-        #fileInput {
+        .control-btn.active {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            max-width: 300px;
+            font-size: 14px;
+        }
+        
+        .loading {
             position: absolute;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
-        
-        .result-area {
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
             display: none;
-            padding: 20px;
-            color: white;
-            height: 100%;
-            overflow-y: auto;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
         
-        .file-info {
-            background: rgba(0, 0, 0, 0.8);
-            border-radius: 15px;
+        .loading-box {
+            background: white;
             padding: 30px;
+            border-radius: 8px;
             text-align: center;
-            margin: 20px;
         }
         
-        .file-info h2 {
-            font-size: 28px;
-            margin-bottom: 20px;
-            color: #4CAF50;
+        .spinner {
+            width: 30px;
+            height: 30px;
+            border: 3px solid #f3f3f6;
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
         }
         
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 20px 0;
-            text-align: left;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .info-item {
-            background: rgba(102, 126, 234, 0.2);
-            padding: 15px;
-            border-radius: 8px;
+        .status {
+            background: #e0f2fe;
+            border: 1px solid #81d4fa;
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
         }
         
-        .info-item strong {
-            color: #667eea;
+        .error {
+            background: #ffebee;
+            border: 1px solid #ffcdd2;
+            color: #c62828;
         }
         
-        .actions {
-            margin-top: 20px;
-        }
-        
-        .actions button {
-            background: #667eea;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            margin: 5px;
-            font-size: 14px;
-        }
-        
-        .actions button:hover {
-            background: #5a67d8;
-        }
-        
-        .notification {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            border-radius: 8px;
-            color: white;
-            z-index: 10000;
-            max-width: 300px;
-        }
-        
-        .notification.success { background: #4CAF50; }
-        .notification.error { background: #f44336; }
-        .notification.info { background: #2196F3; }
-        
-        .share-section {
-            display: none;
-        }
-        
-        /* Mobile */
-        @media (max-width: 768px) {
-            body {
-                flex-direction: column;
-            }
-            
-            .sidebar {
-                width: 100%;
-                height: auto;
-                order: 2;
-            }
-            
-            .main-area {
-                margin: 0;
-                border-radius: 0;
-                order: 1;
-                height: 70vh;
-            }
-            
-            .info-grid {
-                grid-template-columns: 1fr;
-            }
+        .success {
+            background: #e8f5e8;
+            border: 1px solid #a5d6a7;
+            color: #2e7d32;
         }
     </style>
 </head>
 <body>
-    <!-- Sidebar -->
-    <div class="sidebar">
-        <div class="logo">
-            <h1>🧊 MarioPro</h1>
-            <p>Visualizzatore 3D</p>
-        </div>
-        
-        <div class="section">
-            <div class="section-title">🎮 Controlli</div>
-            <button class="btn" onclick="resetView()">🏠 Reset Vista</button>
-            <button class="btn" onclick="centerModel()">🎯 Centra Modello</button>
-        </div>
-        
-        <div class="section share-section" id="shareSection">
-            <div class="section-title">📤 Condividi</div>
-            <p style="font-size: 12px; margin-bottom: 10px; opacity: 0.8;">
-                <span id="fileName">Nessun file caricato</span>
-            </p>
-            <button class="btn" onclick="shareWhatsApp()">💬 WhatsApp</button>
-            <button class="btn" onclick="shareEmail()">📧 Email</button>
-            <button class="btn" onclick="copyLink()">🔗 Copia Link</button>
+    <div class="header">
+        <div class="title">🎯 3D Viewer DAE</div>
+        <div class="buttons">
+            <button class="btn-secondary" onclick="loadExample()">🏠 Esempio</button>
+            <button class="btn-primary" onclick="openFileDialog()">📁 Carica DAE</button>
+            <input type="file" id="fileInput" accept=".dae,.obj,.gltf" style="display: none;" onchange="handleFileSelect(event)">
         </div>
     </div>
     
-    <!-- Main Area -->
-    <div class="main-area">
-        <!-- Upload Area -->
-        <div class="upload-area" id="uploadArea">
-            <div class="upload-box">
-                <h2>📁 Carica Modello 3D</h2>
-                <p>Clicca qui o trascina il tuo file</p>
-                <div class="formats">
-                    <span class="format">DAE</span>
-                    <span class="format">GLTF</span>
-                </div>
-                <input type="file" id="fileInput" accept=".dae,.gltf">
-            </div>
+    <div class="viewer">
+        <div id="canvas-container"></div>
+        
+        <div class="controls">
+            <button class="control-btn" onclick="resetView()" title="Vista iniziale">🏠</button>
+            <button class="control-btn" onclick="toggleWireframe()" title="Wireframe">📐</button>
+            <button class="control-btn active" onclick="toggleGrid()" title="Griglia">⚏</button>
+            <button class="control-btn" onclick="showInfo()" title="Info">ℹ️</button>
         </div>
         
-        <!-- Result Area -->
-        <div class="result-area" id="resultArea">
-            <!-- Il contenuto viene generato dinamicamente -->
+        <div class="info">
+            <h4>📋 Stato Viewer</h4>
+            <p>Pronto per caricare modelli 3D</p>
+            
+            <div class="status">
+                <strong>Formati supportati:</strong><br>
+                • .DAE (Collada da SketchUp)<br>
+                • .OBJ (Wavefront)<br>
+                • .GLTF (Standard web)
+            </div>
+            
+            <div id="modelInfo" style="display: none;"></div>
+        </div>
+        
+        <div class="loading" id="loading">
+            <div class="loading-box">
+                <div class="spinner"></div>
+                <p><strong>Caricamento modello...</strong></p>
+                <p style="font-size: 12px; color: #666;">Parsing geometria DAE</p>
+            </div>
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    
     <script>
-        console.log('🚀 MarioPro Simple - Avvio');
+        // Variabili globali
+        let scene, camera, renderer, controls;
+        let loadedModel = null;
+        let grid = null;
+        let isWireframe = false;
+        let showGridFlag = true;
         
-        let currentFile = null;
-        let fileData = null;
-        
-        // Setup immediato al caricamento DOM
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('📋 DOM Ready');
-            setupFileInput();
-            console.log('✅ App pronta');
-            showNotification('MarioPro caricato! Carica un file DAE o GLTF', 'info');
-        });
-        
-        function setupFileInput() {
+        // Funzioni di controllo file
+        function openFileDialog() {
+            console.log('🖱️ Apertura dialog file...');
             const fileInput = document.getElementById('fileInput');
-            const uploadBox = document.querySelector('.upload-box');
-            
-            console.log('🔧 Setup file input...');
-            console.log('File input trovato:', !!fileInput);
-            console.log('Upload box trovata:', !!uploadBox);
-            
-            if (!fileInput) {
-                console.error('❌ File input non trovato!');
-                return;
-            }
-            
-            // Event listener per file input
-            fileInput.addEventListener('change', function(e) {
-                console.log('📁 File change event!');
-                handleFile(e.target.files[0]);
-            });
-            
-            // Drag & Drop
-            uploadBox.addEventListener('dragover', function(e) {
-                e.preventDefault();
-                uploadBox.style.borderColor = 'rgba(255, 255, 255, 0.8)';
-            });
-            
-            uploadBox.addEventListener('dragleave', function(e) {
-                e.preventDefault();
-                uploadBox.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-            });
-            
-            uploadBox.addEventListener('drop', function(e) {
-                e.preventDefault();
-                uploadBox.style.borderColor = 'rgba(255, 255, 255, 0.3)';
-                const file = e.dataTransfer.files[0];
-                console.log('📁 File dropped:', file ? file.name : 'none');
-                if (file) handleFile(file);
-            });
-            
-            console.log('✅ File input configurato');
+            fileInput.click();
         }
         
-        function handleFile(file) {
-            console.log('🔄 Handling file:', file ? file.name : 'null');
-            
-            if (!file) {
-                showNotification('Nessun file selezionato', 'error');
-                return;
-            }
-            
-            currentFile = file;
-            const name = file.name.toLowerCase();
-            const ext = name.split('.').pop();
-            const size = (file.size / 1024 / 1024).toFixed(2);
-            
-            console.log(`📊 File info: ${file.name} (${ext}) - ${size}MB`);
-            
-            // Verifica formato
-            if (!['dae', 'gltf'].includes(ext)) {
-                showNotification('Formato non supportato. Usa DAE o GLTF', 'error');
-                return;
-            }
-            
-            // Verifica dimensione
-            if (file.size > 50 * 1024 * 1024) {
-                showNotification('File troppo grande (max 50MB)', 'error');
-                return;
-            }
-            
-            // Leggi file
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                fileData = {
-                    name: file.name,
-                    type: ext,
-                    data: e.target.result,
-                    size: size
-                };
-                console.log('✅ File letto e processato');
-                showFileResult(file, ext, size);
-                showShareSection();
-                showNotification('File caricato con successo!', 'success');
-            };
-            
-            reader.onerror = function() {
-                console.error('❌ Errore lettura file');
-                showNotification('Errore nella lettura del file', 'error');
-            };
-            
-            // Leggi come testo
-            reader.readAsText(file);
-        }
-        
-        function showFileResult(file, ext, size) {
-            const uploadArea = document.getElementById('uploadArea');
-            const resultArea = document.getElementById('resultArea');
-            
-            uploadArea.style.display = 'none';
-            resultArea.style.display = 'block';
-            
-            resultArea.innerHTML = `
-                <div class="file-info">
-                    <div style="font-size: 64px; margin-bottom: 20px;">
-                        ${ext === 'dae' ? '🏗️' : '📦'}
-                    </div>
-                    <h2>File ${ext.toUpperCase()} Caricato!</h2>
-                    
-                    <div class="info-grid">
-                        <div class="info-item">
-                            <strong>📁 Nome File:</strong><br>
-                            ${file.name}
-                        </div>
-                        <div class="info-item">
-                            <strong>📊 Dimensione:</strong><br>
-                            ${size} MB
-                        </div>
-                        <div class="info-item">
-                            <strong>🎯 Formato:</strong><br>
-                            ${ext.toUpperCase()} (${ext === 'dae' ? 'Collada' : 'GL Transmission Format'})
-                        </div>
-                        <div class="info-item">
-                            <strong>✅ Stato:</strong><br>
-                            Pronto per condivisione
-                        </div>
-                    </div>
-                    
-                    <div style="background: rgba(76, 175, 80, 0.2); padding: 20px; border-radius: 10px; margin: 20px 0;">
-                        <h3>🎉 Successo!</h3>
-                        <p>Il tuo modello 3D è stato caricato e analizzato.<br>
-                        Ora puoi condividerlo con i tuoi clienti usando i pulsanti nella sidebar.</p>
-                    </div>
-                    
-                    <div class="actions">
-                        <button onclick="loadNewFile()">📁 Carica Nuovo File</button>
-                        <button onclick="openShareSection()">📤 Condividi Ora</button>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function showShareSection() {
-            const shareSection = document.getElementById('shareSection');
-            const fileName = document.getElementById('fileName');
-            
-            if (shareSection && fileName && currentFile) {
-                shareSection.style.display = 'block';
-                fileName.textContent = currentFile.name;
-                console.log('✅ Sezione condivisione attivata');
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                console.log('📁 File selezionato:', file.name);
+                loadFile(file);
             }
         }
         
-        function openShareSection() {
-            showNotification('Usa i pulsanti di condivisione nella sidebar', 'info');
-        }
-        
-        function loadNewFile() {
-            const uploadArea = document.getElementById('uploadArea');
-            const resultArea = document.getElementById('resultArea');
-            const shareSection = document.getElementById('shareSection');
+        function loadExample() {
+            console.log('🏠 Caricamento esempio...');
+            showLoading(true);
             
-            uploadArea.style.display = 'block';
-            resultArea.style.display = 'none';
-            shareSection.style.display = 'none';
-            
-            currentFile = null;
-            fileData = null;
-            
-            // Reset file input
-            document.getElementById('fileInput').value = '';
-            
-            showNotification('Pronto per nuovo caricamento', 'info');
-        }
-        
-        function resetView() {
-            showNotification('Vista ripristinata', 'success');
-        }
-        
-        function centerModel() {
-            showNotification('Modello centrato', 'success');
-        }
-        
-        // Condivisione
-        function shareWhatsApp() {
-            if (!fileData) {
-                showNotification('Carica prima un file', 'error');
-                return;
-            }
-            
-            const url = generateShareUrl();
-            const message = `🏗️ Visualizza il mio modello 3D: ${fileData.name}\\n\\n${url}\\n\\n💡 Apri su smartphone per migliore esperienza!`;
-            const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-            
-            window.open(whatsappUrl, '_blank');
-            showNotification('WhatsApp aperto', 'success');
-        }
-        
-        function shareEmail() {
-            if (!fileData) {
-                showNotification('Carica prima un file', 'error');
-                return;
-            }
-            
-            const url = generateShareUrl();
-            const subject = `Modello 3D: ${fileData.name}`;
-            const body = `Ciao!\\n\\nTi condivido il mio modello 3D "${fileData.name}".\\n\\nClicca qui: ${url}\\n\\nSaluti!`;
-            
-            window.location.href = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-            showNotification('Email aperta', 'success');
-        }
-        
-        function copyLink() {
-            if (!fileData) {
-                showNotification('Carica prima un file', 'error');
-                return;
-            }
-            
-            const url = generateShareUrl();
-            
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(url).then(() => {
-                    showNotification('Link copiato!', 'success');
-                });
-            } else {
-                // Fallback
-                const textArea = document.createElement('textarea');
-                textArea.value = url;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showNotification('Link copiato!', 'success');
-            }
-        }
-        
-        function generateShareUrl() {
-            const data = btoa(JSON.stringify(fileData));
-            return `${window.location.origin}${window.location.pathname}#model=${data}`;
-        }
-        
-        function showNotification(message, type) {
-            console.log(`📢 ${type}: ${message}`);
-            
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            
-            document.body.appendChild(notification);
+            // Simula un file DAE di esempio
+            const exampleDAE = `<?xml version="1.0"?>
+<COLLADA xmlns="http://www.collada.org/2005/11/COLLADASchema" version="1.4.1">
+  <library_geometries>
+    <geometry id="House-mesh">
+      <mesh>
+        <source id="House-positions">
+          <float_array count="24">
+            -2 0 -2  2 0 -2  2 4 -2 -2 4 -2
+            -2 0  2  2 0  2  2 4  2 -2 4  2
+          </float_array>
+          <technique_common>
+            <accessor source="#House-positions" count="8" stride="3">
+              <param name="X" type="float"/>
+              <param name="Y" type="float"/>
+              <param name="Z" type="float"/>
+            </accessor>
+          </technique_common>
+        </source>
+        <vertices id="House-vertices">
+          <input semantic="POSITION" source="#House-positions"/>
+        </vertices>
+        <triangles count="12">
+          <input semantic="VERTEX" source="#House-vertices"/>
+          <p>0 1 2 0 2 3 4 7 6 4 6 5 0 4 5 0 5 1 2 6 7 2 7 3 0 3 7 0 7 4 1 5 6 1 6 2</p>
+        </triangles>
+      </mesh>
+    </geometry>
+  </library_geometries>
+</COLLADA>`;
             
             setTimeout(() => {
-                notification.remove();
-            }, 4000);
+                try {
+                    const model = parseDAE(exampleDAE, 'esempio_casa.dae');
+                    if (model) {
+                        addModelToScene(model);
+                        updateStatus('✅ Esempio caricato: Casa semplice', 'success');
+                    }
+                } catch (error) {
+                    updateStatus('❌ Errore esempio: ' + error.message, 'error');
+                }
+                showLoading(false);
+            }, 1000);
         }
         
-        // Carica modello condiviso
-        function loadSharedModel() {
-            const hash = window.location.hash;
-            if (hash.startsWith('#model=')) {
-                try {
-                    const data = JSON.parse(atob(hash.substring(7)));
-                    console.log('📥 Modello condiviso:', data.name);
-                    
-                    fileData = data;
-                    currentFile = { name: data.name, size: data.size * 1024 * 1024 };
-                    
-                    showFileResult(currentFile, data.type, data.size);
-                    showShareSection();
-                    showNotification('Modello condiviso caricato!', 'success');
-                    
-                } catch (error) {
-                    console.error('❌ Errore caricamento condiviso:', error);
-                    showNotification('Errore caricamento condiviso', 'error');
+        async function loadFile(file) {
+            showLoading(true);
+            updateStatus('📖 Lettura file: ' + file.name, '');
+            
+            try {
+                const text = await file.text();
+                const extension = file.name.toLowerCase().split('.').pop();
+                
+                let model = null;
+                
+                switch (extension) {
+                    case 'dae':
+                        model = parseDAE(text, file.name);
+                        break;
+                    case 'obj':
+                        model = parseOBJ(text, file.name);
+                        break;
+                    default:
+                        throw new Error(`Formato .${extension} non supportato`);
                 }
+                
+                if (model) {
+                    addModelToScene(model);
+                    updateStatus(`✅ ${file.name} caricato con successo`, 'success');
+                } else {
+                    throw new Error('Nessuna geometria valida trovata');
+                }
+                
+            } catch (error) {
+                console.error('Errore caricamento:', error);
+                updateStatus('❌ Errore: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
             }
         }
         
-        // Carica modello condiviso se presente
-        window.addEventListener('load', loadSharedModel);
+        function parseDAE(daeText, filename) {
+            console.log('🔍 Parsing DAE:', filename);
+            
+            try {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(daeText, 'text/xml');
+                
+                // Verifica errori parsing
+                const parseError = doc.querySelector('parsererror');
+                if (parseError) {
+                    throw new Error('File DAE non valido (errore XML)');
+                }
+                
+                const group = new THREE.Group();
+                group.name = filename;
+                
+                // Estrai materiali e texture
+                const materials = extractMaterials(doc);
+                console.log(`🎨 Materiali trovati: ${Object.keys(materials).length}`);
+                
+                // Cerca geometrie
+                const meshes = doc.querySelectorAll('mesh');
+                console.log(`📐 Trovate ${meshes.length} mesh`);
+                
+                let geometryCount = 0;
+                
+                meshes.forEach((mesh, index) => {
+                    try {
+                        const geometry = extractGeometryFromMesh(mesh);
+                        if (geometry) {
+                            // Cerca materiale associato
+                            let material = materials[`material_${index}`] || 
+                                         Object.values(materials)[index] ||
+                                         new THREE.MeshLambertMaterial({
+                                            color: new THREE.Color().setHSL((index * 0.2) % 1, 0.7, 0.6)
+                                         });
+                            
+                            const meshObj = new THREE.Mesh(geometry, material);
+                            meshObj.castShadow = true;
+                            meshObj.receiveShadow = true;
+                            group.add(meshObj);
+                            geometryCount++;
+                        }
+                    } catch (err) {
+                        console.warn(`⚠️ Errore mesh ${index}:`, err);
+                    }
+                });
+                
+                if (geometryCount === 0) {
+                    // Fallback: crea geometria semplice
+                    const geometry = new THREE.BoxGeometry(2, 2, 2);
+                    const material = new THREE.MeshLambertMaterial({ color: 0x8888aa });
+                    const mesh = new THREE.Mesh(geometry, material);
+                    mesh.position.y = 1;
+                    group.add(mesh);
+                    console.log('⚠️ Usando geometria fallback');
+                }
+                
+                console.log(`✅ DAE processato: ${geometryCount} geometrie`);
+                return group;
+                
+            } catch (error) {
+                console.error('❌ Errore parsing DAE:', error);
+                throw error;
+            }
+        }
+        
+        function extractMaterials(doc) {
+            const materials = {};
+            
+            // Cerca definizioni materiali
+            const materialElements = doc.querySelectorAll('material');
+            const effectElements = doc.querySelectorAll('effect');
+            const imageElements = doc.querySelectorAll('image');
+            
+            console.log(`🔍 Trovati: ${materialElements.length} materiali, ${effectElements.length} effetti, ${imageElements.length} immagini`);
+            
+            // Mappa delle immagini
+            const images = {};
+            imageElements.forEach(img => {
+                const id = img.getAttribute('id');
+                const initFrom = img.querySelector('init_from');
+                if (id && initFrom) {
+                    images[id] = initFrom.textContent.trim();
+                    console.log(`🖼️ Immagine ${id}: ${images[id]}`);
+                }
+            });
+            
+            // Processa materiali
+            materialElements.forEach((material, index) => {
+                const materialId = material.getAttribute('id') || `material_${index}`;
+                
+                // Cerca effetto associato
+                const instanceEffect = material.querySelector('instance_effect');
+                if (instanceEffect) {
+                    const effectUrl = instanceEffect.getAttribute('url');
+                    if (effectUrl) {
+                        const effectId = effectUrl.replace('#', '');
+                        const effect = doc.querySelector(`effect[id="${effectId}"]`);
+                        
+                        if (effect) {
+                            const mat = createMaterialFromEffect(effect, images);
+                            materials[materialId] = mat;
+                            console.log(`✅ Materiale ${materialId} creato`);
+                        }
+                    }
+                }
+                
+                // Fallback: materiale colorato
+                if (!materials[materialId]) {
+                    materials[materialId] = new THREE.MeshLambertMaterial({
+                        color: new THREE.Color().setHSL((index * 0.15) % 1, 0.8, 0.6)
+                    });
+                }
+            });
+            
+            return materials;
+        }
+        
+        function createMaterialFromEffect(effect, images) {
+            const materialData = {
+                color: 0xffffff,
+                map: null,
+                transparent: false,
+                opacity: 1.0
+            };
+            
+            // Cerca proprietà diffuse
+            const diffuse = effect.querySelector('diffuse');
+            if (diffuse) {
+                // Cerca colore
+                const color = diffuse.querySelector('color');
+                if (color) {
+                    const colorValues = color.textContent.trim().split(/\s+/).map(Number);
+                    if (colorValues.length >= 3) {
+                        materialData.color = new THREE.Color(colorValues[0], colorValues[1], colorValues[2]);
+                        console.log(`🎨 Colore diffuse: ${colorValues.join(', ')}`);
+                    }
+                }
+                
+                // Cerca texture
+                const texture = diffuse.querySelector('texture');
+                if (texture) {
+                    const textureId = texture.getAttribute('texture');
+                    const sampler = effect.querySelector(`newparam[sid="${textureId}"] sampler2D source`);
+                    if (sampler) {
+                        const surfaceId = sampler.textContent.trim();
+                        const surface = effect.querySelector(`newparam[sid="${surfaceId}"] surface init_from`);
+                        if (surface) {
+                            const imageId = surface.textContent.trim();
+                            const imagePath = images[imageId];
+                            if (imagePath) {
+                                try {
+                                    // Carica texture
+                                    const loader = new THREE.TextureLoader();
+                                    materialData.map = loader.load(
+                                        imagePath,
+                                        (texture) => {
+                                            console.log(`✅ Texture caricata: ${imagePath}`);
+                                            texture.wrapS = THREE.RepeatWrapping;
+                                            texture.wrapT = THREE.RepeatWrapping;
+                                            texture.flipY = false; // Fix per DAE
+                                        },
+                                        undefined,
+                                        (error) => {
+                                            console.warn(`⚠️ Errore caricamento texture ${imagePath}:`, error);
+                                        }
+                                    );
+                                    console.log(`🖼️ Applicando texture: ${imagePath}`);
+                                } catch (error) {
+                                    console.warn(`⚠️ Errore texture: ${error}`);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Cerca trasparenza
+            const transparency = effect.querySelector('transparency');
+            if (transparency) {
+                const transparencyValue = parseFloat(transparency.textContent);
+                if (transparencyValue < 1.0) {
+                    materialData.transparent = true;
+                    materialData.opacity = transparencyValue;
+                    console.log(`👻 Trasparenza: ${transparencyValue}`);
+                }
+            }
+            
+            // Crea materiale Three.js
+            return new THREE.MeshLambertMaterial({
+                color: materialData.color,
+                map: materialData.map,
+                transparent: materialData.transparent,
+                opacity: materialData.opacity,
+                side: THREE.DoubleSide // Utile per modelli SketchUp
+            });
+        }
+        
+        function extractGeometryFromMesh(meshElement) {
+            // Cerca posizioni
+            const sources = meshElement.querySelectorAll('source');
+            const triangles = meshElement.querySelector('triangles, polylist, polygons');
+            
+            if (!triangles) return null;
+            
+            let positions = [];
+            let normals = [];
+            let uvs = [];
+            
+            // Estrai dati da sources
+            for (let source of sources) {
+                const floatArray = source.querySelector('float_array');
+                if (!floatArray) continue;
+                
+                const values = floatArray.textContent.trim().split(/\s+/).map(Number);
+                const sourceId = source.getAttribute('id');
+                
+                if (sourceId && sourceId.includes('position')) {
+                    positions = values;
+                    console.log(`📍 Posizioni: ${values.length/3} vertici`);
+                } else if (sourceId && sourceId.includes('normal')) {
+                    normals = values;
+                    console.log(`🔺 Normali: ${values.length/3} normali`);
+                } else if (sourceId && (sourceId.includes('uv') || sourceId.includes('map'))) {
+                    uvs = values;
+                    console.log(`🗺️ UV: ${values.length/2} coordinate texture`);
+                } else if (positions.length === 0) {
+                    // Fallback: primo array di numeri trovato
+                    positions = values;
+                }
+            }
+            
+            if (positions.length === 0) return null;
+            
+            // Estrai indici
+            const pElement = triangles.querySelector('p');
+            if (!pElement) return null;
+            
+            const indices = pElement.textContent.trim().split(/\s+/).map(Number);
+            const inputs = triangles.querySelectorAll('input');
+            const inputCount = inputs.length || 1;
+            
+            // Mappa degli offset per ogni tipo di input
+            const inputMap = {};
+            inputs.forEach((input, i) => {
+                const semantic = input.getAttribute('semantic');
+                inputMap[semantic] = i;
+            });
+            
+            // Filtra indici per vertici
+            const vertexIndices = [];
+            const normalIndices = [];
+            const uvIndices = [];
+            
+            for (let i = 0; i < indices.length; i += inputCount) {
+                // Indici vertici
+                const vertexOffset = inputMap['VERTEX'] || inputMap['POSITION'] || 0;
+                vertexIndices.push(indices[i + vertexOffset]);
+                
+                // Indici normali
+                if (inputMap['NORMAL'] !== undefined && normals.length > 0) {
+                    normalIndices.push(indices[i + inputMap['NORMAL']]);
+                }
+                
+                // Indici UV
+                if (inputMap['TEXCOORD'] !== undefined && uvs.length > 0) {
+                    uvIndices.push(indices[i + inputMap['TEXCOORD']]);
+                }
+            }
+            
+            // Crea geometria
+            const geometry = new THREE.BufferGeometry();
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setIndex(vertexIndices);
+            
+            // Aggiungi normali se disponibili
+            if (normals.length > 0 && normalIndices.length > 0) {
+                // Riordina normali secondo gli indici
+                const orderedNormals = [];
+                for (let i = 0; i < normalIndices.length; i++) {
+                    const normalIndex = normalIndices[i];
+                    orderedNormals.push(
+                        normals[normalIndex * 3],
+                        normals[normalIndex * 3 + 1],
+                        normals[normalIndex * 3 + 2]
+                    );
+                }
+                geometry.setAttribute('normal', new THREE.Float32BufferAttribute(orderedNormals, 3));
+                console.log('✅ Normali applicate');
+            } else {
+                geometry.computeVertexNormals();
+                console.log('🔄 Normali calcolate automaticamente');
+            }
+            
+            // Aggiungi UV se disponibili
+            if (uvs.length > 0 && uvIndices.length > 0) {
+                const orderedUVs = [];
+                for (let i = 0; i < uvIndices.length; i++) {
+                    const uvIndex = uvIndices[i];
+                    orderedUVs.push(
+                        uvs[uvIndex * 2],
+                        uvs[uvIndex * 2 + 1]
+                    );
+                }
+                geometry.setAttribute('uv', new THREE.Float32BufferAttribute(orderedUVs, 2));
+                console.log('✅ Coordinate UV applicate');
+            }
+            
+            console.log(`📊 Geometria: ${positions.length/3} vertici, ${vertexIndices.length/3} triangoli`);
+            
+            return geometry;
+        }
+        
+        function parseOBJ(objText, filename) {
+            console.log('🔍 Parsing OBJ:', filename);
+            
+            const group = new THREE.Group();
+            group.name = filename;
+            
+            const vertices = [];
+            const faces = [];
+            
+            const lines = objText.split('\n');
+            
+            for (let line of lines) {
+                line = line.trim();
+                
+                if (line.startsWith('v ')) {
+                    const coords = line.split(/\s+/).slice(1).map(Number);
+                    vertices.push(...coords);
+                } else if (line.startsWith('f ')) {
+                    const faceData = line.split(/\s+/).slice(1);
+                    const triangle = faceData.slice(0, 3).map(data => {
+                        return parseInt(data.split('/')[0]) - 1;
+                    });
+                    faces.push(...triangle);
+                }
+            }
+            
+            if (vertices.length > 0 && faces.length > 0) {
+                const geometry = new THREE.BufferGeometry();
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                geometry.setIndex(faces);
+                geometry.computeVertexNormals();
+                
+                const material = new THREE.MeshLambertMaterial({ color: 0x6699cc });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                
+                group.add(mesh);
+                console.log(`✅ OBJ: ${vertices.length/3} vertici, ${faces.length/3} triangoli`);
+            } else {
+                throw new Error('File OBJ vuoto o non valido');
+            }
+            
+            return group;
+        }
+        
+        function addModelToScene(model) {
+            // Rimuovi modello precedente
+            if (loadedModel) {
+                scene.remove(loadedModel);
+            }
+            
+            scene.add(model);
+            loadedModel = model;
+            
+            // Centra camera
+            const box = new THREE.Box3().setFromObject(model);
+            const center = box.getCenter(new THREE.Vector3());
+            const size = box.getSize(new THREE.Vector3()).length();
+            
+            camera.position.set(
+                center.x + size * 0.8,
+                center.y + size * 0.6,
+                center.z + size * 0.8
+            );
+            camera.lookAt(center);
+            
+            // Aggiorna info
+            updateModelInfo(model);
+        }
+        
+        function updateModelInfo(model) {
+            let meshCount = 0;
+            let vertexCount = 0;
+            
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    meshCount++;
+                    if (child.geometry && child.geometry.attributes.position) {
+                        vertexCount += child.geometry.attributes.position.count;
+                    }
+                }
+            });
+            
+            const info = document.getElementById('modelInfo');
+            info.innerHTML = `
+                <div class="status success">
+                    <strong>📁 ${model.name}</strong><br>
+                    🔷 ${meshCount} mesh<br>
+                    📐 ${vertexCount} vertici
+                </div>
+            `;
+            info.style.display = 'block';
+        }
+        
+        function updateStatus(message, type) {
+            const info = document.querySelector('.info p');
+            info.innerHTML = message;
+            
+            // Cambia colore in base al tipo
+            if (type === 'error') {
+                info.style.color = '#c62828';
+            } else if (type === 'success') {
+                info.style.color = '#2e7d32';
+            } else {
+                info.style.color = '#333';
+            }
+        }
+        
+        function showLoading(show) {
+            const loading = document.getElementById('loading');
+            loading.style.display = show ? 'flex' : 'none';
+        }
+        
+        // Controlli
+        function resetView() {
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 0, 0);
+        }
+        
+        function toggleWireframe() {
+            isWireframe = !isWireframe;
+            if (loadedModel) {
+                loadedModel.traverse((child) => {
+                    if (child.isMesh && child.material) {
+                        child.material.wireframe = isWireframe;
+                    }
+                });
+            }
+            
+            const btn = document.querySelector('[onclick="toggleWireframe()"]');
+            btn.classList.toggle('active', isWireframe);
+        }
+        
+        function toggleGrid() {
+            showGridFlag = !showGridFlag;
+            if (grid) {
+                grid.visible = showGridFlag;
+            }
+            
+            const btn = document.querySelector('[onclick="toggleGrid()"]');
+            btn.classList.toggle('active', showGridFlag);
+        }
+        
+        function showInfo() {
+            if (loadedModel) {
+                const box = new THREE.Box3().setFromObject(loadedModel);
+                const size = box.getSize(new THREE.Vector3());
+                alert(`📊 Info Modello:\n\n📁 Nome: ${loadedModel.name}\n📏 Dimensioni: ${size.x.toFixed(1)} × ${size.y.toFixed(1)} × ${size.z.toFixed(1)}`);
+            } else {
+                alert('Nessun modello caricato');
+            }
+        }
+        
+        // Inizializzazione Three.js
+        function init() {
+            console.log('🚀 Inizializzazione 3D Viewer...');
+            
+            const container = document.getElementById('canvas-container');
+            
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f4f8);
+            
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                60,
+                container.clientWidth / container.clientHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(5, 5, 5);
+            
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            container.appendChild(renderer.domElement);
+            
+            // Luci migliorate
+            const ambientLight = new THREE.AmbientLight(0x404040, 0.8); // Aumentata da 0.4 a 0.8
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.2); // Aumentata da 0.8 a 1.2
+            directionalLight.position.set(10, 20, 10);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+            
+            // Aggiunge una seconda luce per eliminare ombre troppo scure
+            const directionalLight2 = new THREE.DirectionalLight(0xffffff, 0.6);
+            directionalLight2.position.set(-10, 10, -10);
+            scene.add(directionalLight2);
+            
+            // Luce hemisferica per illuminazione più naturale
+            const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x8b7355, 0.5);
+            scene.add(hemisphereLight);
+            
+            // Griglia
+            grid = new THREE.GridHelper(10, 10, 0x888888, 0xcccccc);
+            scene.add(grid);
+            
+            // Controlli mouse semplici
+            setupSimpleControls();
+            
+            // Resize
+            window.addEventListener('resize', onWindowResize);
+            
+            // Avvia rendering
+            animate();
+            
+            console.log('✅ Viewer pronto!');
+            updateStatus('✅ Viewer inizializzato - Pronto per caricare file', 'success');
+        }
+        
+        function setupSimpleControls() {
+            let isMouseDown = false;
+            let mouseX = 0, mouseY = 0;
+            let targetRotationX = 0, targetRotationY = 0;
+            let currentRotationX = 0, currentRotationY = 0;
+            
+            renderer.domElement.addEventListener('mousedown', (event) => {
+                isMouseDown = true;
+                mouseX = event.clientX;
+                mouseY = event.clientY;
+            });
+            
+            renderer.domElement.addEventListener('mousemove', (event) => {
+                if (!isMouseDown) return;
+                
+                const deltaX = event.clientX - mouseX;
+                const deltaY = event.clientY - mouseY;
+                
+                targetRotationY += deltaX * 0.01;
+                targetRotationX += deltaY * 0.01;
+                
+                mouseX = event.clientX;
+                mouseY = event.clientY;
+            });
+            
+            renderer.domElement.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+            
+            renderer.domElement.addEventListener('wheel', (event) => {
+                const scale = event.deltaY > 0 ? 1.1 : 0.9;
+                camera.position.multiplyScalar(scale);
+                event.preventDefault();
+            });
+            
+            // Smooth rotation
+            function updateCamera() {
+                currentRotationX += (targetRotationX - currentRotationX) * 0.1;
+                currentRotationY += (targetRotationY - currentRotationY) * 0.1;
+                
+                const distance = camera.position.length();
+                camera.position.x = distance * Math.sin(currentRotationY) * Math.cos(currentRotationX);
+                camera.position.y = distance * Math.sin(currentRotationX);
+                camera.position.z = distance * Math.cos(currentRotationY) * Math.cos(currentRotationX);
+                camera.lookAt(0, 0, 0);
+                
+                requestAnimationFrame(updateCamera);
+            }
+            updateCamera();
+        }
+        
+        function onWindowResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+        
+        // Avvia quando il DOM è pronto
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
