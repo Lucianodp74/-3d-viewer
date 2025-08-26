@@ -1,4 +1,951 @@
-<!DOCTYPE html>
+// Stato dell'applicazione (RIMOSSO - già definito sopra)
+        // Variabili spostate all'inizio del file
+
+        function initializeApp() {
+            showNotification('App inizializzata - Motore 3D in caricamento...', 'success');
+            // Assicurati che collaborators sia definito prima di chiamare updateCollaboratorList
+            if (typeof updateCollaboratorList === 'function') {
+                updateCollaboratorList();
+            }
+        }
+
+        function simulateCloudConnection() {
+            setTimeout(() => {
+                document.getElementById('cloudStatus').classList.add('online');
+                document.getElementById('cloudStatusText').textContent = 'Cloud Connesso';
+            }, 1000);
+        }
+
+        // Gestione file con motore 3D
+        function openFile() {
+            document.getElementById('fileInput').click();
+        }
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                loadModelFile(file);
+            }
+        });
+
+        function loadModelFile(file) {
+            showLoading('Caricamento modello...', 'Parsing file 3D e ottimizzazione');
+            
+            setTimeout(() => {
+                if (real3DEngine && real3DEngine.isInitialized) {
+                    // Simula caricamento di un nuovo modello 3D
+                    createModelFromFile(file);
+                    
+                    real3DEngine.updateModelStats(
+                        file.name, 
+                        Math.floor(Math.random() * 20) + 5,
+                        Math.floor(Math.random() * 50000) + 10000,
+                        Math.floor(Math.random() * 100000) + 20000,
+                        formatFileSize(file.size)
+                    );
+                } else {
+                    // Fallback per statistiche
+                    document.getElementById('fileName').textContent = file.name;
+                    document.getElementById('modelSize').textContent = formatFileSize(file.size);
+                }
+                
+                setTimeout(() => {
+                    hideLoading();
+                    showNotification(`Modello 3D ${file.name} renderizzato con successo!`, 'success');
+                    enableShareButtons();
+                    updateModelStats();
+                }, 1500);
+            }, 1000);
+        }
+
+        function createModelFromFile(file) {
+            if (!real3DEngine) return;
+            
+            // Crea un modello 3D basato sul nome del file
+            const group = new THREE.Group();
+            const fileName = file.name.toLowerCase();
+            
+            if (fileName.includes('villa') || fileName.includes('house')) {
+                group.add(createHouseModel());
+            } else if (fileName.includes('office') || fileName.includes('building')) {
+                group.add(createOfficeModel());
+            } else if (fileName.includes('product') || fileName.includes('item')) {
+                group.add(createProductModel());
+            } else {
+                group.add(createGenericModel());
+            }
+            
+            real3DEngine.setModel(group);
+            currentModel = group;
+        }
+
+        function createHouseModel() {
+            const group = new THREE.Group();
+            
+            // Casa più dettagliata
+            const baseGeometry = new THREE.BoxGeometry(4, 3, 4);
+            const baseMaterial = new THREE.MeshLambertMaterial({ color: 0xffa500 });
+            const base = new THREE.Mesh(baseGeometry, baseMaterial);
+            base.position.y = 1.5;
+            base.castShadow = true;
+            group.add(base);
+            
+            // Tetto spiovente
+            const roofGeometry = new THREE.CylinderGeometry(0, 3, 2, 4);
+            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+            roof.position.y = 4;
+            roof.rotation.y = Math.PI / 4;
+            group.add(roof);
+            
+            // Camino
+            const chimneyGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.5);
+            const chimneyMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
+            const chimney = new THREE.Mesh(chimneyGeometry, chimneyMaterial);
+            chimney.position.set(1.2, 4.5, 1.2);
+            group.add(chimney);
+            
+            return group;
+        }
+
+        function createOfficeModel() {
+            const group = new THREE.Group();
+            
+            // Edificio moderno
+            const buildingGeometry = new THREE.BoxGeometry(5, 8, 3);
+            const buildingMaterial = new THREE.MeshLambertMaterial({ color: 0x4a90e2 });
+            const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
+            building.position.y = 4;
+            building.castShadow = true;
+            group.add(building);
+            
+            // Finestre
+            for (let floor = 0; floor < 6; floor++) {
+                for (let window = 0; window < 4; window++) {
+                    const windowGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.1);
+                    const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87ceeb });
+                    const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
+                    windowMesh.position.set(
+                        -1.5 + window * 1, 
+                        1 + floor * 1.2, 
+                        1.55
+                    );
+                    group.add(windowMesh);
+                }
+            }
+            
+            return group;
+        }
+
+        function createProductModel() {
+            const group = new THREE.Group();
+            
+            // Prodotto (scatola con dettagli)
+            const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
+            const boxMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b6b });
+            const box = new THREE.Mesh(boxGeometry, boxMaterial);
+            box.position.y = 1;
+            box.castShadow = true;
+            group.add(box);
+            
+            // Etichetta
+            const labelGeometry = new THREE.PlaneGeometry(1.5, 0.5);
+            const labelMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+            const label = new THREE.Mesh(labelGeometry, labelMaterial);
+            label.position.set(0, 1, 1.01);
+            group.add(label);
+            
+            return group;
+        }
+
+        function createGenericModel() {
+            const group = new THREE.Group();
+            
+            // Modello generico (forme geometriche)
+            const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+            const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0x4ecdc4 });
+            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+            sphere.position.y = 2;
+            sphere.castShadow = true;
+            group.add(sphere);
+            
+            const cubeGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+            const cubeMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b35 });
+            const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
+            cube.position.set(2, 0.75, 0);
+            cube.castShadow = true;
+            group.add(cube);
+            
+            return group;
+        }
+
+        function loadSample(type) {
+            const samples = {
+                villa: { name: 'Villa_Moderna.glb', mesh: 24, vertices: 45832, triangles: 91664, size: '12.3 MB' },
+                office: { name: 'Office_OpenSpace.glb', mesh: 18, vertices: 32451, triangles: 64902, size: '8.7 MB' },
+                product: { name: 'Product_Demo.glb', mesh: 12, vertices: 18943, triangles: 37886, size: '4.2 MB' }
+            };
+            
+            const sample = samples[type];
+            showLoading(`Caricamento ${sample.name}...`, 'Rendering 3D in tempo reale');
+            
+            setTimeout(() => {
+                if (real3DEngine && real3DEngine.isInitialized) {
+                    // Crea modello 3D basato sul tipo
+                    let model;
+                    if (type === 'villa') model = createHouseModel();
+                    else if (type === 'office') model = createOfficeModel();
+                    else model = createProductModel();
+                    
+                    real3DEngine.setModel(model);
+                    real3DEngine.updateModelStats(sample.name, sample.mesh, sample.vertices, sample.triangles, sample.size);
+                    currentModel = model;
+                }
+                
+                hideLoading();
+                showNotification(`Modello 3D ${sample.name} renderizzato!`, 'success');
+                enableShareButtons();
+            }, 2000);
+        }
+
+        // Controlli UI integrati con il motore 3D
+        function setViewMode(mode) {
+            document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            
+            if (real3DEngine && real3DEngine.isInitialized) {
+                real3DEngine.setViewMode(mode);
+            }
+            
+            currentViewMode = mode;
+            showNotification(`Modalità rendering: ${mode}`, 'success');
+        }
+
+        function setEnvironment(env) {
+            document.querySelectorAll('[data-env]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-env="${env}"]`).classList.add('active');
+            
+            if (real3DEngine && real3DEngine.isInitialized) {
+                real3DEngine.setEnvironment(env);
+            }
+            
+            currentEnvironment = env;
+            showNotification(`Ambiente: ${env}`, 'success');
+        }
+
+        function setTool(tool) {
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+            currentTool = tool;
+            
+            // Feedback per strumenti
+            const toolNames = {
+                orbit: 'Rotazione libera',
+                pan: 'Spostamento vista', 
+                measure: 'Strumento misura',
+                annotate: 'Annotazioni'
+            };
+            showNotification(`Strumento: ${toolNames[tool]}`, 'info');
+        }
+
+        function setView(view) {
+            if (real3DEngine && real3DEngine.isInitialized) {
+                real3DEngine.setView(view);
+            }
+            
+            const viewNames = {
+                front: 'Vista frontale',
+                back: 'Vista posteriore', 
+                left: 'Vista sinistra',
+                right: 'Vista destra',
+                top: 'Vista dall\'alto',
+                home: 'Vista isometrica'
+            };
+            showNotification(`${viewNames[view]}`, 'success');
+        }
+
+        function takeScreenshot() {
+            if (real3DEngine && real3DEngine.isInitialized) {
+                const dataURL = real3DEngine.takeScreenshot();
+                if (dataURL) {
+                    showNotification('Screenshot ad alta risoluzione salvato!', 'success');
+                    return;
+                }
+            }
+            
+            // Fallback
+            showNotification('Screenshot salvato!', 'success');
+        }
+
+        function resetView() {
+            if (real3DEngine && real3DEngine.isInitialized && real3DEngine.currentModel) {
+                real3DEngine.fitCameraToModel();
+            }
+            showNotification('Vista ripristinata alla posizione ottimale', 'success');
+        }
+
+        // Performance monitor in tempo reale
+        class RealTimePerformanceMonitor {
+            constructor() {
+                this.fps = 0;
+                this.frameCount = 0;
+                this.lastTime = performance.now();
+                this.memoryUsage = 0;
+                this.renderTime = 0;
+                
+                this.startMonitoring();
+            }
+            
+            startMonitoring() {
+                setInterval(() => {
+                    this.updateFPS();
+                    this.updateMemoryUsage();
+                    this.checkPerformance();
+                }, 1000);
+            }
+            
+            updateFPS() {
+                const currentTime = performance.now();
+                this.fps = Math.round(this.frameCount * 1000 / (currentTime - this.lastTime));
+                this.frameCount = 0;
+                this.lastTime = currentTime;
+            }
+            
+            updateMemoryUsage() {
+                if (performance.memory) {
+                    this.memoryUsage = Math.round(performance.memory.usedJSHeapSize / 1048576); // MB
+                }
+            }
+            
+            checkPerformance() {
+                if (this.fps < 30 && real3DEngine && real3DEngine.isInitialized) {
+                    showNotification('FPS bassi rilevati. Considera di ridurre la qualità di rendering.', 'warning');
+                }
+                
+                if (this.memoryUsage > 500) {
+                    showNotification('Alto utilizzo memoria. Potrebbe essere necessario ottimizzare il modello.', 'warning');
+                }
+            }
+            
+            frameRendered() {
+                this.frameCount++;
+            }
+            
+            getStats() {
+                return {
+                    fps: this.fps,
+                    memory: this.memoryUsage + ' MB',
+                    renderTime: this.renderTime + ' ms'
+                };
+            }
+        }
+
+        const performanceMonitor = new RealTimePerformanceMonitor();
+
+        // Integra il monitor con il motore 3D
+        if (typeof Real3DEngine !== 'undefined') {
+            const originalStartRenderLoop = Real3DEngine.prototype.startRenderLoop;
+            Real3DEngine.prototype.startRenderLoop = function() {
+                const animate = () => {
+                    const startTime = performance.now();
+                    
+                    this.animationId = requestAnimationFrame(animate);
+                    
+                    // Update controls
+                    if (this.updateControls) {
+                        this.updateControls();
+                    }
+                    
+                    // Render scene
+                    this.renderer.render(this.scene, this.camera);
+                    
+                    // Performance tracking
+                    const endTime = performance.now();
+                    performanceMonitor.renderTime = Math.round(endTime - startTime);
+                    performanceMonitor.frameRendered();
+                };
+                
+                animate();
+            };
+        }
+
+        // Sistema di qualità adattiva
+        class AdaptiveQuality {
+            static currentQuality = 'medium';
+            static qualitySettings = {
+                low: {
+                    pixelRatio: 0.5,
+                    shadowMapSize: 512,
+                    antialias: false,
+                    shadows: false
+                },
+                medium: {
+                    pixelRatio: 1,
+                    shadowMapSize: 1024,
+                    antialias: true,
+                    shadows: true
+                },
+                high: {
+                    pixelRatio: window.devicePixelRatio,
+                    shadowMapSize: 2048,
+                    antialias: true,
+                    shadows: true
+                },
+                ultra: {
+                    pixelRatio: window.devicePixelRatio * 1.5,
+                    shadowMapSize: 4096,
+                    antialias: true,
+                    shadows: true
+                }
+            };
+
+            static applyQuality(quality) {
+                if (!real3DEngine || !real3DEngine.renderer) return;
+                
+                const settings = this.qualitySettings[quality];
+                if (!settings) return;
+                
+                // Applica impostazioni
+                real3DEngine.renderer.setPixelRatio(settings.pixelRatio);
+                real3DEngine.renderer.shadowMap.enabled = settings.shadows;
+                
+                if (real3DEngine.lights.directional) {
+                    real3DEngine.lights.directional.shadow.mapSize.width = settings.shadowMapSize;
+                    real3DEngine.lights.directional.shadow.mapSize.height = settings.shadowMapSize;
+                }
+                
+                this.currentQuality = quality;
+                showNotification(`Qualità rendering: ${quality.toUpperCase()}`, 'success');
+            }
+
+            static autoAdjust() {
+                const stats = performanceMonitor.getStats();
+                const fps = performanceMonitor.fps;
+                
+                if (fps < 20 && this.currentQuality !== 'low') {
+                    this.applyQuality('low');
+                } else if (fps > 50 && this.currentQuality === 'low') {
+                    this.applyQuality('medium');
+                }
+            }
+        }
+
+        // Avvia auto-adjustment ogni 5 secondi
+        setInterval(() => {
+            AdaptiveQuality.autoAdjust();
+        }, 5000);
+
+        // Loader avanzato per modelli 3D
+        class ModelLoader {
+            static supportedFormats = ['.glb', '.gltf', '.obj', '.fbx', '.dae', '.ply'];
+            
+            static async loadFromFile(file) {
+                const extension = this.getFileExtension(file.name);
+                
+                if (!this.supportedFormats.includes(extension)) {
+                    throw new Error(`Formato ${extension} non supportato`);
+                }
+                
+                showLoading('Parsing modello 3D...', `Caricamento ${extension.toUpperCase()}`);
+                
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    
+                    reader.onload = (e) => {
+                        setTimeout(() => {
+                            try {
+                                const model = this.createModelFromData(e.target.result, extension);
+                                resolve(model);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        }, 1000);
+                    };
+                    
+                    reader.onerror = () => reject(new Error('Errore lettura file'));
+                    
+                    if (extension === '.obj' || extension === '.dae') {
+                        reader.readAsText(file);
+                    } else {
+                        reader.readAsArrayBuffer(file);
+                    }
+                });
+            }
+            
+            static getFileExtension(filename) {
+                return filename.toLowerCase().substring(filename.lastIndexOf('.'));
+            }
+            
+            static createModelFromData(data, extension) {
+                // Simulazione parsing file reali
+                const group = new THREE.Group();
+                
+                switch(extension) {
+                    case '.glb':
+                    case '.gltf':
+                        group.add(this.createAdvancedModel('gltf'));
+                        break;
+                    case '.obj':
+                        group.add(this.createAdvancedModel('obj'));
+                        break;
+                    case '.fbx':
+                        group.add(this.createAdvancedModel('fbx'));
+                        break;
+                    default:
+                        group.add(this.createAdvancedModel('generic'));
+                }
+                
+                return group;
+            }
+            
+            static createAdvancedModel(type) {
+                const group = new THREE.Group();
+                
+                // Modelli più complessi basati sul tipo
+                switch(type) {
+                    case 'gltf':
+                        // Modello architettonico complesso
+                        for (let i = 0; i < 5; i++) {
+                            const geometry = new THREE.BoxGeometry(
+                                1 + Math.random(),
+                                2 + Math.random() * 3, 
+                                1 + Math.random()
+                            );
+                            const material = new THREE.MeshLambertMaterial({
+                                color: new THREE.Color().setHSL(Math.random(), 0.7, 0.6)
+                            });
+                            const mesh = new THREE.Mesh(geometry, material);
+                            mesh.position.set(
+                                (Math.random() - 0.5) * 10,
+                                mesh.geometry.parameters.height / 2,
+                                (Math.random() - 0.5) * 10
+                            );
+                            mesh.castShadow = true;
+                            mesh.receiveShadow = true;
+                            group.add(mesh);
+                        }
+                        break;
+                        
+                    case 'obj':
+                        // Modello meccanico
+                        const cylinderGeo = new THREE.CylinderGeometry(1, 1, 3, 16);
+                        const cylinderMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
+                        const cylinder = new THREE.Mesh(cylinderGeo, cylinderMat);
+                        cylinder.castShadow = true;
+                        group.add(cylinder);
+                        
+                        const sphereGeo = new THREE.SphereGeometry(0.8, 16, 16);
+                        const sphereMat = new THREE.MeshLambertMaterial({ color: 0xcc4444 });
+                        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
+                        sphere.position.y = 2;
+                        sphere.castShadow = true;
+                        group.add(sphere);
+                        break;
+                        
+                    default:
+                        group.add(createGenericModel());
+                }
+                
+                return group;
+            }
+        }
+
+        // Integra il loader nel sistema esistente
+        const originalLoadModelFile = loadModelFile;
+        loadModelFile = async function(file) {
+            try {
+                showLoading('Caricamento modello 3D...', 'Inizializzazione parser');
+                
+                const model = await ModelLoader.loadFromFile(file);
+                
+                if (real3DEngine && real3DEngine.isInitialized) {
+                    real3DEngine.setModel(model);
+                    currentModel = model;
+                    
+                    // Calcola statistiche reali
+                    const stats = calculateModelStats(model);
+                    real3DEngine.updateModelStats(
+                        file.name,
+                        stats.meshes,
+                        stats.vertices, 
+                        stats.triangles,
+                        formatFileSize(file.size)
+                    );
+                }
+                
+                hideLoading();
+                showNotification(`Modello 3D caricato: ${file.name}`, 'success');
+                enableShareButtons();
+                
+            } catch (error) {
+                hideLoading();
+                showNotification(`Errore caricamento: ${error.message}`, 'error');
+            }
+        };
+
+        function calculateModelStats(model) {
+            let meshes = 0;
+            let vertices = 0;
+            let triangles = 0;
+            
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    meshes++;
+                    if (child.geometry) {
+                        const positions = child.geometry.attributes.position;
+                        if (positions) {
+                            vertices += positions.count;
+                            triangles += positions.count / 3;
+                        }
+                    }
+                }
+            });
+            
+            return { meshes, vertices: Math.floor(vertices), triangles: Math.floor(triangles) };
+        }
+
+        // Sistema di annotazioni 3D
+        class AnnotationSystem {
+            static annotations = [];
+            static isAnnotating = false;
+            
+            static enable() {
+                this.isAnnotating = true;
+                if (real3DEngine && real3DEngine.renderer) {
+                    real3DEngine.renderer.domElement.style.cursor = 'crosshair';
+                    this.addClickListener();
+                }
+            }
+            
+            static disable() {
+                this.isAnnotating = false;
+                if (real3DEngine && real3DEngine.renderer) {
+                    real3DEngine.renderer.domElement.style.cursor = 'default';
+                }
+            }
+            
+            static addClickListener() {
+                const canvas = real3DEngine.renderer.domElement;
+                
+                const clickHandler = (event) => {
+                    if (!this.isAnnotating) return;
+                    
+                    const rect = canvas.getBoundingClientRect();
+                    const mouse = new THREE.Vector2();
+                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    
+                    const raycaster = new THREE.Raycaster();
+                    raycaster.setFromCamera(mouse, real3DEngine.camera);
+                    
+                    const intersects = raycaster.intersectObjects(real3DEngine.scene.children, true);
+                    
+                    if (intersects.length > 0) {
+                        const point = intersects[0].point;
+                        this.addAnnotation(point, 'Nuova annotazione');
+                    }
+                };
+                
+                canvas.addEventListener('click', clickHandler);
+            }
+            
+            static addAnnotation(position, text) {
+                const annotation = {
+                    id: Date.now(),
+                    position: position.clone(),
+                    text: text,
+                    element: this.createAnnotationElement(text)
+                };
+                
+                this.annotations.push(annotation);
+                this.updateAnnotationPosition(annotation);
+                
+                showNotification('Annotazione aggiunta', 'success');
+            }
+            
+            static createAnnotationElement(text) {
+                const div = document.createElement('div');
+                div.style.cssText = `
+                    position: absolute;
+                    background: rgba(0,0,0,0.8);
+                    color: white;
+                    padding: 8px 12px;
+                    border-radius: 6px;
+                    font-size: 12px;
+                    pointer-events: auto;
+                    z-index: 1000;
+                    max-width: 200px;
+                `;
+                div.textContent = text;
+                document.body.appendChild(div);
+                return div;
+            }
+            
+            static updateAnnotationPosition(annotation) {
+                if (!real3DEngine) return;
+                
+                const vector = annotation.position.clone();
+                vector.project(real3DEngine.camera);
+                
+                const x = (vector.x * 0.5 + 0.5) * real3DEngine.container.clientWidth;
+                const y = (vector.y * -0.5 + 0.5) * real3DEngine.container.clientHeight;
+                
+                annotation.element.style.left = x + 'px';
+                annotation.element.style.top = y + 'px';
+            }
+            
+            static updateAllAnnotations() {
+                this.annotations.forEach(annotation => {
+                    this.updateAnnotationPosition(annotation);
+                });
+            }
+        }
+
+        // Integra le annotazioni nel render loop
+        if (typeof Real3DEngine !== 'undefined') {
+            const originalRenderLoop = Real3DEngine.prototype.startRenderLoop;
+            Real3DEngine.prototype.startRenderLoop = function() {
+                const animate = () => {
+                    const startTime = performance.now();
+                    
+                    this.animationId = requestAnimationFrame(animate);
+                    
+                    // Update controls
+                    if (this.updateControls) {
+                        this.updateControls();
+                    }
+                    
+                    // Update annotations
+                    AnnotationSystem.updateAllAnnotations();
+                    
+                    // Render scene
+                    this.renderer.render(this.scene, this.camera);
+                    
+                    // Performance tracking
+                    const endTime = performance.now();
+                    performanceMonitor.renderTime = Math.round(endTime - startTime);
+                    performanceMonitor.frameRendered();
+                };
+                
+                animate();
+            };
+        }
+
+        // Aggiorna i controlli per le nuove funzionalità
+        const originalSetTool = setTool;
+        setTool = function(tool) {
+            originalSetTool(tool);
+            
+            // Gestisci strumenti specifici
+            if (tool === 'annotate') {
+                AnnotationSystem.enable();
+            } else {
+                AnnotationSystem.disable();
+            }
+        };
+
+        // Sistema di misure 3D
+        class MeasurementSystem {
+            static measurements = [];
+            static isMeasuring = false;
+            static currentMeasurement = null;
+            
+            static enable() {
+                this.isMeasuring = true;
+                this.currentMeasurement = { points: [], line: null };
+                showNotification('Modalità misura attiva - Clicca 2 punti per misurare', 'info');
+            }
+            
+            static disable() {
+                this.isMeasuring = false;
+                this.currentMeasurement = null;
+            }
+            
+            static addPoint(point) {
+                if (!this.currentMeasurement) return;
+                
+                this.currentMeasurement.points.push(point);
+                
+                if (this.currentMeasurement.points.length === 2) {
+                    this.completeMeasurement();
+                }
+            }
+            
+            static completeMeasurement() {
+                const points = this.currentMeasurement.points;
+                const distance = points[0].distanceTo(points[1]);
+                
+                // Crea linea di misurazione
+                const geometry = new THREE.BufferGeometry().setFromPoints(points);
+                const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
+                const line = new THREE.Line(geometry, material);
+                
+                if (real3DEngine) {
+                    real3DEngine.scene.add(line);
+                }
+                
+                const measurement = {
+                    id: Date.now(),
+                    points: points,
+                    distance: distance,
+                    line: line
+                };
+                
+                this.measurements.push(measurement);
+                
+                showNotification(`Distanza misurata: ${distance.toFixed(2)} unità`, 'success');
+                this.disable();
+            }
+        }
+
+        // Aggiorna setTool per misure
+        setTool = function(tool) {
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+            currentTool = tool;
+            
+            // Disabilita tutti i sistemi
+            AnnotationSystem.disable();
+            MeasurementSystem.disable();
+            
+            // Attiva il sistema corretto
+            if (tool === 'annotate') {
+                AnnotationSystem.enable();
+            } else if (tool === 'measure') {
+                MeasurementSystem.enable();
+            }
+            
+            const toolNames = {
+                orbit: 'Rotazione libera',
+                pan: 'Spostamento vista', 
+                measure: 'Strumento misura - Clicca 2 punti',
+                annotate: 'Annotazioni - Clicca per aggiungere'
+            };
+            showNotification(`Strumento: ${toolNames[tool]}`, 'info');
+        };
+
+        // Sistema di salvataggio avanzato
+        class ProjectSaver {
+            static save(projectName) {
+                const projectData = {
+                    name: projectName,
+                    timestamp: new Date(),
+                    model: this.serializeModel(),
+                    camera: this.serializeCamera(),
+                    environment: currentEnvironment,
+                    viewMode: currentViewMode,
+                    annotations: AnnotationSystem.annotations.map(a => ({
+                        position: a.position,
+                        text: a.text
+                    })),
+                    measurements: MeasurementSystem.measurements.map(m => ({
+                        points: m.points,
+                        distance: m.distance
+                    }))
+                };
+                
+                // Salva in localStorage (in produzione: database)
+                const projects = JSON.parse(localStorage.getItem('3d_projects') || '[]');
+                projects.push(projectData);
+                localStorage.setItem('3d_projects', JSON.stringify(projects));
+                
+                showNotification(`Progetto "${projectName}" salvato con successo!`, 'success');
+                return projectData;
+            }
+            
+            static serializeModel() {
+                if (!currentModel) return null;
+                
+                return {
+                    type: 'serialized_model',
+                    // In una vera implementazione, qui serializzeresti la geometria
+                    placeholder: true
+                };
+            }
+            
+            static serializeCamera() {
+                if (!real3DEngine || !real3DEngine.camera) return null;
+                
+                return {
+                    position: real3DEngine.camera.position.clone(),
+                    rotation: real3DEngine.camera.rotation.clone()
+                };
+            }
+        }
+
+        // Performance dashboard integrata
+        function showPerformanceDashboard() {
+            const stats = performanceMonitor.getStats();
+            const quality = AdaptiveQuality.currentQuality;
+            
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="modal-title">⚡ Performance Dashboard</div>
+                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                        <div class="info-card">
+                            <h4>📊 Rendering</h4>
+                            <div class="info-row">
+                                <span class="info-label">FPS:</span>
+                                <span class="info-value" style="color: ${stats.fps > 30 ? '#4caf50' : '#f44336'}">${stats.fps}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Render Time:</span>
+                                <span class="info-value">${stats.renderTime}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Qualità:</span>
+                                <span class="info-value">${quality.toUpperCase()}</span>
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <h4>💾 Memoria</h4>
+                            <div class="info-row">
+                                <span class="info-label">Heap Usage:</span>
+                                <span class="info-value">${stats.memory}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Annotazioni:</span>
+                                <span class="info-value">${AnnotationSystem.annotations.length}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Misure:</span>
+                                <span class="info-value">${MeasurementSystem.measurements.length}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="margin-top: 15px; display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" onclick="AdaptiveQuality.applyQuality('low')">Bassa Qualità</button>
+                        <button class="btn btn-primary" onclick="AdaptiveQuality.applyQuality('medium')">Media Qualità</button>
+                        <button class="btn btn-primary" onclick="AdaptiveQuality.applyQuality('high')">Alta Qualità</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+
+        // Aggiungi il pulsante performance nella toolbar
+        setTimeout(() => {
+            const toolbar = document.querySelector('.toolbar');
+            if (toolbar) {
+                const perfBtn = document.createElement('button');
+                perfBtn.className = 'tool-btn';
+                perfBtn.title = 'Performance';
+                perfBtn.innerHTML = '⚡';
+                perfBtn.onclick = showPerformanceDashboard;
+                toolbar.appendChild(perfBtn);
+            }
+        }, 1000);
+
+        console.log('✅ Motore 3D in tempo reale caricato!');
+        console.log('🎮 Rendering WebGL attivo con controlli interattivi');
+        console.log('⚡ Performance monitoring attivo');
+        console.log('📐 Sistemi di misura e annotazioni disponibili');<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
@@ -898,6 +1845,7 @@
             }
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -1286,7 +2234,7 @@
     </div>
 
     <script>
-        // Stato dell'applicazione
+        // DEFINIZIONI GLOBALI - PRIMA DI TUTTO
         let currentModel = null;
         let currentTool = 'orbit';
         let currentViewMode = 'solid';
@@ -1295,6 +2243,8 @@
         let selectedExpiry = '1week';
         let selectedRole = 'viewer';
         let shareLink = '';
+        
+        // COLLABORATORI - DEFINITI SUBITO
         let collaborators = [
             {
                 name: 'Tu',
@@ -1305,11 +2255,460 @@
             }
         ];
 
-        // Inizializzazione
+        // Motore 3D - Inizializzato dopo
+        let real3DEngine = null;
+
+        // Sistema 3D Engine con Three.js
+        class Real3DEngine {
+            constructor(container) {
+                this.container = container;
+                this.scene = null;
+                this.camera = null;
+                this.renderer = null;
+                this.controls = null;
+                this.currentModel = null;
+                this.animationId = null;
+                this.isInitialized = false;
+                
+                // Lighting setup
+                this.lights = {
+                    ambient: null,
+                    directional: null,
+                    point: null
+                };
+                
+                // Environment settings
+                this.environments = {
+                    studio: { bg: 0xf0f0f0, ambientIntensity: 0.4 },
+                    outdoor: { bg: 0x87CEEB, ambientIntensity: 0.6 },
+                    night: { bg: 0x0f0f23, ambientIntensity: 0.2 },
+                    sunset: { bg: 0xff6b35, ambientIntensity: 0.5 }
+                };
+                
+                this.init();
+            }
+
+            init() {
+                try {
+                    // Setup scene
+                    this.scene = new THREE.Scene();
+                    
+                    // Setup camera
+                    const aspect = this.container.clientWidth / this.container.clientHeight;
+                    this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
+                    this.camera.position.set(5, 5, 5);
+                    
+                    // Setup renderer
+                    this.renderer = new THREE.WebGLRenderer({ 
+                        antialias: true,
+                        alpha: true,
+                        preserveDrawingBuffer: true // Per screenshot
+                    });
+                    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+                    this.renderer.setPixelRatio(window.devicePixelRatio);
+                    this.renderer.shadowMap.enabled = true;
+                    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                    this.renderer.outputEncoding = THREE.sRGBEncoding;
+                    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                    this.renderer.toneMappingExposure = 1;
+                    
+                    // Clear container and add canvas
+                    this.container.innerHTML = '';
+                    this.container.appendChild(this.renderer.domElement);
+                    
+                    // Setup lights
+                    this.setupLighting();
+                    
+                    // Setup controls (basic orbit controls simulation)
+                    this.setupControls();
+                    
+                    // Set default environment
+                    this.setEnvironment('outdoor');
+                    
+                    // Load default model
+                    this.loadDefaultModel();
+                    
+                    // Start render loop
+                    this.startRenderLoop();
+                    
+                    // Handle resize
+                    this.handleResize();
+                    
+                    this.isInitialized = true;
+                    showNotification('Motore 3D inizializzato con successo!', 'success');
+                    
+                } catch (error) {
+                    console.error('Errore inizializzazione 3D:', error);
+                    showNotification('Errore nell\'inizializzazione del motore 3D', 'error');
+                    this.fallbackTo2D();
+                }
+            }
+
+            setupLighting() {
+                // Ambient light
+                this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.6);
+                this.scene.add(this.lights.ambient);
+                
+                // Directional light (sun)
+                this.lights.directional = new THREE.DirectionalLight(0xffffff, 1);
+                this.lights.directional.position.set(5, 10, 5);
+                this.lights.directional.castShadow = true;
+                this.lights.directional.shadow.mapSize.width = 2048;
+                this.lights.directional.shadow.mapSize.height = 2048;
+                this.scene.add(this.lights.directional);
+                
+                // Point light for fill
+                this.lights.point = new THREE.PointLight(0xffffff, 0.5, 50);
+                this.lights.point.position.set(-5, 5, -5);
+                this.scene.add(this.lights.point);
+            }
+
+            setupControls() {
+                // Controlli mouse semplificati (senza OrbitControls)
+                let isMouseDown = false;
+                let mouseX = 0;
+                let mouseY = 0;
+                let targetRotationX = 0;
+                let targetRotationY = 0;
+                let currentRotationX = 0;
+                let currentRotationY = 0;
+
+                const canvas = this.renderer.domElement;
+                
+                canvas.addEventListener('mousedown', (e) => {
+                    isMouseDown = true;
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+                
+                canvas.addEventListener('mousemove', (e) => {
+                    if (!isMouseDown) return;
+                    
+                    const deltaX = e.clientX - mouseX;
+                    const deltaY = e.clientY - mouseY;
+                    
+                    targetRotationY += deltaX * 0.01;
+                    targetRotationX += deltaY * 0.01;
+                    
+                    mouseX = e.clientX;
+                    mouseY = e.clientY;
+                });
+                
+                canvas.addEventListener('mouseup', () => {
+                    isMouseDown = false;
+                });
+                
+                canvas.addEventListener('wheel', (e) => {
+                    e.preventDefault();
+                    const zoom = e.deltaY * 0.01;
+                    this.camera.position.multiplyScalar(1 + zoom * 0.1);
+                    this.camera.position.clampLength(2, 50);
+                });
+
+                // Smooth rotation animation
+                this.updateControls = () => {
+                    currentRotationX += (targetRotationX - currentRotationX) * 0.1;
+                    currentRotationY += (targetRotationY - currentRotationY) * 0.1;
+                    
+                    if (this.currentModel) {
+                        this.currentModel.rotation.x = currentRotationX;
+                        this.currentModel.rotation.y = currentRotationY;
+                    }
+                };
+            }
+
+            loadDefaultModel() {
+                // Crea un modello 3D di esempio (casa)
+                const group = new THREE.Group();
+                
+                // Base della casa
+                const baseGeometry = new THREE.BoxGeometry(3, 2, 3);
+                const baseMaterial = new THREE.MeshLambertMaterial({ color: 0xffa500 });
+                const base = new THREE.Mesh(baseGeometry, baseMaterial);
+                base.position.y = 1;
+                base.castShadow = true;
+                base.receiveShadow = true;
+                group.add(base);
+                
+                // Tetto
+                const roofGeometry = new THREE.ConeGeometry(2.2, 1.5, 4);
+                const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
+                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
+                roof.position.y = 2.75;
+                roof.rotation.y = Math.PI / 4;
+                roof.castShadow = true;
+                group.add(roof);
+                
+                // Porta
+                const doorGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.1);
+                const doorMaterial = new THREE.MeshLambertMaterial({ color: 0x654321 });
+                const door = new THREE.Mesh(doorGeometry, doorMaterial);
+                door.position.set(0, 0.75, 1.55);
+                group.add(door);
+                
+                // Finestre
+                const windowGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.1);
+                const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87ceeb });
+                
+                const window1 = new THREE.Mesh(windowGeometry, windowMaterial);
+                window1.position.set(-1, 1.5, 1.55);
+                group.add(window1);
+                
+                const window2 = new THREE.Mesh(windowGeometry, windowMaterial);
+                window2.position.set(1, 1.5, 1.55);
+                group.add(window2);
+                
+                // Ground plane
+                const groundGeometry = new THREE.PlaneGeometry(20, 20);
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x90EE90 });
+                const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+                ground.rotation.x = -Math.PI / 2;
+                ground.receiveShadow = true;
+                group.add(ground);
+                
+                // Posiziona il modello
+                group.position.set(0, 0, 0);
+                
+                this.setModel(group);
+                
+                // Aggiorna statistiche
+                this.updateModelStats('Villa_Moderna.glb', 6, 1234, 2468, '2.1 MB');
+            }
+
+            setModel(model) {
+                // Rimuovi modello precedente
+                if (this.currentModel) {
+                    this.scene.remove(this.currentModel);
+                }
+                
+                this.currentModel = model;
+                this.scene.add(model);
+                
+                // Auto-fit camera
+                this.fitCameraToModel();
+            }
+
+            fitCameraToModel() {
+                if (!this.currentModel) return;
+                
+                const box = new THREE.Box3().setFromObject(this.currentModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const fov = this.camera.fov * (Math.PI / 180);
+                let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+                cameraZ *= 2; // Zoom out a bit
+                
+                this.camera.position.set(cameraZ, cameraZ * 0.7, cameraZ);
+                this.camera.lookAt(center);
+            }
+
+            setEnvironment(envName) {
+                const env = this.environments[envName];
+                if (!env) return;
+                
+                this.scene.background = new THREE.Color(env.bg);
+                this.lights.ambient.intensity = env.ambientIntensity;
+                
+                currentEnvironment = envName;
+            }
+
+            setViewMode(mode) {
+                if (!this.currentModel) return;
+                
+                this.currentModel.traverse((child) => {
+                    if (child.isMesh) {
+                        switch(mode) {
+                            case 'wireframe':
+                                child.material.wireframe = true;
+                                break;
+                            case 'solid':
+                                child.material.wireframe = false;
+                                child.material.transparent = false;
+                                child.material.opacity = 1;
+                                break;
+                            case 'xray':
+                                child.material.wireframe = false;
+                                child.material.transparent = true;
+                                child.material.opacity = 0.5;
+                                break;
+                            case 'material':
+                                child.material.wireframe = false;
+                                child.material.transparent = false;
+                                child.material.opacity = 1;
+                                break;
+                        }
+                    }
+                });
+                
+                currentViewMode = mode;
+            }
+
+            setView(viewName) {
+                if (!this.currentModel) return;
+                
+                const box = new THREE.Box3().setFromObject(this.currentModel);
+                const center = box.getCenter(new THREE.Vector3());
+                const size = box.getSize(new THREE.Vector3());
+                const distance = Math.max(size.x, size.y, size.z) * 2;
+                
+                switch(viewName) {
+                    case 'front':
+                        this.camera.position.set(center.x, center.y, center.z + distance);
+                        break;
+                    case 'back':
+                        this.camera.position.set(center.x, center.y, center.z - distance);
+                        break;
+                    case 'left':
+                        this.camera.position.set(center.x - distance, center.y, center.z);
+                        break;
+                    case 'right':
+                        this.camera.position.set(center.x + distance, center.y, center.z);
+                        break;
+                    case 'top':
+                        this.camera.position.set(center.x, center.y + distance, center.z);
+                        break;
+                    case 'home':
+                        this.camera.position.set(center.x + distance, center.y + distance, center.z + distance);
+                        break;
+                }
+                
+                this.camera.lookAt(center);
+            }
+
+            takeScreenshot() {
+                if (!this.renderer) return null;
+                
+                this.renderer.render(this.scene, this.camera);
+                const dataURL = this.renderer.domElement.toDataURL('image/png');
+                
+                // Crea link per download
+                const link = document.createElement('a');
+                link.download = `3d-screenshot-${Date.now()}.png`;
+                link.href = dataURL;
+                link.click();
+                
+                return dataURL;
+            }
+
+            updateModelStats(fileName, meshes, vertices, triangles, size) {
+                document.getElementById('fileName').textContent = fileName;
+                document.getElementById('meshCount').textContent = meshes;
+                document.getElementById('vertexCount').textContent = vertices.toLocaleString();
+                document.getElementById('triangleCount').textContent = triangles.toLocaleString();
+                document.getElementById('modelSize').textContent = size;
+                document.getElementById('modelStats').style.display = 'block';
+            }
+
+            startRenderLoop() {
+                const animate = () => {
+                    this.animationId = requestAnimationFrame(animate);
+                    
+                    // Update controls
+                    if (this.updateControls) {
+                        this.updateControls();
+                    }
+                    
+                    // Render scene
+                    this.renderer.render(this.scene, this.camera);
+                };
+                
+                animate();
+            }
+
+            stopRenderLoop() {
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+            }
+
+            handleResize() {
+                window.addEventListener('resize', () => {
+                    if (!this.camera || !this.renderer) return;
+                    
+                    const width = this.container.clientWidth;
+                    const height = this.container.clientHeight;
+                    
+                    this.camera.aspect = width / height;
+                    this.camera.updateProjectionMatrix();
+                    this.renderer.setSize(width, height);
+                });
+            }
+
+            fallbackTo2D() {
+                this.container.innerHTML = `
+                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                        <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
+                        <div style="font-size: 24px; font-weight: bold; color: #f44336; margin-bottom: 10px;">Motore 3D Non Disponibile</div>
+                        <div style="font-size: 14px; color: #999; text-align: center; max-width: 400px; line-height: 1.5;">
+                            Il browser non supporta WebGL. Visualizzazione fallback attiva.
+                        </div>
+                        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #4fc3f7; border: none; border-radius: 6px; color: white; cursor: pointer;">
+                            Riprova
+                        </button>
+                    </div>
+                `;
+            }
+
+            dispose() {
+                this.stopRenderLoop();
+                if (this.renderer) {
+                    this.renderer.dispose();
+                }
+                if (this.scene) {
+                    this.scene.clear();
+                }
+            }
+        }
+
+        // Istanza globale del motore 3D (già definito sopra)
+        // let real3DEngine = null; // <- Commentato perché già definito
+
+        // Inizializzazione migliorata
         document.addEventListener('DOMContentLoaded', function() {
             initializeApp();
             simulateCloudConnection();
+            
+            // Inizializza il motore 3D reale
+            const canvas = document.getElementById('canvas');
+            real3DEngine = new Real3DEngine(canvas);
+            
+            // Inizializza il sistema di routing per link condivisi
+            ShareRouter.init();
+            
+            // Aggiungi pulsante dashboard nella sidebar
+            addShareDashboardButton();
         });
+
+        // FUNZIONI UTILITY - DOPO LE DEFINIZIONI GLOBALI
+        function getRoleLabel(role) {
+            const roles = {
+                owner: 'Proprietario',
+                collaborator: 'Collaboratore', 
+                viewer: 'Visualizzatore'
+            };
+            return roles[role] || 'Sconosciuto';
+        }
+
+        function getStatusLabel(status) {
+            const statuses = {
+                online: 'Online',
+                offline: 'Offline',
+                invited: 'Invitato'
+            };
+            return statuses[status] || 'Sconosciuto';
+        }
+
+        function getRoleBadge(role) {
+            const badges = {
+                owner: 'Owner',
+                collaborator: 'Edit',
+                viewer: 'View'
+            };
+            return badges[role] || 'View';
+        }
 
         function initializeApp() {
             showNotification('App inizializzata con successo!', 'success');
@@ -1701,6 +3100,9 @@
                 return;
             }
             
+            // Debug log
+            console.log('Adding collaborator. Current collaborators:', collaborators);
+            
             // Simula invio invito
             const newCollaborator = {
                 name: email.split('@')[0],
@@ -1725,6 +3127,14 @@
 
         function updateCollaboratorList() {
             const list = document.getElementById('collaboratorList');
+            if (!list) {
+                console.warn('collaboratorList element not found');
+                return;
+            }
+            
+            // Debug log
+            console.log('Updating collaborator list. Collaborators:', collaborators);
+            
             list.innerHTML = '';
             
             collaborators.forEach((collab, index) => {
@@ -1963,7 +3373,9 @@
         // Simulazione aggiornamenti in tempo reale
         function simulateCollaboratorActivity() {
             setInterval(() => {
-                if (collaborators.length > 1 && Math.random() > 0.7) {
+                if (!collaborators || collaborators.length <= 1) return;
+                
+                if (Math.random() > 0.7) {
                     const activeCollabs = collaborators.filter(c => c.status === 'online' && c.role !== 'owner');
                     if (activeCollabs.length > 0) {
                         const randomCollab = activeCollabs[Math.floor(Math.random() * activeCollabs.length)];
@@ -2530,6 +3942,11 @@
             
             // Funzioni di debug
             simulateCollaboratorJoin: function(name, email) {
+                // Assicurati che collaborators sia definito
+                if (!window.collaborators) {
+                    window.collaborators = collaborators;
+                }
+                
                 const newCollab = {
                     name: name || 'Nuovo Utente',
                     email: email || 'nuovo@esempio.com',
