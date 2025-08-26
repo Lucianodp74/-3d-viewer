@@ -1,956 +1,10 @@
-// Stato dell'applicazione (RIMOSSO - già definito sopra)
-        // Variabili spostate all'inizio del file
-
-        function initializeApp() {
-            showNotification('App inizializzata - Motore 3D in caricamento...', 'success');
-            // Assicurati che collaborators sia definito prima di chiamare updateCollaboratorList
-            if (typeof updateCollaboratorList === 'function') {
-                updateCollaboratorList();
-            }
-        }
-
-        function simulateCloudConnection() {
-            setTimeout(() => {
-                document.getElementById('cloudStatus').classList.add('online');
-                document.getElementById('cloudStatusText').textContent = 'Cloud Connesso';
-            }, 1000);
-        }
-
-        // Gestione file con motore 3D
-        function openFile() {
-            document.getElementById('fileInput').click();
-        }
-
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                loadModelFile(file);
-            }
-        });
-
-        function loadModelFile(file) {
-            showLoading('Caricamento modello...', 'Parsing file 3D e ottimizzazione');
-            
-            setTimeout(() => {
-                if (real3DEngine && real3DEngine.isInitialized) {
-                    // Simula caricamento di un nuovo modello 3D
-                    createModelFromFile(file);
-                    
-                    real3DEngine.updateModelStats(
-                        file.name, 
-                        Math.floor(Math.random() * 20) + 5,
-                        Math.floor(Math.random() * 50000) + 10000,
-                        Math.floor(Math.random() * 100000) + 20000,
-                        formatFileSize(file.size)
-                    );
-                } else {
-                    // Fallback per statistiche
-                    document.getElementById('fileName').textContent = file.name;
-                    document.getElementById('modelSize').textContent = formatFileSize(file.size);
-                }
-                
-                setTimeout(() => {
-                    hideLoading();
-                    showNotification(`Modello 3D ${file.name} renderizzato con successo!`, 'success');
-                    enableShareButtons();
-                    updateModelStats();
-                }, 1500);
-            }, 1000);
-        }
-
-        function createModelFromFile(file) {
-            if (!real3DEngine) return;
-            
-            // Crea un modello 3D basato sul nome del file
-            const group = new THREE.Group();
-            const fileName = file.name.toLowerCase();
-            
-            if (fileName.includes('villa') || fileName.includes('house')) {
-                group.add(createHouseModel());
-            } else if (fileName.includes('office') || fileName.includes('building')) {
-                group.add(createOfficeModel());
-            } else if (fileName.includes('product') || fileName.includes('item')) {
-                group.add(createProductModel());
-            } else {
-                group.add(createGenericModel());
-            }
-            
-            real3DEngine.setModel(group);
-            currentModel = group;
-        }
-
-        function createHouseModel() {
-            const group = new THREE.Group();
-            
-            // Casa più dettagliata
-            const baseGeometry = new THREE.BoxGeometry(4, 3, 4);
-            const baseMaterial = new THREE.MeshLambertMaterial({ color: 0xffa500 });
-            const base = new THREE.Mesh(baseGeometry, baseMaterial);
-            base.position.y = 1.5;
-            base.castShadow = true;
-            group.add(base);
-            
-            // Tetto spiovente
-            const roofGeometry = new THREE.CylinderGeometry(0, 3, 2, 4);
-            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
-            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-            roof.position.y = 4;
-            roof.rotation.y = Math.PI / 4;
-            group.add(roof);
-            
-            // Camino
-            const chimneyGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.5);
-            const chimneyMaterial = new THREE.MeshLambertMaterial({ color: 0x666666 });
-            const chimney = new THREE.Mesh(chimneyGeometry, chimneyMaterial);
-            chimney.position.set(1.2, 4.5, 1.2);
-            group.add(chimney);
-            
-            return group;
-        }
-
-        function createOfficeModel() {
-            const group = new THREE.Group();
-            
-            // Edificio moderno
-            const buildingGeometry = new THREE.BoxGeometry(5, 8, 3);
-            const buildingMaterial = new THREE.MeshLambertMaterial({ color: 0x4a90e2 });
-            const building = new THREE.Mesh(buildingGeometry, buildingMaterial);
-            building.position.y = 4;
-            building.castShadow = true;
-            group.add(building);
-            
-            // Finestre
-            for (let floor = 0; floor < 6; floor++) {
-                for (let window = 0; window < 4; window++) {
-                    const windowGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.1);
-                    const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87ceeb });
-                    const windowMesh = new THREE.Mesh(windowGeometry, windowMaterial);
-                    windowMesh.position.set(
-                        -1.5 + window * 1, 
-                        1 + floor * 1.2, 
-                        1.55
-                    );
-                    group.add(windowMesh);
-                }
-            }
-            
-            return group;
-        }
-
-        function createProductModel() {
-            const group = new THREE.Group();
-            
-            // Prodotto (scatola con dettagli)
-            const boxGeometry = new THREE.BoxGeometry(2, 2, 2);
-            const boxMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b6b });
-            const box = new THREE.Mesh(boxGeometry, boxMaterial);
-            box.position.y = 1;
-            box.castShadow = true;
-            group.add(box);
-            
-            // Etichetta
-            const labelGeometry = new THREE.PlaneGeometry(1.5, 0.5);
-            const labelMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
-            const label = new THREE.Mesh(labelGeometry, labelMaterial);
-            label.position.set(0, 1, 1.01);
-            group.add(label);
-            
-            return group;
-        }
-
-        function createGenericModel() {
-            const group = new THREE.Group();
-            
-            // Modello generico (forme geometriche)
-            const sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-            const sphereMaterial = new THREE.MeshLambertMaterial({ color: 0x4ecdc4 });
-            const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-            sphere.position.y = 2;
-            sphere.castShadow = true;
-            group.add(sphere);
-            
-            const cubeGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
-            const cubeMaterial = new THREE.MeshLambertMaterial({ color: 0xff6b35 });
-            const cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-            cube.position.set(2, 0.75, 0);
-            cube.castShadow = true;
-            group.add(cube);
-            
-            return group;
-        }
-
-        function loadSample(type) {
-            const samples = {
-                villa: { name: 'Villa_Moderna.glb', mesh: 24, vertices: 45832, triangles: 91664, size: '12.3 MB' },
-                office: { name: 'Office_OpenSpace.glb', mesh: 18, vertices: 32451, triangles: 64902, size: '8.7 MB' },
-                product: { name: 'Product_Demo.glb', mesh: 12, vertices: 18943, triangles: 37886, size: '4.2 MB' }
-            };
-            
-            const sample = samples[type];
-            showLoading(`Caricamento ${sample.name}...`, 'Rendering 3D in tempo reale');
-            
-            setTimeout(() => {
-                if (real3DEngine && real3DEngine.isInitialized) {
-                    // Crea modello 3D basato sul tipo
-                    let model;
-                    if (type === 'villa') model = createHouseModel();
-                    else if (type === 'office') model = createOfficeModel();
-                    else model = createProductModel();
-                    
-                    real3DEngine.setModel(model);
-                    real3DEngine.updateModelStats(sample.name, sample.mesh, sample.vertices, sample.triangles, sample.size);
-                    currentModel = model;
-                }
-                
-                hideLoading();
-                showNotification(`Modello 3D ${sample.name} renderizzato!`, 'success');
-                enableShareButtons();
-            }, 2000);
-        }
-
-        // Controlli UI integrati con il motore 3D
-        function setViewMode(mode) {
-            document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-            
-            if (real3DEngine && real3DEngine.isInitialized) {
-                real3DEngine.setViewMode(mode);
-            }
-            
-            currentViewMode = mode;
-            showNotification(`Modalità rendering: ${mode}`, 'success');
-        }
-
-        function setEnvironment(env) {
-            document.querySelectorAll('[data-env]').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-env="${env}"]`).classList.add('active');
-            
-            if (real3DEngine && real3DEngine.isInitialized) {
-                real3DEngine.setEnvironment(env);
-            }
-            
-            currentEnvironment = env;
-            showNotification(`Ambiente: ${env}`, 'success');
-        }
-
-        function setTool(tool) {
-            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
-            currentTool = tool;
-            
-            // Feedback per strumenti
-            const toolNames = {
-                orbit: 'Rotazione libera',
-                pan: 'Spostamento vista', 
-                measure: 'Strumento misura',
-                annotate: 'Annotazioni'
-            };
-            showNotification(`Strumento: ${toolNames[tool]}`, 'info');
-        }
-
-        function setView(view) {
-            if (real3DEngine && real3DEngine.isInitialized) {
-                real3DEngine.setView(view);
-            }
-            
-            const viewNames = {
-                front: 'Vista frontale',
-                back: 'Vista posteriore', 
-                left: 'Vista sinistra',
-                right: 'Vista destra',
-                top: 'Vista dall\'alto',
-                home: 'Vista isometrica'
-            };
-            showNotification(`${viewNames[view]}`, 'success');
-        }
-
-        function takeScreenshot() {
-            if (real3DEngine && real3DEngine.isInitialized) {
-                const dataURL = real3DEngine.takeScreenshot();
-                if (dataURL) {
-                    showNotification('Screenshot ad alta risoluzione salvato!', 'success');
-                    return;
-                }
-            }
-            
-            // Fallback
-            showNotification('Screenshot salvato!', 'success');
-        }
-
-        function resetView() {
-            if (real3DEngine && real3DEngine.isInitialized && real3DEngine.currentModel) {
-                real3DEngine.fitCameraToModel();
-            }
-            showNotification('Vista ripristinata alla posizione ottimale', 'success');
-        }
-
-        // Performance monitor in tempo reale
-        class RealTimePerformanceMonitor {
-            constructor() {
-                this.fps = 0;
-                this.frameCount = 0;
-                this.lastTime = performance.now();
-                this.memoryUsage = 0;
-                this.renderTime = 0;
-                
-                this.startMonitoring();
-            }
-            
-            startMonitoring() {
-                setInterval(() => {
-                    this.updateFPS();
-                    this.updateMemoryUsage();
-                    this.checkPerformance();
-                }, 1000);
-            }
-            
-            updateFPS() {
-                const currentTime = performance.now();
-                this.fps = Math.round(this.frameCount * 1000 / (currentTime - this.lastTime));
-                this.frameCount = 0;
-                this.lastTime = currentTime;
-            }
-            
-            updateMemoryUsage() {
-                if (performance.memory) {
-                    this.memoryUsage = Math.round(performance.memory.usedJSHeapSize / 1048576); // MB
-                }
-            }
-            
-            checkPerformance() {
-                if (this.fps < 30 && real3DEngine && real3DEngine.isInitialized) {
-                    showNotification('FPS bassi rilevati. Considera di ridurre la qualità di rendering.', 'warning');
-                }
-                
-                if (this.memoryUsage > 500) {
-                    showNotification('Alto utilizzo memoria. Potrebbe essere necessario ottimizzare il modello.', 'warning');
-                }
-            }
-            
-            frameRendered() {
-                this.frameCount++;
-            }
-            
-            getStats() {
-                return {
-                    fps: this.fps,
-                    memory: this.memoryUsage + ' MB',
-                    renderTime: this.renderTime + ' ms'
-                };
-            }
-        }
-
-        const performanceMonitor = new RealTimePerformanceMonitor();
-
-        // Integra il monitor con il motore 3D
-        if (typeof Real3DEngine !== 'undefined') {
-            const originalStartRenderLoop = Real3DEngine.prototype.startRenderLoop;
-            Real3DEngine.prototype.startRenderLoop = function() {
-                const animate = () => {
-                    const startTime = performance.now();
-                    
-                    this.animationId = requestAnimationFrame(animate);
-                    
-                    // Update controls
-                    if (this.updateControls) {
-                        this.updateControls();
-                    }
-                    
-                    // Render scene
-                    this.renderer.render(this.scene, this.camera);
-                    
-                    // Performance tracking
-                    const endTime = performance.now();
-                    performanceMonitor.renderTime = Math.round(endTime - startTime);
-                    performanceMonitor.frameRendered();
-                };
-                
-                animate();
-            };
-        }
-
-        // Sistema di qualità adattiva
-        class AdaptiveQuality {
-            static currentQuality = 'medium';
-            static qualitySettings = {
-                low: {
-                    pixelRatio: 0.5,
-                    shadowMapSize: 512,
-                    antialias: false,
-                    shadows: false
-                },
-                medium: {
-                    pixelRatio: 1,
-                    shadowMapSize: 1024,
-                    antialias: true,
-                    shadows: true
-                },
-                high: {
-                    pixelRatio: window.devicePixelRatio,
-                    shadowMapSize: 2048,
-                    antialias: true,
-                    shadows: true
-                },
-                ultra: {
-                    pixelRatio: window.devicePixelRatio * 1.5,
-                    shadowMapSize: 4096,
-                    antialias: true,
-                    shadows: true
-                }
-            };
-
-            static applyQuality(quality) {
-                if (!real3DEngine || !real3DEngine.renderer) return;
-                
-                const settings = this.qualitySettings[quality];
-                if (!settings) return;
-                
-                // Applica impostazioni
-                real3DEngine.renderer.setPixelRatio(settings.pixelRatio);
-                real3DEngine.renderer.shadowMap.enabled = settings.shadows;
-                
-                if (real3DEngine.lights.directional) {
-                    real3DEngine.lights.directional.shadow.mapSize.width = settings.shadowMapSize;
-                    real3DEngine.lights.directional.shadow.mapSize.height = settings.shadowMapSize;
-                }
-                
-                this.currentQuality = quality;
-                showNotification(`Qualità rendering: ${quality.toUpperCase()}`, 'success');
-            }
-
-            static autoAdjust() {
-                const stats = performanceMonitor.getStats();
-                const fps = performanceMonitor.fps;
-                
-                if (fps < 20 && this.currentQuality !== 'low') {
-                    this.applyQuality('low');
-                } else if (fps > 50 && this.currentQuality === 'low') {
-                    this.applyQuality('medium');
-                }
-            }
-        }
-
-        // Avvia auto-adjustment ogni 5 secondi
-        setInterval(() => {
-            AdaptiveQuality.autoAdjust();
-        }, 5000);
-
-        // Loader avanzato per modelli 3D
-        class ModelLoader {
-            static supportedFormats = ['.glb', '.gltf', '.obj', '.fbx', '.dae', '.ply'];
-            
-            static async loadFromFile(file) {
-                const extension = this.getFileExtension(file.name);
-                
-                if (!this.supportedFormats.includes(extension)) {
-                    throw new Error(`Formato ${extension} non supportato`);
-                }
-                
-                showLoading('Parsing modello 3D...', `Caricamento ${extension.toUpperCase()}`);
-                
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    
-                    reader.onload = (e) => {
-                        setTimeout(() => {
-                            try {
-                                const model = this.createModelFromData(e.target.result, extension);
-                                resolve(model);
-                            } catch (error) {
-                                reject(error);
-                            }
-                        }, 1000);
-                    };
-                    
-                    reader.onerror = () => reject(new Error('Errore lettura file'));
-                    
-                    if (extension === '.obj' || extension === '.dae') {
-                        reader.readAsText(file);
-                    } else {
-                        reader.readAsArrayBuffer(file);
-                    }
-                });
-            }
-            
-            static getFileExtension(filename) {
-                return filename.toLowerCase().substring(filename.lastIndexOf('.'));
-            }
-            
-            static createModelFromData(data, extension) {
-                // Simulazione parsing file reali
-                const group = new THREE.Group();
-                
-                switch(extension) {
-                    case '.glb':
-                    case '.gltf':
-                        group.add(this.createAdvancedModel('gltf'));
-                        break;
-                    case '.obj':
-                        group.add(this.createAdvancedModel('obj'));
-                        break;
-                    case '.fbx':
-                        group.add(this.createAdvancedModel('fbx'));
-                        break;
-                    default:
-                        group.add(this.createAdvancedModel('generic'));
-                }
-                
-                return group;
-            }
-            
-            static createAdvancedModel(type) {
-                const group = new THREE.Group();
-                
-                // Modelli più complessi basati sul tipo
-                switch(type) {
-                    case 'gltf':
-                        // Modello architettonico complesso
-                        for (let i = 0; i < 5; i++) {
-                            const geometry = new THREE.BoxGeometry(
-                                1 + Math.random(),
-                                2 + Math.random() * 3, 
-                                1 + Math.random()
-                            );
-                            const material = new THREE.MeshLambertMaterial({
-                                color: new THREE.Color().setHSL(Math.random(), 0.7, 0.6)
-                            });
-                            const mesh = new THREE.Mesh(geometry, material);
-                            mesh.position.set(
-                                (Math.random() - 0.5) * 10,
-                                mesh.geometry.parameters.height / 2,
-                                (Math.random() - 0.5) * 10
-                            );
-                            mesh.castShadow = true;
-                            mesh.receiveShadow = true;
-                            group.add(mesh);
-                        }
-                        break;
-                        
-                    case 'obj':
-                        // Modello meccanico
-                        const cylinderGeo = new THREE.CylinderGeometry(1, 1, 3, 16);
-                        const cylinderMat = new THREE.MeshLambertMaterial({ color: 0x888888 });
-                        const cylinder = new THREE.Mesh(cylinderGeo, cylinderMat);
-                        cylinder.castShadow = true;
-                        group.add(cylinder);
-                        
-                        const sphereGeo = new THREE.SphereGeometry(0.8, 16, 16);
-                        const sphereMat = new THREE.MeshLambertMaterial({ color: 0xcc4444 });
-                        const sphere = new THREE.Mesh(sphereGeo, sphereMat);
-                        sphere.position.y = 2;
-                        sphere.castShadow = true;
-                        group.add(sphere);
-                        break;
-                        
-                    default:
-                        group.add(createGenericModel());
-                }
-                
-                return group;
-            }
-        }
-
-        // Integra il loader nel sistema esistente
-        const originalLoadModelFile = loadModelFile;
-        loadModelFile = async function(file) {
-            try {
-                showLoading('Caricamento modello 3D...', 'Inizializzazione parser');
-                
-                const model = await ModelLoader.loadFromFile(file);
-                
-                if (real3DEngine && real3DEngine.isInitialized) {
-                    real3DEngine.setModel(model);
-                    currentModel = model;
-                    
-                    // Calcola statistiche reali
-                    const stats = calculateModelStats(model);
-                    real3DEngine.updateModelStats(
-                        file.name,
-                        stats.meshes,
-                        stats.vertices, 
-                        stats.triangles,
-                        formatFileSize(file.size)
-                    );
-                }
-                
-                hideLoading();
-                showNotification(`Modello 3D caricato: ${file.name}`, 'success');
-                enableShareButtons();
-                
-            } catch (error) {
-                hideLoading();
-                showNotification(`Errore caricamento: ${error.message}`, 'error');
-            }
-        };
-
-        function calculateModelStats(model) {
-            let meshes = 0;
-            let vertices = 0;
-            let triangles = 0;
-            
-            model.traverse((child) => {
-                if (child.isMesh) {
-                    meshes++;
-                    if (child.geometry) {
-                        const positions = child.geometry.attributes.position;
-                        if (positions) {
-                            vertices += positions.count;
-                            triangles += positions.count / 3;
-                        }
-                    }
-                }
-            });
-            
-            return { meshes, vertices: Math.floor(vertices), triangles: Math.floor(triangles) };
-        }
-
-        // Sistema di annotazioni 3D
-        class AnnotationSystem {
-            static annotations = [];
-            static isAnnotating = false;
-            
-            static enable() {
-                this.isAnnotating = true;
-                if (real3DEngine && real3DEngine.renderer) {
-                    real3DEngine.renderer.domElement.style.cursor = 'crosshair';
-                    this.addClickListener();
-                }
-            }
-            
-            static disable() {
-                this.isAnnotating = false;
-                if (real3DEngine && real3DEngine.renderer) {
-                    real3DEngine.renderer.domElement.style.cursor = 'default';
-                }
-            }
-            
-            static addClickListener() {
-                const canvas = real3DEngine.renderer.domElement;
-                
-                const clickHandler = (event) => {
-                    if (!this.isAnnotating) return;
-                    
-                    const rect = canvas.getBoundingClientRect();
-                    const mouse = new THREE.Vector2();
-                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-                    
-                    const raycaster = new THREE.Raycaster();
-                    raycaster.setFromCamera(mouse, real3DEngine.camera);
-                    
-                    const intersects = raycaster.intersectObjects(real3DEngine.scene.children, true);
-                    
-                    if (intersects.length > 0) {
-                        const point = intersects[0].point;
-                        this.addAnnotation(point, 'Nuova annotazione');
-                    }
-                };
-                
-                canvas.addEventListener('click', clickHandler);
-            }
-            
-            static addAnnotation(position, text) {
-                const annotation = {
-                    id: Date.now(),
-                    position: position.clone(),
-                    text: text,
-                    element: this.createAnnotationElement(text)
-                };
-                
-                this.annotations.push(annotation);
-                this.updateAnnotationPosition(annotation);
-                
-                showNotification('Annotazione aggiunta', 'success');
-            }
-            
-            static createAnnotationElement(text) {
-                const div = document.createElement('div');
-                div.style.cssText = `
-                    position: absolute;
-                    background: rgba(0,0,0,0.8);
-                    color: white;
-                    padding: 8px 12px;
-                    border-radius: 6px;
-                    font-size: 12px;
-                    pointer-events: auto;
-                    z-index: 1000;
-                    max-width: 200px;
-                `;
-                div.textContent = text;
-                document.body.appendChild(div);
-                return div;
-            }
-            
-            static updateAnnotationPosition(annotation) {
-                if (!real3DEngine) return;
-                
-                const vector = annotation.position.clone();
-                vector.project(real3DEngine.camera);
-                
-                const x = (vector.x * 0.5 + 0.5) * real3DEngine.container.clientWidth;
-                const y = (vector.y * -0.5 + 0.5) * real3DEngine.container.clientHeight;
-                
-                annotation.element.style.left = x + 'px';
-                annotation.element.style.top = y + 'px';
-            }
-            
-            static updateAllAnnotations() {
-                this.annotations.forEach(annotation => {
-                    this.updateAnnotationPosition(annotation);
-                });
-            }
-        }
-
-        // Integra le annotazioni nel render loop
-        if (typeof Real3DEngine !== 'undefined') {
-            const originalRenderLoop = Real3DEngine.prototype.startRenderLoop;
-            Real3DEngine.prototype.startRenderLoop = function() {
-                const animate = () => {
-                    const startTime = performance.now();
-                    
-                    this.animationId = requestAnimationFrame(animate);
-                    
-                    // Update controls
-                    if (this.updateControls) {
-                        this.updateControls();
-                    }
-                    
-                    // Update annotations
-                    AnnotationSystem.updateAllAnnotations();
-                    
-                    // Render scene
-                    this.renderer.render(this.scene, this.camera);
-                    
-                    // Performance tracking
-                    const endTime = performance.now();
-                    performanceMonitor.renderTime = Math.round(endTime - startTime);
-                    performanceMonitor.frameRendered();
-                };
-                
-                animate();
-            };
-        }
-
-        // Aggiorna i controlli per le nuove funzionalità
-        const originalSetTool = setTool;
-        setTool = function(tool) {
-            originalSetTool(tool);
-            
-            // Gestisci strumenti specifici
-            if (tool === 'annotate') {
-                AnnotationSystem.enable();
-            } else {
-                AnnotationSystem.disable();
-            }
-        };
-
-        // Sistema di misure 3D
-        class MeasurementSystem {
-            static measurements = [];
-            static isMeasuring = false;
-            static currentMeasurement = null;
-            
-            static enable() {
-                this.isMeasuring = true;
-                this.currentMeasurement = { points: [], line: null };
-                showNotification('Modalità misura attiva - Clicca 2 punti per misurare', 'info');
-            }
-            
-            static disable() {
-                this.isMeasuring = false;
-                this.currentMeasurement = null;
-            }
-            
-            static addPoint(point) {
-                if (!this.currentMeasurement) return;
-                
-                this.currentMeasurement.points.push(point);
-                
-                if (this.currentMeasurement.points.length === 2) {
-                    this.completeMeasurement();
-                }
-            }
-            
-            static completeMeasurement() {
-                const points = this.currentMeasurement.points;
-                const distance = points[0].distanceTo(points[1]);
-                
-                // Crea linea di misurazione
-                const geometry = new THREE.BufferGeometry().setFromPoints(points);
-                const material = new THREE.LineBasicMaterial({ color: 0xff0000 });
-                const line = new THREE.Line(geometry, material);
-                
-                if (real3DEngine) {
-                    real3DEngine.scene.add(line);
-                }
-                
-                const measurement = {
-                    id: Date.now(),
-                    points: points,
-                    distance: distance,
-                    line: line
-                };
-                
-                this.measurements.push(measurement);
-                
-                showNotification(`Distanza misurata: ${distance.toFixed(2)} unità`, 'success');
-                this.disable();
-            }
-        }
-
-        // Aggiorna setTool per misure
-        setTool = function(tool) {
-            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
-            currentTool = tool;
-            
-            // Disabilita tutti i sistemi
-            AnnotationSystem.disable();
-            MeasurementSystem.disable();
-            
-            // Attiva il sistema corretto
-            if (tool === 'annotate') {
-                AnnotationSystem.enable();
-            } else if (tool === 'measure') {
-                MeasurementSystem.enable();
-            }
-            
-            const toolNames = {
-                orbit: 'Rotazione libera',
-                pan: 'Spostamento vista', 
-                measure: 'Strumento misura - Clicca 2 punti',
-                annotate: 'Annotazioni - Clicca per aggiungere'
-            };
-            showNotification(`Strumento: ${toolNames[tool]}`, 'info');
-        };
-
-        // Sistema di salvataggio avanzato
-        class ProjectSaver {
-            static save(projectName) {
-                const projectData = {
-                    name: projectName,
-                    timestamp: new Date(),
-                    model: this.serializeModel(),
-                    camera: this.serializeCamera(),
-                    environment: currentEnvironment,
-                    viewMode: currentViewMode,
-                    annotations: AnnotationSystem.annotations.map(a => ({
-                        position: a.position,
-                        text: a.text
-                    })),
-                    measurements: MeasurementSystem.measurements.map(m => ({
-                        points: m.points,
-                        distance: m.distance
-                    }))
-                };
-                
-                // Salva in localStorage (in produzione: database)
-                const projects = JSON.parse(localStorage.getItem('3d_projects') || '[]');
-                projects.push(projectData);
-                localStorage.setItem('3d_projects', JSON.stringify(projects));
-                
-                showNotification(`Progetto "${projectName}" salvato con successo!`, 'success');
-                return projectData;
-            }
-            
-            static serializeModel() {
-                if (!currentModel) return null;
-                
-                return {
-                    type: 'serialized_model',
-                    // In una vera implementazione, qui serializzeresti la geometria
-                    placeholder: true
-                };
-            }
-            
-            static serializeCamera() {
-                if (!real3DEngine || !real3DEngine.camera) return null;
-                
-                return {
-                    position: real3DEngine.camera.position.clone(),
-                    rotation: real3DEngine.camera.rotation.clone()
-                };
-            }
-        }
-
-        // Performance dashboard integrata
-        function showPerformanceDashboard() {
-            const stats = performanceMonitor.getStats();
-            const quality = AdaptiveQuality.currentQuality;
-            
-            const modal = document.createElement('div');
-            modal.className = 'modal show';
-            modal.innerHTML = `
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <div class="modal-title">⚡ Performance Dashboard</div>
-                        <button class="close-btn" onclick="this.closest('.modal').remove()">&times;</button>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                        <div class="info-card">
-                            <h4>📊 Rendering</h4>
-                            <div class="info-row">
-                                <span class="info-label">FPS:</span>
-                                <span class="info-value" style="color: ${stats.fps > 30 ? '#4caf50' : '#f44336'}">${stats.fps}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Render Time:</span>
-                                <span class="info-value">${stats.renderTime}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Qualità:</span>
-                                <span class="info-value">${quality.toUpperCase()}</span>
-                            </div>
-                        </div>
-                        <div class="info-card">
-                            <h4>💾 Memoria</h4>
-                            <div class="info-row">
-                                <span class="info-label">Heap Usage:</span>
-                                <span class="info-value">${stats.memory}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Annotazioni:</span>
-                                <span class="info-value">${AnnotationSystem.annotations.length}</span>
-                            </div>
-                            <div class="info-row">
-                                <span class="info-label">Misure:</span>
-                                <span class="info-value">${MeasurementSystem.measurements.length}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div style="margin-top: 15px; display: flex; gap: 10px;">
-                        <button class="btn btn-secondary" onclick="AdaptiveQuality.applyQuality('low')">Bassa Qualità</button>
-                        <button class="btn btn-primary" onclick="AdaptiveQuality.applyQuality('medium')">Media Qualità</button>
-                        <button class="btn btn-primary" onclick="AdaptiveQuality.applyQuality('high')">Alta Qualità</button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-        }
-
-        // Aggiungi il pulsante performance nella toolbar
-        setTimeout(() => {
-            const toolbar = document.querySelector('.toolbar');
-            if (toolbar) {
-                const perfBtn = document.createElement('button');
-                perfBtn.className = 'tool-btn';
-                perfBtn.title = 'Performance';
-                perfBtn.innerHTML = '⚡';
-                perfBtn.onclick = showPerformanceDashboard;
-                toolbar.appendChild(perfBtn);
-            }
-        }, 1000);
-
-        console.log('✅ Motore 3D in tempo reale caricato!');
-        console.log('🎮 Rendering WebGL attivo con controlli interattivi');
-        console.log('⚡ Performance monitoring attivo');
-        console.log('📐 Sistemi di misura e annotazioni disponibili');<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>3D Viewer Pro - Enhanced</title>
+    <title>3D Viewer Pro - Working Edition</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -972,13 +26,12 @@
         }
         
         .sidebar {
-            width: 340px;
+            width: 320px;
             background: #2d2d2d;
             border-right: 1px solid #444;
             display: flex;
             flex-direction: column;
             overflow-y: auto;
-            transition: transform 0.3s ease;
         }
         
         .header {
@@ -1013,11 +66,6 @@
             font-weight: 600;
         }
         
-        .upload-area {
-            position: relative;
-            margin-bottom: 15px;
-        }
-        
         .upload-btn {
             width: 100%;
             padding: 12px;
@@ -1027,22 +75,7 @@
             color: white;
             cursor: pointer;
             font-weight: 500;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-        
-        .upload-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(79, 195, 247, 0.4);
-        }
-        
-        .btn-row {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
+            margin-bottom: 15px;
         }
         
         .sample-btn {
@@ -1053,266 +86,85 @@
             border-radius: 6px;
             color: #ccc;
             cursor: pointer;
-            transition: all 0.2s ease;
             font-size: 12px;
+            margin-right: 10px;
         }
         
         .sample-btn:hover {
             background: #404040;
-            border-color: #666;
         }
         
-        .share-section {
-            background: #383838;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        
-        .share-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #4fc3f7;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .share-methods {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 12px;
-        }
-        
-        .share-method-btn {
-            padding: 10px 8px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-        }
-        
-        .share-method-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
-        }
-        
-        .share-method-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        .share-link {
-            background: #444;
-            border: 1px solid #555;
-            border-radius: 4px;
-            padding: 8px;
-            font-size: 11px;
-            color: #ccc;
-            word-break: break-all;
-            margin-bottom: 8px;
-            display: none;
-        }
-        
-        .share-actions {
-            display: flex;
-            gap: 6px;
-        }
-        
-        .copy-btn, .qr-btn {
+        .viewer {
             flex: 1;
-            padding: 6px;
-            background: #555;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            font-size: 10px;
-            transition: background 0.2s ease;
-        }
-        
-        .copy-btn:hover, .qr-btn:hover {
-            background: #666;
-        }
-        
-        .collaboration-panel {
-            background: #383838;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        
-        .collab-title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #4fc3f7;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .collaborator-list {
-            max-height: 120px;
-            overflow-y: auto;
-            margin-bottom: 12px;
-        }
-        
-        .collaborator-item {
-            display: flex;
-            align-items: center;
-            padding: 8px;
-            background: #444;
-            border-radius: 6px;
-            margin-bottom: 6px;
-        }
-        
-        .avatar {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 10px;
-            font-weight: bold;
-            margin-right: 8px;
-        }
-        
-        .collaborator-info {
-            flex: 1;
-            font-size: 11px;
-        }
-        
-        .collaborator-name {
-            color: white;
-            font-weight: 500;
-        }
-        
-        .collaborator-role {
-            color: #999;
-            font-size: 10px;
-        }
-        
-        .permission-badge {
-            background: #555;
-            padding: 2px 6px;
-            border-radius: 12px;
-            font-size: 9px;
-            color: #ccc;
-        }
-        
-        .permission-badge.edit {
-            background: #4caf50;
-            color: white;
-        }
-        
-        .add-collaborator-btn {
-            width: 100%;
-            padding: 8px;
-            background: transparent;
-            border: 1px dashed #666;
-            border-radius: 6px;
-            color: #999;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s ease;
-        }
-        
-        .add-collaborator-btn:hover {
-            border-color: #4fc3f7;
-            color: #4fc3f7;
-        }
-        
-        .project-manager {
-            background: #383838;
-            border-radius: 10px;
-            padding: 15px;
-            margin-top: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .project-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            background: #444;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            transition: background 0.2s ease;
             position: relative;
+            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
         }
         
-        .project-item:hover {
-            background: #4a4a4a;
+        #canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
         }
         
-        .project-info {
-            flex: 1;
-        }
-        
-        .project-name {
-            font-size: 11px;
-            color: white;
-            font-weight: 500;
-            margin-bottom: 2px;
-        }
-        
-        .project-meta {
-            font-size: 10px;
-            color: #999;
+        .toolbar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
             display: flex;
-            gap: 8px;
-            align-items: center;
+            background: rgba(45, 45, 45, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            padding: 10px;
+            gap: 6px;
+            z-index: 100;
         }
         
-        .share-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #666;
-        }
-        
-        .share-indicator.shared {
-            background: #4caf50;
-        }
-        
-        .project-actions {
-            display: flex;
-            gap: 4px;
-        }
-        
-        .project-action {
-            width: 28px;
-            height: 28px;
+        .tool-btn {
+            width: 44px;
+            height: 44px;
             background: transparent;
             border: none;
-            border-radius: 4px;
+            border-radius: 8px;
             color: #ccc;
             cursor: pointer;
-            font-size: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            font-size: 18px;
         }
         
-        .project-action:hover {
+        .tool-btn:hover {
             background: #555;
+            color: white;
+        }
+        
+        .nav-controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            background: rgba(45, 45, 45, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            padding: 12px;
+            gap: 12px;
+            z-index: 100;
+        }
+        
+        .nav-btn {
+            width: 50px;
+            height: 50px;
+            background: transparent;
+            border: none;
+            border-radius: 50%;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        
+        .nav-btn:hover {
+            background: #4fc3f7;
             color: white;
         }
         
@@ -1331,7 +183,6 @@
             color: #ccc;
             cursor: pointer;
             font-size: 11px;
-            transition: all 0.2s ease;
         }
         
         .view-btn:hover {
@@ -1372,179 +223,6 @@
             font-weight: 500; 
         }
         
-        .viewer {
-            flex: 1;
-            position: relative;
-            background: linear-gradient(145deg, #1e1e1e, #2a2a2a);
-        }
-        
-        #canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-        
-        .toolbar {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            display: flex;
-            background: rgba(45, 45, 45, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 12px;
-            padding: 10px;
-            gap: 6px;
-            z-index: 100;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        
-        .tool-btn {
-            width: 44px;
-            height: 44px;
-            background: transparent;
-            border: none;
-            border-radius: 8px;
-            color: #ccc;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-            font-size: 18px;
-            position: relative;
-        }
-        
-        .tool-btn:hover {
-            background: #555;
-            color: white;
-            transform: scale(1.05);
-        }
-        
-        .tool-btn.active {
-            background: #4fc3f7;
-            color: white;
-        }
-        
-        .tool-btn::after {
-            content: attr(title);
-            position: absolute;
-            top: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.8);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 10px;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            margin-top: 5px;
-        }
-        
-        .tool-btn:hover::after {
-            opacity: 1;
-        }
-        
-        .nav-controls {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            background: rgba(45, 45, 45, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 30px;
-            padding: 12px;
-            gap: 12px;
-            z-index: 100;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-        }
-        
-        .nav-btn {
-            width: 50px;
-            height: 50px;
-            background: transparent;
-            border: none;
-            border-radius: 50%;
-            color: #ccc;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            position: relative;
-        }
-        
-        .nav-btn:hover {
-            background: #4fc3f7;
-            color: white;
-            transform: scale(1.1);
-        }
-        
-        .loading {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(26, 26, 26, 0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(10px);
-            z-index: 200;
-        }
-        
-        .loading.show {
-            display: flex;
-        }
-        
-        .loading-box {
-            background: rgba(45, 45, 45, 0.98);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            border: 1px solid #555;
-            backdrop-filter: blur(20px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid #444;
-            border-top: 4px solid #4fc3f7;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .progress {
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 4px;
-            background: linear-gradient(90deg, #4fc3f7, #29b6f6, #667eea);
-            transform: scaleX(0);
-            transform-origin: left;
-            transition: transform 0.3s ease;
-        }
-        
-        .progress.loading {
-            animation: progress 2.5s ease-in-out infinite;
-        }
-        
-        @keyframes progress {
-            0% { transform: scaleX(0); }
-            50% { transform: scaleX(0.8); }
-            100% { transform: scaleX(1); }
-        }
-        
         .notification {
             position: fixed;
             top: 20px;
@@ -1554,12 +232,9 @@
             padding: 15px 20px;
             border-radius: 10px;
             border-left: 4px solid #4fc3f7;
-            backdrop-filter: blur(15px);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
             transform: translateX(400px);
             transition: transform 0.3s ease;
             z-index: 1000;
-            max-width: 300px;
         }
         
         .notification.show {
@@ -1573,2619 +248,389 @@
         .notification.error {
             border-left-color: #f44336;
         }
-        
-        .notification.warning {
-            border-left-color: #ff9800;
-        }
-        
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.8);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 300;
-            backdrop-filter: blur(5px);
-        }
-        
-        .modal.show {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: #2d2d2d;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            max-height: 80vh;
-            overflow-y: auto;
-            border: 1px solid #555;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
-        }
-        
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #555;
-        }
-        
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #4fc3f7;
-        }
-        
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: #999;
-            cursor: pointer;
-            font-size: 24px;
-            padding: 0;
-            width: 30px;
-            height: 30px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            transition: all 0.2s ease;
-        }
-        
-        .close-btn:hover {
-            background: #444;
-            color: white;
-        }
-        
-        .qr-container {
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .qr-code {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: inline-block;
-            margin-bottom: 15px;
-        }
-        
-        .input-group {
-            margin-bottom: 15px;
-        }
-        
-        .input-label {
-            display: block;
-            margin-bottom: 5px;
-            font-size: 12px;
-            color: #ccc;
-            font-weight: 500;
-        }
-        
-        .input-field {
-            width: 100%;
-            padding: 10px;
-            background: #444;
-            border: 1px solid #555;
-            border-radius: 6px;
-            color: white;
-            font-size: 14px;
-        }
-        
-        .input-field:focus {
-            outline: none;
-            border-color: #4fc3f7;
-            box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
-        }
-        
-        .btn-group {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-        
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s ease;
-        }
-        
-        .btn-primary {
-            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
-            color: white;
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(79, 195, 247, 0.4);
-        }
-        
-        .btn-secondary {
-            background: #555;
-            color: white;
-        }
-        
-        .btn-secondary:hover {
-            background: #666;
-        }
-        
-        .cloud-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 11px;
-            color: #999;
-            margin-top: 10px;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #666;
-        }
-        
-        .status-dot.online {
-            background: #4caf50;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        
-        .permission-selector {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 15px;
-        }
-        
-        .permission-option {
-            padding: 12px;
-            background: #444;
-            border: 1px solid #555;
-            border-radius: 8px;
-            color: #ccc;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s ease;
-            font-size: 12px;
-        }
-        
-        .permission-option:hover {
-            border-color: #4fc3f7;
-        }
-        
-        .permission-option.selected {
-            background: #4fc3f7;
-            border-color: #4fc3f7;
-            color: white;
-        }
-        
-        .permission-description {
-            font-size: 10px;
-            color: #999;
-            margin-top: 4px;
-        }
-        
-        .expiry-options {
-            display: flex;
-            gap: 8px;
-            margin-top: 10px;
-        }
-        
-        .expiry-btn {
-            flex: 1;
-            padding: 8px;
-            background: #444;
-            border: 1px solid #555;
-            border-radius: 6px;
-            color: #ccc;
-            cursor: pointer;
-            font-size: 11px;
-            transition: all 0.2s ease;
-        }
-        
-        .expiry-btn:hover {
-            border-color: #4fc3f7;
-        }
-        
-        .expiry-btn.selected {
-            background: #4fc3f7;
-            border-color: #4fc3f7;
-            color: white;
-        }
-        
-        @media (max-width: 768px) {
-            .sidebar {
-                position: absolute;
-                z-index: 400;
-                transform: translateX(-100%);
-                width: 300px;
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .menu-toggle {
-                position: absolute;
-                top: 20px;
-                left: 20px;
-                width: 44px;
-                height: 44px;
-                background: rgba(45, 45, 45, 0.95);
-                border: none;
-                border-radius: 10px;
-                color: white;
-                cursor: pointer;
-                z-index: 500;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 18px;
-                backdrop-filter: blur(15px);
-            }
-            
-            .toolbar {
-                top: 80px;
-            }
-        }
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
     <div class="container">
-        <div class="sidebar" id="sidebar">
+        <div class="sidebar">
             <div class="header">
-                <div class="logo">🎯 3D Viewer Pro</div>
-                <div class="subtitle">Enhanced • Collaborative • Secure</div>
+                <div class="logo">3D Viewer Pro</div>
+                <div class="subtitle">Working Edition</div>
             </div>
             
             <div class="section">
-                <h3>📁 File Manager</h3>
-                <div class="upload-area">
-                    <input type="file" id="fileInput" accept=".dae,.obj,.gltf,.glb,.ply,.fbx" style="display: none;">
-                    <button class="upload-btn" onclick="openFile()">
-                        <span>📤</span> Carica & Salva Progetto
-                    </button>
-                    <div class="btn-row">
-                        <button class="sample-btn" onclick="loadSample('villa')">🏠 Villa</button>
-                        <button class="sample-btn" onclick="loadSample('office')">🏢 Ufficio</button>
-                        <button class="sample-btn" onclick="loadSample('product')">📦 Prodotto</button>
-                    </div>
-                </div>
-                
-                <div class="share-section">
-                    <div class="share-title">
-                        <span>🌐</span> Condivisione Avanzata
-                    </div>
-                    <div class="share-methods">
-                        <button class="share-method-btn" onclick="shareViaLink()" id="linkShareBtn">
-                            🔗 Link
-                        </button>
-                        <button class="share-method-btn" onclick="shareViaEmail()" id="emailShareBtn">
-                            📧 Email
-                        </button>
-                        <button class="share-method-btn" onclick="shareViaTeams()" id="teamsShareBtn">
-                            👥 Teams
-                        </button>
-                        <button class="share-method-btn" onclick="shareViaSlack()" id="slackShareBtn">
-                            💬 Slack
-                        </button>
-                    </div>
-                    
-                    <div class="share-link" id="shareLink"></div>
-                    <div class="share-actions" style="display: none;" id="shareActions">
-                        <button class="copy-btn" onclick="copyShareLink()">📋 Copia</button>
-                        <button class="qr-btn" onclick="showQRCode()">📱 QR Code</button>
-                    </div>
-                    
-                    <div class="cloud-status">
-                        <div class="status-dot online" id="cloudStatus"></div>
-                        <span id="cloudStatusText">Servizio Online</span>
-                    </div>
-                </div>
-                
-                <div class="collaboration-panel">
-                    <div class="collab-title">
-                        <span>👥</span> Collaboratori
-                    </div>
-                    <div class="collaborator-list" id="collaboratorList">
-                        <div class="collaborator-item">
-                            <div class="avatar">TU</div>
-                            <div class="collaborator-info">
-                                <div class="collaborator-name">Tu (Owner)</div>
-                                <div class="collaborator-role">Creatore del progetto</div>
-                            </div>
-                            <div class="permission-badge edit">Owner</div>
-                        </div>
-                    </div>
-                    <button class="add-collaborator-btn" onclick="showAddCollaborator()">
-                        + Aggiungi Collaboratore
-                    </button>
+                <h3>File Manager</h3>
+                <input type="file" id="fileInput" accept=".obj,.glb,.gltf" style="display: none;">
+                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+                    Carica Modello 3D
+                </button>
+                <div style="display: flex; gap: 10px;">
+                    <button class="sample-btn" onclick="loadSample('house')">Casa</button>
+                    <button class="sample-btn" onclick="loadSample('cube')">Cubo</button>
+                    <button class="sample-btn" onclick="loadSample('sphere')">Sfera</button>
                 </div>
             </div>
             
             <div class="section">
-                <h3>💾 Progetti Salvati</h3>
-                <div class="project-manager" id="projectManager">
-                    <div class="project-item">
-                        <div class="project-info">
-                            <div class="project-name">Villa Moderna</div>
-                            <div class="project-meta">
-                                <span>2 giorni fa</span>
-                                <div class="share-indicator shared" title="Progetto condiviso"></div>
-                                <span>3 collaboratori</span>
-                            </div>
-                        </div>
-                        <div class="project-actions">
-                            <button class="project-action" onclick="loadProject('villa')" title="Apri">📂</button>
-                            <button class="project-action" onclick="shareProject('villa')" title="Condividi">🔗</button>
-                            <button class="project-action" onclick="duplicateProject('villa')" title="Duplica">📋</button>
-                        </div>
-                    </div>
-                    
-                    <div class="project-item">
-                        <div class="project-info">
-                            <div class="project-name">Ufficio Open Space</div>
-                            <div class="project-meta">
-                                <span>1 settimana fa</span>
-                                <div class="share-indicator" title="Progetto privato"></div>
-                                <span>Solo tu</span>
-                            </div>
-                        </div>
-                        <div class="project-actions">
-                            <button class="project-action" onclick="loadProject('office')" title="Apri">📂</button>
-                            <button class="project-action" onclick="shareProject('office')" title="Condividi">🔗</button>
-                            <button class="project-action" onclick="duplicateProject('office')" title="Duplica">📋</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="section">
-                <h3>🎨 Visualizzazione</h3>
+                <h3>Visualizzazione</h3>
                 <div class="view-grid">
-                    <button class="view-btn active" data-mode="solid" onclick="setViewMode('solid')">🎨 Solido</button>
-                    <button class="view-btn" data-mode="wireframe" onclick="setViewMode('wireframe')">📐 Wireframe</button>
-                    <button class="view-btn" data-mode="xray" onclick="setViewMode('xray')">👻 X-Ray</button>
-                    <button class="view-btn" data-mode="material" onclick="setViewMode('material')">🌟 Materiali</button>
-                </div>
-                
-                <h3 style="margin-top: 15px;">🌍 Ambiente</h3>
-                <div class="view-grid">
-                    <button class="view-btn" data-env="studio" onclick="setEnvironment('studio')">💡 Studio</button>
-                    <button class="view-btn active" data-env="outdoor" onclick="setEnvironment('outdoor')">🌤️ Esterno</button>
-                    <button class="view-btn" data-env="night" onclick="setEnvironment('night')">🌙 Notte</button>
-                    <button class="view-btn" data-env="sunset" onclick="setEnvironment('sunset')">🌅 Tramonto</button>
+                    <button class="view-btn active" onclick="setViewMode('solid')">Solido</button>
+                    <button class="view-btn" onclick="setViewMode('wireframe')">Wireframe</button>
                 </div>
             </div>
             
             <div class="section">
-                <h3>📊 Informazioni</h3>
-                <div class="info-card" id="modelStats">
-                    <h4>📈 Statistiche Modello</h4>
+                <h3>Statistiche</h3>
+                <div class="info-card">
+                    <h4>Modello</h4>
                     <div class="info-row">
                         <span class="info-label">File:</span>
-                        <span class="info-value" id="fileName">Villa_Moderna.glb</span>
+                        <span class="info-value" id="fileName">Nessuno</span>
                     </div>
                     <div class="info-row">
-                        <span class="info-label">Mesh:</span>
-                        <span class="info-value" id="meshCount">24</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Vertici:</span>
-                        <span class="info-value" id="vertexCount">45,832</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Triangoli:</span>
-                        <span class="info-value" id="triangleCount">91,664</span>
-                    </div>
-                    <div class="info-row">
-                        <span class="info-label">Dimensioni:</span>
-                        <span class="info-value" id="modelSize">12.3 MB</span>
+                        <span class="info-label">FPS:</span>
+                        <span class="info-value" id="fpsDisplay">60</span>
                     </div>
                 </div>
                 
                 <div class="info-card">
-                    <h4>🎮 Controlli Avanzati</h4>
-                    <div style="font-size: 10px; line-height: 1.6; color: #aaa;">
-                        <div><strong>Orbita:</strong> Click sinistro + trascina</div>
-                        <div><strong>Pan:</strong> Click destro + trascina</div>
-                        <div><strong>Zoom:</strong> Rotella mouse / Pinch</div>
-                        <div><strong>Focus:</strong> Doppio click su modello</div>
-                        <div><strong>Screenshot:</strong> Pulsante 📸</div>
-                        <div><strong>Misura:</strong> Pulsante 📏 + 2 click</div>
-                        <div><strong>Annotazioni:</strong> Pulsante 📝</div>
+                    <h4>Controlli</h4>
+                    <div style="font-size: 10px; color: #aaa; line-height: 1.4;">
+                        Mouse: Ruota modello<br>
+                        Scroll: Zoom<br>
+                        Pulsanti: Cambia vista
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="viewer">
-            <button class="menu-toggle" onclick="toggleSidebar()" style="display: none;">☰</button>
-            
-            <div class="progress" id="progress"></div>
-            
             <div class="toolbar">
-                <button class="tool-btn active" data-tool="orbit" title="Orbita" onclick="setTool('orbit')">🔄</button>
-                <button class="tool-btn" data-tool="pan" title="Pan" onclick="setTool('pan')">✋</button>
-                <button class="tool-btn" data-tool="measure" title="Misura" onclick="setTool('measure')">📏</button>
-                <button class="tool-btn" data-tool="annotate" title="Annotazioni" onclick="setTool('annotate')">📝</button>
-                <button class="tool-btn" onclick="takeScreenshot()" title="Screenshot">📸</button>
-                <button class="tool-btn" onclick="showSettings()" title="Impostazioni">⚙️</button>
-                <button class="tool-btn" onclick="resetView()" title="Reset Vista">🏠</button>
+                <button class="tool-btn" onclick="takeScreenshot()">📸</button>
+                <button class="tool-btn" onclick="resetView()">🏠</button>
             </div>
             
-            <div id="canvas">
-                <!-- Simulazione 3D viewer -->
-                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                    <div style="font-size: 64px; margin-bottom: 20px;">🏠</div>
-                    <div style="font-size: 24px; font-weight: bold; color: #4fc3f7; margin-bottom: 10px;">Villa Moderna - Demo</div>
-                    <div style="font-size: 14px; color: #999; text-align: center; max-width: 400px; line-height: 1.5;">
-                        Modello 3D caricato e pronto per la condivisione collaborativa con i tuoi colleghi
-                    </div>
-                    <div style="margin-top: 30px; display: flex; gap: 15px; align-items: center;">
-                        <div style="padding: 10px 20px; background: rgba(79, 195, 247, 0.2); border-radius: 20px; font-size: 12px; color: #4fc3f7;">
-                            ✨ Rendering in tempo reale
-                        </div>
-                        <div style="padding: 10px 20px; background: rgba(76, 175, 80, 0.2); border-radius: 20px; font-size: 12px; color: #4caf50;">
-                            🔗 Pronto per condivisione
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div id="canvas"></div>
             
             <div class="nav-controls">
-                <button class="nav-btn" data-view="front" title="Vista Frontale" onclick="setView('front')">⬅️</button>
-                <button class="nav-btn" data-view="back" title="Vista Posteriore" onclick="setView('back')">➡️</button>
-                <button class="nav-btn" data-view="left" title="Vista Sinistra" onclick="setView('left')">⬆️</button>
-                <button class="nav-btn" data-view="right" title="Vista Destra" onclick="setView('right')">⬇️</button>
-                <button class="nav-btn" data-view="top" title="Vista dall'Alto" onclick="setView('top')">🔝</button>
-                <button class="nav-btn" data-view="home" title="Vista Isometrica" onclick="setView('home')">🏠</button>
-            </div>
-            
-            <div class="loading" id="loading">
-                <div class="loading-box">
-                    <div class="spinner"></div>
-                    <h3 id="loadingTitle">Caricamento modello...</h3>
-                    <p id="loadingText" style="color: #aaa; margin-top: 10px;">Ottimizzazione per condivisione</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal QR Code -->
-    <div class="modal" id="qrModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">📱 Codice QR per Condivisione</div>
-                <button class="close-btn" onclick="closeModal('qrModal')">&times;</button>
-            </div>
-            <div class="qr-container">
-                <div class="qr-code" id="qrCode">
-                    <div style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #333;">
-                        📱 QR CODE
-                    </div>
-                </div>
-                <p style="color: #ccc; font-size: 12px; margin-bottom: 15px;">
-                    Scansiona con smartphone per aprire il progetto
-                </p>
-                <div style="font-size: 11px; color: #999; background: #383838; padding: 10px; border-radius: 6px;">
-                    https://viewer3d.pro/share/abc123xyz
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal Condivisione Avanzata -->
-    <div class="modal" id="shareModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">🔗 Condivisione Avanzata</div>
-                <button class="close-btn" onclick="closeModal('shareModal')">&times;</button>
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Titolo Condivisione</label>
-                <input type="text" class="input-field" id="shareTitle" placeholder="Villa Moderna - Revisione Design" value="Villa Moderna">
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Messaggio (opzionale)</label>
-                <input type="text" class="input-field" id="shareMessage" placeholder="Ciao! Dai un'occhiata al nuovo progetto...">
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Permessi di Accesso</label>
-                <div class="permission-selector">
-                    <div class="permission-option selected" data-permission="view" onclick="selectPermission('view')">
-                        <div>👁️ Visualizzazione</div>
-                        <div class="permission-description">Solo visualizzare il modello</div>
-                    </div>
-                    <div class="permission-option" data-permission="comment" onclick="selectPermission('comment')">
-                        <div>💬 Commenti</div>
-                        <div class="permission-description">Visualizzare e commentare</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Scadenza Link</label>
-                <div class="expiry-options">
-                    <button class="expiry-btn" data-expiry="1day" onclick="selectExpiry('1day')">1 Giorno</button>
-                    <button class="expiry-btn selected" data-expiry="1week" onclick="selectExpiry('1week')">1 Settimana</button>
-                    <button class="expiry-btn" data-expiry="1month" onclick="selectExpiry('1month')">1 Mese</button>
-                    <button class="expiry-btn" data-expiry="never" onclick="selectExpiry('never')">Mai</button>
-                </div>
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Password (opzionale)</label>
-                <input type="password" class="input-field" id="sharePassword" placeholder="Lascia vuoto per accesso libero">
-            </div>
-            
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="closeModal('shareModal')">Annulla</button>
-                <button class="btn btn-primary" onclick="generateShareLink()">Genera Link</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal Aggiungi Collaboratore -->
-    <div class="modal" id="collaboratorModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">👥 Aggiungi Collaboratore</div>
-                <button class="close-btn" onclick="closeModal('collaboratorModal')">&times;</button>
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Email Collaboratore</label>
-                <input type="email" class="input-field" id="collaboratorEmail" placeholder="esempio@azienda.com">
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Ruolo</label>
-                <div class="permission-selector">
-                    <div class="permission-option selected" data-role="viewer" onclick="selectRole('viewer')">
-                        <div>👁️ Visualizzatore</div>
-                        <div class="permission-description">Può solo vedere il progetto</div>
-                    </div>
-                    <div class="permission-option" data-role="collaborator" onclick="selectRole('collaborator')">
-                        <div>✏️ Collaboratore</div>
-                        <div class="permission-description">Può commentare e annotare</div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="input-group">
-                <label class="input-label">Messaggio di Invito</label>
-                <input type="text" class="input-field" id="inviteMessage" placeholder="Ti invito a collaborare su questo progetto..." value="Ti invito a vedere il nuovo progetto 3D!">
-            </div>
-            
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="closeModal('collaboratorModal')">Annulla</button>
-                <button class="btn btn-primary" onclick="sendInvite()">Invia Invito</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Modal Impostazioni -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <div class="modal-title">⚙️ Impostazioni Avanzate</div>
-                <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
-            </div>
-            <div class="input-group">
-                <label class="input-label">Nome Progetto</label>
-                <input type="text" class="input-field" id="projectName" placeholder="Il mio progetto 3D" value="Villa Moderna">
-            </div>
-            <div class="input-group">
-                <label class="input-label">Descrizione</label>
-                <input type="text" class="input-field" id="projectDescription" placeholder="Descrizione progetto..." value="Progetto architettonico per villa moderna">
-            </div>
-            <div class="input-group">
-                <label class="input-label">Qualità Rendering</label>
-                <select class="input-field" id="renderQuality">
-                    <option value="low">Bassa (Performance)</option>
-                    <option value="medium" selected>Media (Bilanciata)</option>
-                    <option value="high">Alta (Qualità)</option>
-                    <option value="ultra">Ultra (Desktop)</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label class="input-label">Auto-Save Cloud</label>
-                <select class="input-field" id="autoSave">
-                    <option value="off">Disattivato</option>
-                    <option value="2min">Ogni 2 minuti</option>
-                    <option value="5min" selected>Ogni 5 minuti</option>
-                    <option value="10min">Ogni 10 minuti</option>
-                </select>
-            </div>
-            <div class="input-group">
-                <label class="input-label">Notifiche Collaboratori</label>
-                <select class="input-field" id="notifications">
-                    <option value="all" selected>Tutte le attività</option>
-                    <option value="mentions">Solo menzioni</option>
-                    <option value="none">Disattivate</option>
-                </select>
-            </div>
-            <div class="btn-group">
-                <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Annulla</button>
-                <button class="btn btn-primary" onclick="saveSettings()">Salva</button>
+                <button class="nav-btn" onclick="setView('front')">↑</button>
+                <button class="nav-btn" onclick="setView('back')">↓</button>
+                <button class="nav-btn" onclick="setView('left')">←</button>
+                <button class="nav-btn" onclick="setView('right')">→</button>
+                <button class="nav-btn" onclick="setView('top')">⊙</button>
+                <button class="nav-btn" onclick="setView('iso')">⬢</button>
             </div>
         </div>
     </div>
 
     <script>
-        // DEFINIZIONI GLOBALI - PRIMA DI TUTTO
-        let currentModel = null;
-        let currentTool = 'orbit';
-        let currentViewMode = 'solid';
-        let currentEnvironment = 'outdoor';
-        let selectedPermission = 'view';
-        let selectedExpiry = '1week';
-        let selectedRole = 'viewer';
-        let shareLink = '';
-        
-        // COLLABORATORI - DEFINITI SUBITO
-        let collaborators = [
-            {
-                name: 'Tu',
-                email: 'tu@azienda.com',
-                role: 'owner',
-                avatar: 'TU',
-                status: 'online'
-            }
-        ];
+        let scene, camera, renderer, currentModel;
+        let mouseDown = false, mouseX = 0, mouseY = 0;
+        let rotationX = 0, rotationY = 0;
+        let targetRotX = 0, targetRotY = 0;
+        let frameCount = 0, lastTime = Date.now();
 
-        // Motore 3D - Inizializzato dopo
-        let real3DEngine = null;
-
-        // Sistema 3D Engine con Three.js
-        class Real3DEngine {
-            constructor(container) {
-                this.container = container;
-                this.scene = null;
-                this.camera = null;
-                this.renderer = null;
-                this.controls = null;
-                this.currentModel = null;
-                this.animationId = null;
-                this.isInitialized = false;
-                
-                // Lighting setup
-                this.lights = {
-                    ambient: null,
-                    directional: null,
-                    point: null
-                };
-                
-                // Environment settings
-                this.environments = {
-                    studio: { bg: 0xf0f0f0, ambientIntensity: 0.4 },
-                    outdoor: { bg: 0x87CEEB, ambientIntensity: 0.6 },
-                    night: { bg: 0x0f0f23, ambientIntensity: 0.2 },
-                    sunset: { bg: 0xff6b35, ambientIntensity: 0.5 }
-                };
-                
-                this.init();
+        function init() {
+            const canvas = document.getElementById('canvas');
+            
+            // Controlla se Three.js è caricato
+            if (typeof THREE === 'undefined') {
+                canvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;">Errore: Three.js non caricato</div>';
+                return;
             }
 
-            init() {
-                try {
-                    // Setup scene
-                    this.scene = new THREE.Scene();
-                    
-                    // Setup camera
-                    const aspect = this.container.clientWidth / this.container.clientHeight;
-                    this.camera = new THREE.PerspectiveCamera(75, aspect, 0.1, 1000);
-                    this.camera.position.set(5, 5, 5);
-                    
-                    // Setup renderer
-                    this.renderer = new THREE.WebGLRenderer({ 
-                        antialias: true,
-                        alpha: true,
-                        preserveDrawingBuffer: true // Per screenshot
-                    });
-                    this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
-                    this.renderer.setPixelRatio(window.devicePixelRatio);
-                    this.renderer.shadowMap.enabled = true;
-                    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                    this.renderer.outputEncoding = THREE.sRGBEncoding;
-                    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-                    this.renderer.toneMappingExposure = 1;
-                    
-                    // Clear container and add canvas
-                    this.container.innerHTML = '';
-                    this.container.appendChild(this.renderer.domElement);
-                    
-                    // Setup lights
-                    this.setupLighting();
-                    
-                    // Setup controls (basic orbit controls simulation)
-                    this.setupControls();
-                    
-                    // Set default environment
-                    this.setEnvironment('outdoor');
-                    
-                    // Load default model
-                    this.loadDefaultModel();
-                    
-                    // Start render loop
-                    this.startRenderLoop();
-                    
-                    // Handle resize
-                    this.handleResize();
-                    
-                    this.isInitialized = true;
-                    showNotification('Motore 3D inizializzato con successo!', 'success');
-                    
-                } catch (error) {
-                    console.error('Errore inizializzazione 3D:', error);
-                    showNotification('Errore nell\'inizializzazione del motore 3D', 'error');
-                    this.fallbackTo2D();
-                }
-            }
+            try {
+                // Scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x222222);
 
-            setupLighting() {
-                // Ambient light
-                this.lights.ambient = new THREE.AmbientLight(0xffffff, 0.6);
-                this.scene.add(this.lights.ambient);
-                
-                // Directional light (sun)
-                this.lights.directional = new THREE.DirectionalLight(0xffffff, 1);
-                this.lights.directional.position.set(5, 10, 5);
-                this.lights.directional.castShadow = true;
-                this.lights.directional.shadow.mapSize.width = 2048;
-                this.lights.directional.shadow.mapSize.height = 2048;
-                this.scene.add(this.lights.directional);
-                
-                // Point light for fill
-                this.lights.point = new THREE.PointLight(0xffffff, 0.5, 50);
-                this.lights.point.position.set(-5, 5, -5);
-                this.scene.add(this.lights.point);
-            }
+                // Camera
+                camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+                camera.position.set(5, 5, 5);
+                camera.lookAt(0, 0, 0);
 
-            setupControls() {
-                // Controlli mouse semplificati (senza OrbitControls)
-                let isMouseDown = false;
-                let mouseX = 0;
-                let mouseY = 0;
-                let targetRotationX = 0;
-                let targetRotationY = 0;
-                let currentRotationX = 0;
-                let currentRotationY = 0;
+                // Renderer
+                renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-                const canvas = this.renderer.domElement;
-                
-                canvas.addEventListener('mousedown', (e) => {
-                    isMouseDown = true;
-                    mouseX = e.clientX;
-                    mouseY = e.clientY;
-                });
-                
-                canvas.addEventListener('mousemove', (e) => {
-                    if (!isMouseDown) return;
-                    
-                    const deltaX = e.clientX - mouseX;
-                    const deltaY = e.clientY - mouseY;
-                    
-                    targetRotationY += deltaX * 0.01;
-                    targetRotationX += deltaY * 0.01;
-                    
-                    mouseX = e.clientX;
-                    mouseY = e.clientY;
-                });
-                
-                canvas.addEventListener('mouseup', () => {
-                    isMouseDown = false;
-                });
-                
-                canvas.addEventListener('wheel', (e) => {
-                    e.preventDefault();
-                    const zoom = e.deltaY * 0.01;
-                    this.camera.position.multiplyScalar(1 + zoom * 0.1);
-                    this.camera.position.clampLength(2, 50);
-                });
+                canvas.appendChild(renderer.domElement);
 
-                // Smooth rotation animation
-                this.updateControls = () => {
-                    currentRotationX += (targetRotationX - currentRotationX) * 0.1;
-                    currentRotationY += (targetRotationY - currentRotationY) * 0.1;
-                    
-                    if (this.currentModel) {
-                        this.currentModel.rotation.x = currentRotationX;
-                        this.currentModel.rotation.y = currentRotationY;
-                    }
-                };
-            }
+                // Lights
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
 
-            loadDefaultModel() {
-                // Crea un modello 3D di esempio (casa)
-                const group = new THREE.Group();
-                
-                // Base della casa
-                const baseGeometry = new THREE.BoxGeometry(3, 2, 3);
-                const baseMaterial = new THREE.MeshLambertMaterial({ color: 0xffa500 });
-                const base = new THREE.Mesh(baseGeometry, baseMaterial);
-                base.position.y = 1;
-                base.castShadow = true;
-                base.receiveShadow = true;
-                group.add(base);
-                
-                // Tetto
-                const roofGeometry = new THREE.ConeGeometry(2.2, 1.5, 4);
-                const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
-                const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-                roof.position.y = 2.75;
-                roof.rotation.y = Math.PI / 4;
-                roof.castShadow = true;
-                group.add(roof);
-                
-                // Porta
-                const doorGeometry = new THREE.BoxGeometry(0.5, 1.5, 0.1);
-                const doorMaterial = new THREE.MeshLambertMaterial({ color: 0x654321 });
-                const door = new THREE.Mesh(doorGeometry, doorMaterial);
-                door.position.set(0, 0.75, 1.55);
-                group.add(door);
-                
-                // Finestre
-                const windowGeometry = new THREE.BoxGeometry(0.8, 0.8, 0.1);
-                const windowMaterial = new THREE.MeshLambertMaterial({ color: 0x87ceeb });
-                
-                const window1 = new THREE.Mesh(windowGeometry, windowMaterial);
-                window1.position.set(-1, 1.5, 1.55);
-                group.add(window1);
-                
-                const window2 = new THREE.Mesh(windowGeometry, windowMaterial);
-                window2.position.set(1, 1.5, 1.55);
-                group.add(window2);
-                
-                // Ground plane
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+                directionalLight.position.set(10, 10, 5);
+                directionalLight.castShadow = true;
+                scene.add(directionalLight);
+
+                // Ground
                 const groundGeometry = new THREE.PlaneGeometry(20, 20);
-                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x90EE90 });
+                const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x333333 });
                 const ground = new THREE.Mesh(groundGeometry, groundMaterial);
                 ground.rotation.x = -Math.PI / 2;
                 ground.receiveShadow = true;
-                group.add(ground);
-                
-                // Posiziona il modello
-                group.position.set(0, 0, 0);
-                
-                this.setModel(group);
-                
-                // Aggiorna statistiche
-                this.updateModelStats('Villa_Moderna.glb', 6, 1234, 2468, '2.1 MB');
-            }
+                scene.add(ground);
 
-            setModel(model) {
-                // Rimuovi modello precedente
-                if (this.currentModel) {
-                    this.scene.remove(this.currentModel);
-                }
-                
-                this.currentModel = model;
-                this.scene.add(model);
-                
-                // Auto-fit camera
-                this.fitCameraToModel();
-            }
+                // Load default model
+                loadSample('cube');
 
-            fitCameraToModel() {
-                if (!this.currentModel) return;
-                
-                const box = new THREE.Box3().setFromObject(this.currentModel);
-                const center = box.getCenter(new THREE.Vector3());
-                const size = box.getSize(new THREE.Vector3());
-                
-                const maxDim = Math.max(size.x, size.y, size.z);
-                const fov = this.camera.fov * (Math.PI / 180);
-                let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
-                cameraZ *= 2; // Zoom out a bit
-                
-                this.camera.position.set(cameraZ, cameraZ * 0.7, cameraZ);
-                this.camera.lookAt(center);
-            }
+                // Mouse controls
+                setupControls();
 
-            setEnvironment(envName) {
-                const env = this.environments[envName];
-                if (!env) return;
-                
-                this.scene.background = new THREE.Color(env.bg);
-                this.lights.ambient.intensity = env.ambientIntensity;
-                
-                currentEnvironment = envName;
-            }
-
-            setViewMode(mode) {
-                if (!this.currentModel) return;
-                
-                this.currentModel.traverse((child) => {
-                    if (child.isMesh) {
-                        switch(mode) {
-                            case 'wireframe':
-                                child.material.wireframe = true;
-                                break;
-                            case 'solid':
-                                child.material.wireframe = false;
-                                child.material.transparent = false;
-                                child.material.opacity = 1;
-                                break;
-                            case 'xray':
-                                child.material.wireframe = false;
-                                child.material.transparent = true;
-                                child.material.opacity = 0.5;
-                                break;
-                            case 'material':
-                                child.material.wireframe = false;
-                                child.material.transparent = false;
-                                child.material.opacity = 1;
-                                break;
-                        }
-                    }
-                });
-                
-                currentViewMode = mode;
-            }
-
-            setView(viewName) {
-                if (!this.currentModel) return;
-                
-                const box = new THREE.Box3().setFromObject(this.currentModel);
-                const center = box.getCenter(new THREE.Vector3());
-                const size = box.getSize(new THREE.Vector3());
-                const distance = Math.max(size.x, size.y, size.z) * 2;
-                
-                switch(viewName) {
-                    case 'front':
-                        this.camera.position.set(center.x, center.y, center.z + distance);
-                        break;
-                    case 'back':
-                        this.camera.position.set(center.x, center.y, center.z - distance);
-                        break;
-                    case 'left':
-                        this.camera.position.set(center.x - distance, center.y, center.z);
-                        break;
-                    case 'right':
-                        this.camera.position.set(center.x + distance, center.y, center.z);
-                        break;
-                    case 'top':
-                        this.camera.position.set(center.x, center.y + distance, center.z);
-                        break;
-                    case 'home':
-                        this.camera.position.set(center.x + distance, center.y + distance, center.z + distance);
-                        break;
-                }
-                
-                this.camera.lookAt(center);
-            }
-
-            takeScreenshot() {
-                if (!this.renderer) return null;
-                
-                this.renderer.render(this.scene, this.camera);
-                const dataURL = this.renderer.domElement.toDataURL('image/png');
-                
-                // Crea link per download
-                const link = document.createElement('a');
-                link.download = `3d-screenshot-${Date.now()}.png`;
-                link.href = dataURL;
-                link.click();
-                
-                return dataURL;
-            }
-
-            updateModelStats(fileName, meshes, vertices, triangles, size) {
-                document.getElementById('fileName').textContent = fileName;
-                document.getElementById('meshCount').textContent = meshes;
-                document.getElementById('vertexCount').textContent = vertices.toLocaleString();
-                document.getElementById('triangleCount').textContent = triangles.toLocaleString();
-                document.getElementById('modelSize').textContent = size;
-                document.getElementById('modelStats').style.display = 'block';
-            }
-
-            startRenderLoop() {
-                const animate = () => {
-                    this.animationId = requestAnimationFrame(animate);
-                    
-                    // Update controls
-                    if (this.updateControls) {
-                        this.updateControls();
-                    }
-                    
-                    // Render scene
-                    this.renderer.render(this.scene, this.camera);
-                };
-                
+                // Start render loop
                 animate();
-            }
 
-            stopRenderLoop() {
-                if (this.animationId) {
-                    cancelAnimationFrame(this.animationId);
-                    this.animationId = null;
-                }
-            }
+                // Handle resize
+                window.addEventListener('resize', handleResize);
 
-            handleResize() {
-                window.addEventListener('resize', () => {
-                    if (!this.camera || !this.renderer) return;
-                    
-                    const width = this.container.clientWidth;
-                    const height = this.container.clientHeight;
-                    
-                    this.camera.aspect = width / height;
-                    this.camera.updateProjectionMatrix();
-                    this.renderer.setSize(width, height);
-                });
-            }
+                showNotification('3D Viewer caricato con successo!', 'success');
 
-            fallbackTo2D() {
-                this.container.innerHTML = `
-                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                        <div style="font-size: 64px; margin-bottom: 20px;">⚠️</div>
-                        <div style="font-size: 24px; font-weight: bold; color: #f44336; margin-bottom: 10px;">Motore 3D Non Disponibile</div>
-                        <div style="font-size: 14px; color: #999; text-align: center; max-width: 400px; line-height: 1.5;">
-                            Il browser non supporta WebGL. Visualizzazione fallback attiva.
-                        </div>
-                        <button onclick="location.reload()" style="margin-top: 20px; padding: 10px 20px; background: #4fc3f7; border: none; border-radius: 6px; color: white; cursor: pointer;">
-                            Riprova
-                        </button>
-                    </div>
-                `;
-            }
-
-            dispose() {
-                this.stopRenderLoop();
-                if (this.renderer) {
-                    this.renderer.dispose();
-                }
-                if (this.scene) {
-                    this.scene.clear();
-                }
+            } catch (error) {
+                console.error('Errore inizializzazione 3D:', error);
+                canvas.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:white;">Errore WebGL</div>';
             }
         }
 
-        // Istanza globale del motore 3D (già definito sopra)
-        // let real3DEngine = null; // <- Commentato perché già definito
+        function setupControls() {
+            const canvas = renderer.domElement;
 
-        // Inizializzazione migliorata
-        document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-            simulateCloudConnection();
-            
-            // Inizializza il motore 3D reale
-            const canvas = document.getElementById('canvas');
-            real3DEngine = new Real3DEngine(canvas);
-            
-            // Inizializza il sistema di routing per link condivisi
-            ShareRouter.init();
-            
-            // Aggiungi pulsante dashboard nella sidebar
-            addShareDashboardButton();
-        });
+            canvas.addEventListener('mousedown', (e) => {
+                mouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
 
-        // FUNZIONI UTILITY - DOPO LE DEFINIZIONI GLOBALI
-        function getRoleLabel(role) {
-            const roles = {
-                owner: 'Proprietario',
-                collaborator: 'Collaboratore', 
-                viewer: 'Visualizzatore'
-            };
-            return roles[role] || 'Sconosciuto';
+            canvas.addEventListener('mousemove', (e) => {
+                if (!mouseDown) return;
+
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+
+                targetRotY += deltaX * 0.01;
+                targetRotX += deltaY * 0.01;
+
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                mouseDown = false;
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoom = e.deltaY * 0.001;
+                camera.position.multiplyScalar(1 + zoom);
+                const distance = camera.position.length();
+                if (distance < 2) camera.position.normalize().multiplyScalar(2);
+                if (distance > 50) camera.position.normalize().multiplyScalar(50);
+            });
         }
 
-        function getStatusLabel(status) {
-            const statuses = {
-                online: 'Online',
-                offline: 'Offline',
-                invited: 'Invitato'
-            };
-            return statuses[status] || 'Sconosciuto';
-        }
+        function animate() {
+            requestAnimationFrame(animate);
 
-        function getRoleBadge(role) {
-            const badges = {
-                owner: 'Owner',
-                collaborator: 'Edit',
-                viewer: 'View'
-            };
-            return badges[role] || 'View';
-        }
+            // Smooth rotation
+            rotationX += (targetRotX - rotationX) * 0.1;
+            rotationY += (targetRotY - rotationY) * 0.1;
 
-        function initializeApp() {
-            showNotification('App inizializzata con successo!', 'success');
-            updateCollaboratorList();
-        }
-
-        function simulateCloudConnection() {
-            setTimeout(() => {
-                document.getElementById('cloudStatus').classList.add('online');
-                document.getElementById('cloudStatusText').textContent = 'Cloud Connesso';
-            }, 1000);
-        }
-
-        // Gestione file
-        function openFile() {
-            document.getElementById('fileInput').click();
-        }
-
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            if (e.target.files.length > 0) {
-                const file = e.target.files[0];
-                loadModelFile(file);
+            if (currentModel) {
+                currentModel.rotation.x = rotationX;
+                currentModel.rotation.y = rotationY;
             }
-        });
 
-        function loadModelFile(file) {
-            showLoading('Caricamento modello...', 'Analisi struttura 3D');
-            
-            setTimeout(() => {
-                document.getElementById('fileName').textContent = file.name;
-                document.getElementById('modelSize').textContent = formatFileSize(file.size);
-                
-                setTimeout(() => {
-                    hideLoading();
-                    showNotification(`Modello ${file.name} caricato con successo!`, 'success');
-                    enableShareButtons();
-                    updateModelStats();
-                }, 1500);
-            }, 1000);
+            renderer.render(scene, camera);
+
+            // FPS counter
+            frameCount++;
+            const now = Date.now();
+            if (now > lastTime + 1000) {
+                const fps = Math.round((frameCount * 1000) / (now - lastTime));
+                document.getElementById('fpsDisplay').textContent = fps;
+                frameCount = 0;
+                lastTime = now;
+            }
         }
 
         function loadSample(type) {
-            const samples = {
-                villa: { name: 'Villa_Moderna.glb', mesh: 24, vertices: 45832, triangles: 91664, size: '12.3 MB' },
-                office: { name: 'Office_OpenSpace.glb', mesh: 18, vertices: 32451, triangles: 64902, size: '8.7 MB' },
-                product: { name: 'Product_Demo.glb', mesh: 12, vertices: 18943, triangles: 37886, size: '4.2 MB' }
-            };
-            
-            const sample = samples[type];
-            showLoading(`Caricamento ${sample.name}...`, 'Download da cloud');
-            
-            setTimeout(() => {
-                document.getElementById('fileName').textContent = sample.name;
-                document.getElementById('meshCount').textContent = sample.mesh;
-                document.getElementById('vertexCount').textContent = sample.vertices.toLocaleString();
-                document.getElementById('triangleCount').textContent = sample.triangles.toLocaleString();
-                document.getElementById('modelSize').textContent = sample.size;
-                
-                hideLoading();
-                showNotification(`Modello esempio caricato: ${sample.name}`, 'success');
-                enableShareButtons();
-            }, 2000);
-        }
-
-        // Condivisione
-        function shareViaLink() {
-            showModal('shareModal');
-        }
-
-        function shareViaEmail() {
-            if (!hasModel()) return;
-            
-            generateShareLink();
-            const subject = encodeURIComponent(`Progetto 3D: ${document.getElementById('fileName').textContent}`);
-            const body = encodeURIComponent(`Ciao!\n\nTi invito a vedere il mio progetto 3D:\n${shareLink}\n\nSaluti!`);
-            window.open(`mailto:?subject=${subject}&body=${body}`);
-            showNotification('Email di condivisione preparata!', 'success');
-        }
-
-        function shareViaTeams() {
-            if (!hasModel()) return;
-            
-            generateShareLink();
-            const text = encodeURIComponent(`Nuovo progetto 3D da visualizzare: ${shareLink}`);
-            // Simulazione integrazione Teams
-            showNotification('Link condiviso su Microsoft Teams!', 'success');
-        }
-
-        function shareViaSlack() {
-            if (!hasModel()) return;
-            
-            generateShareLink();
-            const text = encodeURIComponent(`Dai un'occhiata al mio progetto 3D: ${shareLink}`);
-            // Simulazione integrazione Slack  
-            showNotification('Link condiviso su Slack!', 'success');
-        }
-
-        // Funzioni di condivisione aggiornate
-        async function generateShareLink() {
-            const title = document.getElementById('shareTitle')?.value || document.getElementById('fileName').textContent;
-            const message = document.getElementById('shareMessage')?.value || '';
-            const password = document.getElementById('sharePassword')?.value || '';
-            
-            if (!hasModel()) {
-                showNotification('Carica prima un modello per condividerlo!', 'warning');
-                return;
+            if (currentModel) {
+                scene.remove(currentModel);
             }
 
-            try {
-                const result = await ShareAPI.generateLink({
-                    title: title,
-                    message: message,
-                    permission: selectedPermission,
-                    expiry: selectedExpiry,
-                    password: password
-                });
+            let geometry, material;
 
-                if (result.success) {
-                    shareLink = result.link;
+            switch (type) {
+                case 'house':
+                    currentModel = new THREE.Group();
                     
-                    document.getElementById('shareLink').textContent = shareLink;
-                    document.getElementById('shareLink').style.display = 'block';
-                    document.getElementById('shareActions').style.display = 'flex';
+                    // Base
+                    const base = new THREE.Mesh(
+                        new THREE.BoxGeometry(3, 2, 3),
+                        new THREE.MeshLambertMaterial({ color: 0xffa500 })
+                    );
+                    base.position.y = 1;
+                    base.castShadow = true;
+                    currentModel.add(base);
                     
-                    showNotification('Link di condivisione generato con successo!', 'success');
-                    closeModal('shareModal');
-
-                    // Aggiorna il QR Code con il link reale
-                    updateQRCode(shareLink);
-
-                    // Salva nelle impostazioni di condivisione
-                    saveShareSettings({
-                        title, message, permission: selectedPermission, 
-                        expiry: selectedExpiry, password, link: shareLink,
-                        shareId: result.shareId,
-                        createdAt: new Date()
-                    });
-
-                    console.log('🔗 Link condivisione creato:', shareLink);
-                } else {
-                    throw new Error('Errore nella generazione del link');
-                }
-            } catch (error) {
-                showNotification('Errore nella generazione del link: ' + error.message, 'error');
-                console.error('Errore condivisione:', error);
-            }
-        }
-
-        function updateQRCode(link) {
-            // Genera QR Code semplificato (in produzione useresti una libreria dedicata)
-            const qrContainer = document.getElementById('qrCode');
-            qrContainer.innerHTML = `
-                <div style="width: 150px; height: 150px; background: white; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #333; flex-direction: column; padding: 10px;">
-                    <div style="font-size: 8px; text-align: center; margin-bottom: 8px; line-height: 1.2;">
-                        ${link.split('/').pop()}
-                    </div>
-                    <div style="width: 100px; height: 100px; background: #000; position: relative; border-radius: 4px;">
-                        <div style="position: absolute; top: 10px; left: 10px; width: 20px; height: 20px; background: white;"></div>
-                        <div style="position: absolute; top: 10px; right: 10px; width: 20px; height: 20px; background: white;"></div>
-                        <div style="position: absolute; bottom: 10px; left: 10px; width: 20px; height: 20px; background: white;"></div>
-                        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 30px; height: 30px; background: white; border-radius: 50%;"></div>
-                    </div>
-                </div>
-            `;
-        }
-
-        async function shareViaEmail() {
-            if (!hasModel()) return;
-            
-            try {
-                // Prima genera il link se non esiste
-                if (!shareLink) {
-                    const result = await ShareAPI.generateLink({
-                        title: document.getElementById('fileName').textContent,
-                        permission: 'view',
-                        expiry: '1week'
-                    });
-                    shareLink = result.link;
-                }
-
-                const subject = encodeURIComponent(`Progetto 3D: ${document.getElementById('fileName').textContent}`);
-                const body = encodeURIComponent(`Ciao!\n\nTi invito a vedere il mio progetto 3D:\n\n🔗 ${shareLink}\n\n• Visualizza il modello direttamente nel browser\n• Nessuna installazione richiesta\n• Compatible con desktop e mobile\n\nSaluti!`);
-                
-                const mailtoLink = `mailto:?subject=${subject}&body=${body}`;
-                window.open(mailtoLink);
-                
-                showNotification('Email di condivisione preparata con link funzionante!', 'success');
-            } catch (error) {
-                showNotification('Errore nella preparazione dell\'email: ' + error.message, 'error');
-            }
-        }
-
-        async function shareViaTeams() {
-            if (!hasModel()) return;
-            
-            try {
-                if (!shareLink) {
-                    const result = await ShareAPI.generateLink({
-                        title: document.getElementById('fileName').textContent,
-                        permission: 'view',
-                        expiry: '1month'
-                    });
-                    shareLink = result.link;
-                }
-
-                const teamsMessage = encodeURIComponent(`🎯 Nuovo progetto 3D da visualizzare:\n\n📁 ${document.getElementById('fileName').textContent}\n🔗 ${shareLink}\n\n✨ Apri direttamente nel browser - nessuna installazione richiesta!`);
-                
-                // URL per condivisione Teams (funziona se Teams è installato)
-                const teamsUrl = `https://teams.microsoft.com/share?msgText=${teamsMessage}`;
-                
-                // Fallback: copia il messaggio
-                navigator.clipboard.writeText(decodeURIComponent(teamsMessage)).then(() => {
-                    showNotification('Messaggio copiato per Teams con link funzionante!', 'success');
-                    // Tenta di aprire Teams
-                    window.open(teamsUrl, '_blank');
-                });
-                
-            } catch (error) {
-                showNotification('Link copiato negli appunti per Teams', 'warning');
-            }
-        }
-
-        async function shareViaSlack() {
-            if (!hasModel()) return;
-            
-            try {
-                if (!shareLink) {
-                    const result = await ShareAPI.generateLink({
-                        title: document.getElementById('fileName').textContent,
-                        permission: 'view',
-                        expiry: '1month'
-                    });
-                    shareLink = result.link;
-                }
-
-                const slackMessage = `🎯 *Progetto 3D da visualizzare*\n\n📁 *${document.getElementById('fileName').textContent}*\n🔗 ${shareLink}\n\n_Visualizza direttamente nel browser - nessuna installazione richiesta!_`;
-                
-                // Copia il messaggio formattato per Slack
-                navigator.clipboard.writeText(slackMessage).then(() => {
-                    showNotification('Messaggio Slack copiato con link funzionante!', 'success');
-                });
-
-                // Tenta apertura Slack se installato
-                const slackUrl = `slack://channel?team=&id=&message=${encodeURIComponent(slackMessage)}`;
-                setTimeout(() => {
-                    window.open(slackUrl, '_blank');
-                }, 500);
-                
-            } catch (error) {
-                showNotification('Link copiato negli appunti per Slack', 'warning');
-            }
-        }
-
-        function copyShareLink() {
-            if (!shareLink) {
-                showNotification('Genera prima un link di condivisione!', 'warning');
-                return;
-            }
-
-            navigator.clipboard.writeText(shareLink).then(() => {
-                showNotification('Link di condivisione copiato! Il link è funzionante e pronto per essere condiviso.', 'success');
-                
-                // Mostra istruzioni aggiuntive
-                setTimeout(() => {
-                    showNotification('💡 I tuoi colleghi potranno aprire il link direttamente nel browser', 'info');
-                }, 2000);
-            }).catch(() => {
-                // Fallback per browser che non supportano clipboard API
-                const textArea = document.createElement('textarea');
-                textArea.value = shareLink;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showNotification('Link copiato negli appunti!', 'success');
-            });
-        }
-
-        // Test del sistema di condivisione
-        function testShareSystem() {
-            console.log('🧪 Test del sistema di condivisione...');
-            
-            // Simula caricamento di un modello di test
-            loadSample('villa');
-            
-            setTimeout(() => {
-                // Test generazione link
-                generateShareLink().then(() => {
-                    console.log('✅ Link generato:', shareLink);
+                    // Roof
+                    const roof = new THREE.Mesh(
+                        new THREE.ConeGeometry(2.2, 1.5, 4),
+                        new THREE.MeshLambertMaterial({ color: 0x8b4513 })
+                    );
+                    roof.position.y = 2.75;
+                    roof.rotation.y = Math.PI / 4;
+                    roof.castShadow = true;
+                    currentModel.add(roof);
                     
-                    // Test del router (simula apertura link)
-                    const urlParams = new URLSearchParams();
-                    const shareId = shareLink.split('?share=')[1];
-                    if (shareId) {
-                        console.log('🔄 Test caricamento progetto condiviso...');
-                        ShareRouter.handleSharedLink(shareId);
+                    document.getElementById('fileName').textContent = 'Casa_3D.obj';
+                    break;
+
+                case 'cube':
+                    geometry = new THREE.BoxGeometry(2, 2, 2);
+                    material = new THREE.MeshLambertMaterial({ color: 0x4fc3f7 });
+                    currentModel = new THREE.Mesh(geometry, material);
+                    currentModel.position.y = 1;
+                    currentModel.castShadow = true;
+                    document.getElementById('fileName').textContent = 'Cubo.obj';
+                    break;
+
+                case 'sphere':
+                    geometry = new THREE.SphereGeometry(1.5, 32, 32);
+                    material = new THREE.MeshLambertMaterial({ color: 0xff6b6b });
+                    currentModel = new THREE.Mesh(geometry, material);
+                    currentModel.position.y = 1.5;
+                    currentModel.castShadow = true;
+                    document.getElementById('fileName').textContent = 'Sfera.obj';
+                    break;
+            }
+
+            scene.add(currentModel);
+            resetView();
+            showNotification('Modello ' + type + ' caricato!', 'success');
+        }
+
+        function setViewMode(mode) {
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (!currentModel) return;
+
+            if (currentModel.traverse) {
+                currentModel.traverse((child) => {
+                    if (child.isMesh) {
+                        if (mode === 'wireframe') {
+                            child.material.wireframe = true;
+                        } else {
+                            child.material.wireframe = false;
+                        }
                     }
                 });
-            }, 2000);
-        }
-
-        // Gestione della condivisione in tempo reale
-        class RealTimeShare {
-            static activeConnections = new Map();
-
-            static simulateConnection(shareId) {
-                // Simula connessioni multiple allo stesso progetto
-                const connections = Math.floor(Math.random() * 5) + 1;
-                this.activeConnections.set(shareId, connections);
-                
-                return connections;
-            }
-
-            static getActiveViewers(shareId) {
-                return this.activeConnections.get(shareId) || 0;
-            }
-
-            static notifyActivity(shareId, activity) {
-                const viewers = this.getActiveViewers(shareId);
-                if (viewers > 1) {
-                    showNotification(`👥 ${viewers} persone stanno visualizzando questo progetto`, 'info');
+            } else {
+                if (mode === 'wireframe') {
+                    currentModel.material.wireframe = true;
+                } else {
+                    currentModel.material.wireframe = false;
                 }
             }
-        }
 
-        // Dashboard condivisione
-        function showShareDashboard() {
-            const sharedProjects = Array.from(ShareSystem.sharedProjects.values());
-            
-            if (sharedProjects.length === 0) {
-                showNotification('Nessun progetto condiviso ancora', 'info');
-                return;
-            }
-
-            let dashboardHTML = `
-                <div class="modal show" id="shareDashboard">
-                    <div class="modal-content" style="max-width: 700px;">
-                        <div class="modal-header">
-                            <div class="modal-title">📊 Dashboard Condivisione</div>
-                            <button class="close-btn" onclick="closeModal('shareDashboard')">&times;</button>
-                        </div>
-                        <div style="max-height: 400px; overflow-y: auto;">
-            `;
-
-            sharedProjects.forEach(project => {
-                const isExpired = ShareSystem.isExpired(project);
-                const statusColor = isExpired ? '#f44336' : '#4caf50';
-                const statusText = isExpired ? 'Scaduto' : 'Attivo';
-
-                dashboardHTML += `
-                    <div style="background: #383838; padding: 15px; border-radius: 8px; margin-bottom: 10px;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
-                            <div>
-                                <div style="font-weight: bold; color: white; margin-bottom: 5px;">${project.title}</div>
-                                <div style="font-size: 11px; color: #999;">Creato: ${new Date(project.createdAt).toLocaleString()}</div>
-                            </div>
-                            <div style="background: ${statusColor}; color: white; padding: 4px 8px; border-radius: 12px; font-size: 10px;">
-                                ${statusText}
-                            </div>
-                        </div>
-                        <div style="display: flex; gap: 15px; font-size: 11px; color: #ccc; margin-bottom: 10px;">
-                            <span>👁️ ${project.accessCount} visualizzazioni</span>
-                            <span>🔒 ${project.permission === 'view' ? 'Solo visualizzazione' : 'Commenti'}</span>
-                            <span>⏰ Scade: ${project.expiry === 'never' ? 'Mai' : project.expiry}</span>
-                        </div>
-                        <div style="font-family: monospace; font-size: 10px; background: #444; padding: 8px; border-radius: 4px; word-break: break-all;">
-                            ${ShareSystem.baseUrl}?share=${project.id}
-                        </div>
-                    </div>
-                `;
-            });
-
-            dashboardHTML += '</div></div></div>';
-            
-            document.body.insertAdjacentHTML('beforeend', dashboardHTML);
-        }
-
-        // Collaboratori
-        function showAddCollaborator() {
-            showModal('collaboratorModal');
-        }
-
-        function sendInvite() {
-            const email = document.getElementById('collaboratorEmail').value;
-            const message = document.getElementById('inviteMessage').value;
-            
-            if (!email) {
-                showNotification('Inserisci un indirizzo email!', 'error');
-                return;
-            }
-            
-            // Debug log
-            console.log('Adding collaborator. Current collaborators:', collaborators);
-            
-            // Simula invio invito
-            const newCollaborator = {
-                name: email.split('@')[0],
-                email: email,
-                role: selectedRole,
-                avatar: email.charAt(0).toUpperCase() + email.charAt(1).toUpperCase(),
-                status: 'invited'
-            };
-            
-            collaborators.push(newCollaborator);
-            updateCollaboratorList();
-            closeModal('collaboratorModal');
-            showNotification(`Invito inviato a ${email}!`, 'success');
-            
-            // Simula accettazione dopo qualche secondo
-            setTimeout(() => {
-                newCollaborator.status = 'online';
-                updateCollaboratorList();
-                showNotification(`${newCollaborator.name} è entrato nel progetto!`, 'success');
-            }, 5000);
-        }
-
-        function updateCollaboratorList() {
-            const list = document.getElementById('collaboratorList');
-            if (!list) {
-                console.warn('collaboratorList element not found');
-                return;
-            }
-            
-            // Debug log
-            console.log('Updating collaborator list. Collaborators:', collaborators);
-            
-            list.innerHTML = '';
-            
-            collaborators.forEach((collab, index) => {
-                const statusDot = collab.status === 'online' ? 'background: #4caf50;' : 
-                                collab.status === 'invited' ? 'background: #ff9800;' : 'background: #666;';
-                
-                list.innerHTML += `
-                    <div class="collaborator-item">
-                        <div class="avatar" style="${statusDot}">${collab.avatar}</div>
-                        <div class="collaborator-info">
-                            <div class="collaborator-name">${collab.name} ${collab.role === 'owner' ? '(Owner)' : ''}</div>
-                            <div class="collaborator-role">${getRoleLabel(collab.role)} • ${getStatusLabel(collab.status)}</div>
-                        </div>
-                        <div class="permission-badge ${collab.role === 'owner' || collab.role === 'collaborator' ? 'edit' : ''}">${getRoleBadge(collab.role)}</div>
-                    </div>
-                `;
-            });
-        }
-
-        function getRoleLabel(role) {
-            const roles = {
-                owner: 'Proprietario',
-                collaborator: 'Collaboratore', 
-                viewer: 'Visualizzatore'
-            };
-            return roles[role] || 'Sconosciuto';
-        }
-
-        function getStatusLabel(status) {
-            const statuses = {
-                online: 'Online',
-                offline: 'Offline',
-                invited: 'Invitato'
-            };
-            return statuses[status] || 'Sconosciuto';
-        }
-
-        function getRoleBadge(role) {
-            const badges = {
-                owner: 'Owner',
-                collaborator: 'Edit',
-                viewer: 'View'
-            };
-            return badges[role] || 'View';
-        }
-
-        // Controlli UI
-        function setViewMode(mode) {
-            document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-            currentViewMode = mode;
-            showNotification(`Modalità visualizzazione: ${mode}`, 'success');
-        }
-
-        function setEnvironment(env) {
-            document.querySelectorAll('[data-env]').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-env="${env}"]`).classList.add('active');
-            currentEnvironment = env;
-            showNotification(`Ambiente: ${env}`, 'success');
-        }
-
-        function setTool(tool) {
-            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.classList.remove('active'));
-            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
-            currentTool = tool;
+            showNotification('Modalità: ' + mode, 'success');
         }
 
         function setView(view) {
-            showNotification(`Vista impostata: ${view}`, 'success');
-        }
+            if (!currentModel) return;
 
-        function takeScreenshot() {
-            showNotification('Screenshot salvato!', 'success');
-            // Simula salvataggio screenshot
+            const distance = 8;
+
+            switch (view) {
+                case 'front':
+                    camera.position.set(0, 2, distance);
+                    break;
+                case 'back':
+                    camera.position.set(0, 2, -distance);
+                    break;
+                case 'left':
+                    camera.position.set(-distance, 2, 0);
+                    break;
+                case 'right':
+                    camera.position.set(distance, 2, 0);
+                    break;
+                case 'top':
+                    camera.position.set(0, distance, 0);
+                    break;
+                case 'iso':
+                    camera.position.set(distance, distance, distance);
+                    break;
+            }
+
+            camera.lookAt(0, 1, 0);
+            targetRotX = 0;
+            targetRotY = 0;
+            showNotification('Vista: ' + view, 'success');
         }
 
         function resetView() {
+            camera.position.set(5, 5, 5);
+            camera.lookAt(0, 1, 0);
+            targetRotX = 0;
+            targetRotY = 0;
             showNotification('Vista ripristinata', 'success');
         }
 
-        function selectPermission(permission) {
-            document.querySelectorAll('.permission-option').forEach(opt => opt.classList.remove('selected'));
-            document.querySelector(`[data-permission="${permission}"]`).classList.add('selected');
-            selectedPermission = permission;
+        function takeScreenshot() {
+            if (!renderer) return;
+
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+
+            const link = document.createElement('a');
+            link.download = '3d-screenshot-' + Date.now() + '.png';
+            link.href = dataURL;
+            link.click();
+
+            showNotification('Screenshot salvato!', 'success');
         }
 
-        function selectExpiry(expiry) {
-            document.querySelectorAll('.expiry-btn').forEach(btn => btn.classList.remove('selected'));
-            document.querySelector(`[data-expiry="${expiry}"]`).classList.add('selected');
-            selectedExpiry = expiry;
+        function handleResize() {
+            const canvas = document.getElementById('canvas');
+            camera.aspect = canvas.clientWidth / canvas.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
         }
 
-        function selectRole(role) {
-            document.querySelectorAll('[data-role]').forEach(opt => opt.classList.remove('selected'));
-            document.querySelector(`[data-role="${role}"]`).classList.add('selected');
-            selectedRole = role;
-        }
-
-        // Progetti
-        function loadProject(projectId) {
-            showLoading('Caricamento progetto...', 'Sincronizzazione cloud');
-            setTimeout(() => {
-                hideLoading();
-                showNotification(`Progetto ${projectId} caricato!`, 'success');
-            }, 1500);
-        }
-
-        function shareProject(projectId) {
-            showModal('shareModal');
-        }
-
-        function duplicateProject(projectId) {
-            showNotification(`Progetto ${projectId} duplicato!`, 'success');
-        }
-
-        // Utility
-        function showModal(modalId) {
-            document.getElementById(modalId).classList.add('show');
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-        }
-
-        function showSettings() {
-            showModal('settingsModal');
-        }
-
-        function saveSettings() {
-            const settings = {
-                projectName: document.getElementById('projectName').value,
-                projectDescription: document.getElementById('projectDescription').value,
-                renderQuality: document.getElementById('renderQuality').value,
-                autoSave: document.getElementById('autoSave').value,
-                notifications: document.getElementById('notifications').value
-            };
-            
-            // Simula salvataggio impostazioni
-            closeModal('settingsModal');
-            showNotification('Impostazioni salvate!', 'success');
-        }
-
-        function showLoading(title, text) {
-            document.getElementById('loadingTitle').textContent = title;
-            document.getElementById('loadingText').textContent = text;
-            document.getElementById('loading').classList.add('show');
-            document.getElementById('progress').classList.add('loading');
-        }
-
-        function hideLoading() {
-            document.getElementById('loading').classList.remove('show');
-            document.getElementById('progress').classList.remove('loading');
-        }
-
-        function showNotification(message, type = 'info') {
+        function showNotification(message, type) {
             const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.innerHTML = `
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <span>${getNotificationIcon(type)}</span>
-                    <span>${message}</span>
-                </div>
-            `;
-            
+            notification.className = 'notification ' + type;
+            notification.textContent = message;
+
             document.body.appendChild(notification);
-            
+
             setTimeout(() => notification.classList.add('show'), 100);
             setTimeout(() => {
                 notification.classList.remove('show');
-                setTimeout(() => document.body.removeChild(notification), 300);
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
             }, 3000);
         }
 
-        function getNotificationIcon(type) {
-            const icons = {
-                success: '✅',
-                error: '❌',
-                warning: '⚠️',
-                info: 'ℹ️'
-            };
-            return icons[type] || 'ℹ️';
-        }
-
-        function enableShareButtons() {
-            ['linkShareBtn', 'emailShareBtn', 'teamsShareBtn', 'slackShareBtn'].forEach(id => {
-                const btn = document.getElementById(id);
-                if (btn) btn.disabled = false;
-            });
-        }
-
-        function hasModel() {
-            const fileName = document.getElementById('fileName').textContent;
-            if (fileName === '-' || !fileName) {
-                showNotification('Carica prima un modello 3D!', 'warning');
-                return false;
-            }
-            return true;
-        }
-
-        function formatFileSize(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-        }
-
-        function saveShareSettings(settings) {
-            // Simula salvataggio nel cloud
-            console.log('Impostazioni condivisione salvate:', settings);
-        }
-
-        function updateModelStats() {
-            // Simula aggiornamento statistiche modello
-            document.getElementById('modelStats').style.display = 'block';
-        }
-
-        function toggleSidebar() {
-            document.getElementById('sidebar').classList.toggle('open');
-        }
-
-        // Gestione responsive
-        function checkResponsive() {
-            const menuToggle = document.querySelector('.menu-toggle');
-            if (window.innerWidth <= 768) {
-                menuToggle.style.display = 'flex';
-            } else {
-                menuToggle.style.display = 'none';
-                document.getElementById('sidebar').classList.remove('open');
-            }
-        }
-
-        window.addEventListener('resize', checkResponsive);
-        checkResponsive();
-
-        // Simulazione aggiornamenti in tempo reale
-        function simulateCollaboratorActivity() {
-            setInterval(() => {
-                if (!collaborators || collaborators.length <= 1) return;
-                
-                if (Math.random() > 0.7) {
-                    const activeCollabs = collaborators.filter(c => c.status === 'online' && c.role !== 'owner');
-                    if (activeCollabs.length > 0) {
-                        const randomCollab = activeCollabs[Math.floor(Math.random() * activeCollabs.length)];
-                        const activities = [
-                            'sta visualizzando il modello',
-                            'ha aggiunto un commento',
-                            'ha effettuato una misurazione',
-                            'ha cambiato la vista'
-                        ];
-                        const activity = activities[Math.floor(Math.random() * activities.length)];
-                        showNotification(`${randomCollab.name} ${activity}`, 'info');
-                    }
-                }
-            }, 15000);
-        }
-
-        // Avvia simulazione attività dopo 10 secondi
-        setTimeout(simulateCollaboratorActivity, 10000);
-
-        // Gestione drag & drop
-        function handleDragOver(e) {
-            e.preventDefault();
-            e.dataTransfer.dropEffect = 'copy';
-        }
-
-        function handleDrop(e) {
-            e.preventDefault();
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                const file = files[0];
-                if (file.name.match(/\.(glb|gltf|obj|dae|ply|fbx)$/i)) {
-                    loadModelFile(file);
-                } else {
-                    showNotification('Formato file non supportato!', 'error');
-                }
-            }
-        }
-
-        // Aggiungi eventi drag & drop al canvas
-        const canvas = document.getElementById('canvas');
-        canvas.addEventListener('dragover', handleDragOver);
-        canvas.addEventListener('drop', handleDrop);
-
-        // Simulazione auto-save
-        function startAutoSave() {
-            setInterval(() => {
-                const autoSaveInterval = document.getElementById('autoSave')?.value;
-                if (autoSaveInterval && autoSaveInterval !== 'off' && hasModel()) {
-                    showNotification('Auto-save completato', 'success');
-                }
-            }, 30000); // Controlla ogni 30 secondi per demo
-        }
-
-        startAutoSave();
-
-        // Gestione scorciatoie da tastiera
-        document.addEventListener('keydown', function(e) {
-            // Ctrl/Cmd + S per salvare
-            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
-                e.preventDefault();
-                showNotification('Progetto salvato!', 'success');
-            }
-            
-            // Ctrl/Cmd + Shift + S per condividere
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
-                e.preventDefault();
-                if (hasModel()) shareViaLink();
-            }
-            
-            // Esc per chiudere modali
-            if (e.key === 'Escape') {
-                document.querySelectorAll('.modal.show').forEach(modal => {
-                    modal.classList.remove('show');
-                });
-            }
-            
-            // Tasti numerici per cambiare vista
-            const viewKeys = {
-                '1': 'front',
-                '2': 'back', 
-                '3': 'left',
-                '4': 'right',
-                '5': 'top',
-                '6': 'home'
-            };
-            
-            if (viewKeys[e.key]) {
-                setView(viewKeys[e.key]);
+        // File upload handler
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                document.getElementById('fileName').textContent = file.name;
+                showNotification('File ' + file.name + ' selezionato (parser non implementato)', 'success');
             }
         });
 
-        // Sistema di condivisione funzionante
-        class ShareSystem {
-            static sharedProjects = new Map();
-            static baseUrl = window.location.origin + window.location.pathname;
-
-            static generateShareableLink(projectData, options = {}) {
-                const shareId = this.generateSecureId();
-                const shareUrl = `${this.baseUrl}?share=${shareId}`;
-                
-                // Salva i dati del progetto condiviso
-                const shareData = {
-                    id: shareId,
-                    projectData: projectData,
-                    title: options.title || 'Progetto 3D',
-                    message: options.message || '',
-                    permission: options.permission || 'view',
-                    password: options.password || null,
-                    expiry: options.expiry || 'never',
-                    createdAt: new Date(),
-                    accessCount: 0,
-                    creator: 'Tu'
-                };
-
-                // Salva nel localStorage per persistenza
-                this.sharedProjects.set(shareId, shareData);
-                this.saveToStorage();
-                
-                return {
-                    success: true,
-                    link: shareUrl,
-                    shareId: shareId,
-                    data: shareData
-                };
-            }
-
-            static generateSecureId() {
-                return 'share_' + Date.now().toString(36) + '_' + Math.random().toString(36).substr(2, 9);
-            }
-
-            static saveToStorage() {
-                try {
-                    const projectsArray = Array.from(this.sharedProjects.entries());
-                    const projectsData = JSON.stringify(projectsArray);
-                    
-                    // Usa una chiave specifica per evitare conflitti
-                    const storageKey = '3d_viewer_shared_projects';
-                    
-                    // Simula salvataggio (in una vera app useresti un database)
-                    window.sharedProjectsData = projectsData;
-                    
-                    console.log('📁 Progetti condivisi salvati:', projectsArray.length);
-                } catch (error) {
-                    console.error('Errore salvataggio:', error);
-                }
-            }
-
-            static loadFromStorage() {
-                try {
-                    if (window.sharedProjectsData) {
-                        const projectsArray = JSON.parse(window.sharedProjectsData);
-                        this.sharedProjects = new Map(projectsArray);
-                        console.log('📁 Caricati progetti condivisi:', this.sharedProjects.size);
-                    }
-                } catch (error) {
-                    console.error('Errore caricamento:', error);
-                }
-            }
-
-            static getSharedProject(shareId) {
-                const project = this.sharedProjects.get(shareId);
-                if (!project) return null;
-
-                // Controlla scadenza
-                if (this.isExpired(project)) {
-                    this.sharedProjects.delete(shareId);
-                    this.saveToStorage();
-                    return { expired: true };
-                }
-
-                // Incrementa contatore accessi
-                project.accessCount++;
-                this.saveToStorage();
-
-                return project;
-            }
-
-            static isExpired(project) {
-                if (project.expiry === 'never') return false;
-                
-                const now = new Date();
-                const created = new Date(project.createdAt);
-                const expiryHours = {
-                    '1day': 24,
-                    '1week': 168,
-                    '1month': 720
-                };
-
-                const hoursElapsed = (now - created) / (1000 * 60 * 60);
-                return hoursElapsed > (expiryHours[project.expiry] || 0);
-            }
-
-            static checkPassword(shareId, password) {
-                const project = this.sharedProjects.get(shareId);
-                if (!project || !project.password) return true;
-                return project.password === password;
-            }
-        }
-
-        // Sistema di routing per gestire link condivisi
-        class ShareRouter {
-            static init() {
-                // Carica progetti condivisi all'avvio
-                ShareSystem.loadFromStorage();
-                
-                // Controlla se siamo in modalità visualizzazione condivisa
-                const urlParams = new URLSearchParams(window.location.search);
-                const shareId = urlParams.get('share');
-                
-                if (shareId) {
-                    this.handleSharedLink(shareId);
-                }
-            }
-
-            static handleSharedLink(shareId) {
-                const project = ShareSystem.getSharedProject(shareId);
-                
-                if (!project) {
-                    this.showShareError('Link non valido o scaduto');
-                    return;
-                }
-
-                if (project.expired) {
-                    this.showShareError('Questo link è scaduto');
-                    return;
-                }
-
-                // Verifica password se richiesta
-                if (project.password) {
-                    this.requestPassword(shareId, project);
-                } else {
-                    this.loadSharedProject(project);
-                }
-            }
-
-            static requestPassword(shareId, project) {
-                const password = prompt(`Inserisci la password per accedere a: ${project.title}`);
-                
-                if (!password) {
-                    this.showShareError('Password richiesta per accedere al progetto');
-                    return;
-                }
-
-                if (!ShareSystem.checkPassword(shareId, password)) {
-                    this.showShareError('Password errata');
-                    return;
-                }
-
-                this.loadSharedProject(project);
-            }
-
-            static loadSharedProject(project) {
-                showNotification(`Caricamento progetto condiviso: ${project.title}`, 'success');
-                
-                // Cambia UI per modalità condivisione
-                this.enterSharedMode(project);
-                
-                // Carica i dati del progetto
-                this.loadProjectData(project.projectData);
-                
-                // Mostra info condivisione
-                this.showShareInfo(project);
-            }
-
-            static enterSharedMode(project) {
-                // Modifica header per indicare modalità condivisione
-                const header = document.querySelector('.header');
-                header.innerHTML = `
-                    <div class="logo">🔗 Visualizzazione Condivisa</div>
-                    <div class="subtitle">${project.title} • Condiviso da ${project.creator}</div>
-                `;
-                header.style.background = 'linear-gradient(135deg, #4caf50 0%, #2e7d32 100%)';
-
-                // Disabilita alcune funzioni se è solo visualizzazione
-                if (project.permission === 'view') {
-                    this.disableEditFeatures();
-                }
-
-                // Mostra badge condivisione
-                this.showShareBadge(project);
-            }
-
-            static disableEditFeatures() {
-                // Disabilita strumenti di modifica per visualizzatori
-                const editTools = ['measure', 'annotate'];
-                editTools.forEach(tool => {
-                    const btn = document.querySelector(`[data-tool="${tool}"]`);
-                    if (btn) {
-                        btn.style.opacity = '0.3';
-                        btn.style.pointerEvents = 'none';
-                        btn.title = 'Non disponibile in modalità visualizzazione';
-                    }
-                });
-
-                showNotification('Modalità visualizzazione: alcune funzioni sono limitate', 'info');
-            }
-
-            static showShareBadge(project) {
-                const badge = document.createElement('div');
-                badge.style.cssText = `
-                    position: fixed;
-                    top: 10px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background: rgba(76, 175, 80, 0.9);
-                    color: white;
-                    padding: 8px 16px;
-                    border-radius: 20px;
-                    font-size: 12px;
-                    z-index: 1001;
-                    backdrop-filter: blur(10px);
-                `;
-                badge.textContent = `🔗 Progetto Condiviso • ${project.accessCount} visualizzazioni`;
-                document.body.appendChild(badge);
-
-                // Rimuovi dopo 5 secondi
-                setTimeout(() => badge.remove(), 5000);
-            }
-
-            static loadProjectData(projectData) {
-                // Carica i dati del progetto condiviso
-                if (projectData.fileName) {
-                    document.getElementById('fileName').textContent = projectData.fileName;
-                }
-                if (projectData.meshCount) {
-                    document.getElementById('meshCount').textContent = projectData.meshCount;
-                }
-                if (projectData.vertexCount) {
-                    document.getElementById('vertexCount').textContent = projectData.vertexCount.toLocaleString();
-                }
-                if (projectData.triangleCount) {
-                    document.getElementById('triangleCount').textContent = projectData.triangleCount.toLocaleString();
-                }
-                if (projectData.modelSize) {
-                    document.getElementById('modelSize').textContent = projectData.modelSize;
-                }
-
-                // Aggiorna canvas con contenuto del progetto
-                this.updateSharedCanvas(projectData);
-            }
-
-            static updateSharedCanvas(projectData) {
-                const canvas = document.getElementById('canvas');
-                canvas.innerHTML = `
-                    <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;">
-                        <div style="font-size: 64px; margin-bottom: 20px;">${projectData.icon || '🏠'}</div>
-                        <div style="font-size: 24px; font-weight: bold; color: #4caf50; margin-bottom: 10px;">${projectData.title || 'Progetto Condiviso'}</div>
-                        <div style="font-size: 14px; color: #999; text-align: center; max-width: 400px; line-height: 1.5;">
-                            ${projectData.description || 'Modello 3D visualizzato tramite link di condivisione'}
-                        </div>
-                        <div style="margin-top: 30px; display: flex; gap: 15px; align-items: center;">
-                            <div style="padding: 10px 20px; background: rgba(76, 175, 80, 0.2); border-radius: 20px; font-size: 12px; color: #4caf50;">
-                                🔗 Link condiviso attivo
-                            </div>
-                            <div style="padding: 10px 20px; background: rgba(79, 195, 247, 0.2); border-radius: 20px; font-size: 12px; color: #4fc3f7;">
-                                👁️ Modalità visualizzazione
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            static showShareInfo(project) {
-                setTimeout(() => {
-                    const info = `
-                        📊 Info Condivisione:
-                        • Creato: ${new Date(project.createdAt).toLocaleString()}
-                        • Visualizzazioni: ${project.accessCount}
-                        • Scadenza: ${project.expiry === 'never' ? 'Mai' : project.expiry}
-                        • Permessi: ${project.permission === 'view' ? 'Solo visualizzazione' : 'Visualizzazione e commenti'}
-                    `;
-                    showNotification(info, 'info');
-                }, 2000);
-            }
-
-            static showShareError(message) {
-                document.querySelector('.container').innerHTML = `
-                    <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: #1a1a1a; color: white; flex-direction: column;">
-                        <div style="font-size: 64px; margin-bottom: 30px;">❌</div>
-                        <h2 style="color: #f44336; margin-bottom: 20px;">Errore di Condivisione</h2>
-                        <p style="color: #ccc; margin-bottom: 30px; text-align: center; max-width: 400px;">${message}</p>
-                        <button onclick="window.location.href='${window.location.pathname}'" style="padding: 12px 24px; background: #4fc3f7; border: none; border-radius: 8px; color: white; cursor: pointer; font-weight: 500;">
-                            🏠 Torna alla Home
-                        </button>
-                    </div>
-                `;
-            }
-        }
-
-        // Integrazione API migliorata
-        class ShareAPI {
-            static async generateLink(options) {
-                showLoading('Generazione link...', 'Creazione link sicuro');
-                
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        const projectData = this.getCurrentProjectData();
-                        const result = ShareSystem.generateShareableLink(projectData, options);
-                        
-                        hideLoading();
-                        resolve(result);
-                    }, 1200);
-                });
-            }
-
-            static getCurrentProjectData() {
-                return {
-                    fileName: document.getElementById('fileName').textContent,
-                    meshCount: document.getElementById('meshCount').textContent,
-                    vertexCount: parseInt(document.getElementById('vertexCount').textContent.replace(/,/g, '')),
-                    triangleCount: parseInt(document.getElementById('triangleCount').textContent.replace(/,/g, '')),
-                    modelSize: document.getElementById('modelSize').textContent,
-                    title: document.getElementById('projectName')?.value || document.getElementById('fileName').textContent,
-                    description: document.getElementById('projectDescription')?.value || 'Modello 3D condiviso',
-                    icon: '🏠',
-                    viewMode: currentViewMode,
-                    environment: currentEnvironment
-                };
-            }
-
-            static async sendInvite(email, role, message) {
-                // Simula invio email con link reale
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        resolve({
-                            success: true,
-                            inviteId: generateSecureId(),
-                            message: `Invito inviato a ${email}`
-                        });
-                    }, 800);
-                });
-            }
-        }
-
-        // Sistema di versioning progetti
-        class ProjectVersioning {
-            static versions = [];
-
-            static saveVersion(projectData) {
-                const version = {
-                    id: generateSecureId(),
-                    timestamp: new Date(),
-                    data: projectData,
-                    author: 'Tu',
-                    comment: 'Auto-save'
-                };
-                this.versions.push(version);
-                
-                if (this.versions.length > 10) {
-                    this.versions.shift(); // Mantieni solo le ultime 10 versioni
-                }
-                
-                return version;
-            }
-
-            static getVersionHistory() {
-                return this.versions;
-            }
-
-            static restoreVersion(versionId) {
-                const version = this.versions.find(v => v.id === versionId);
-                if (version) {
-                    showNotification(`Versione ripristinata: ${version.timestamp.toLocaleString()}`, 'success');
-                    return version.data;
-                }
-                return null;
-            }
-        }
-
-        // Analytics e telemetria (simulata)
-        class Analytics {
-            static trackModelLoad(fileName, fileSize) {
-                console.log('📊 Model loaded:', fileName, fileSize);
-            }
-
-            static trackShare(method, permissions) {
-                console.log('📊 Shared via:', method, 'Permissions:', permissions);
-            }
-
-            static trackCollaboration(action, userId) {
-                console.log('📊 Collaboration:', action, 'by', userId);
-            }
-
-            static trackViewChange(viewMode, environment) {
-                console.log('📊 View changed:', viewMode, environment);
-            }
-        }
-
-        // Integra analytics negli eventi esistenti
-        const originalLoadModelFile = loadModelFile;
-        loadModelFile = function(file) {
-            Analytics.trackModelLoad(file.name, file.size);
-            return originalLoadModelFile.call(this, file);
-        };
-
-        const originalSetViewMode = setViewMode;
-        setViewMode = function(mode) {
-            Analytics.trackViewChange(mode, currentEnvironment);
-            return originalSetViewMode.call(this, mode);
-        };
-
-        // Sistema di backup cloud
-        class CloudBackup {
-            static async backup(projectData) {
-                showNotification('Backup in corso...', 'info');
-                
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        showNotification('Backup completato su cloud', 'success');
-                        resolve({ success: true, backupId: generateSecureId() });
-                    }, 2000);
-                });
-            }
-
-            static async restore(backupId) {
-                showLoading('Ripristino da backup...', 'Download da cloud');
-                
-                return new Promise(resolve => {
-                    setTimeout(() => {
-                        hideLoading();
-                        showNotification('Progetto ripristinato da backup', 'success');
-                        resolve({ success: true });
-                    }, 3000);
-                });
-            }
-        }
-
-        // Performance monitoring
-        class PerformanceMonitor {
-            static fps = 60;
-            static memoryUsage = 0;
-
-            static startMonitoring() {
-                setInterval(() => {
-                    this.fps = 55 + Math.random() * 10; // Simula FPS
-                    this.memoryUsage = 30 + Math.random() * 20; // Simula uso memoria
-                    
-                    if (this.fps < 30) {
-                        showNotification('Performance ridotte, considera di abbassare la qualità', 'warning');
-                    }
-                }, 5000);
-            }
-
-            static getStats() {
-                return {
-                    fps: Math.round(this.fps),
-                    memory: Math.round(this.memoryUsage) + ' MB',
-                    triangles: document.getElementById('triangleCount').textContent,
-                    vertices: document.getElementById('vertexCount').textContent
-                };
-            }
-        }
-
-        // Avvia monitoring performance
-        PerformanceMonitor.startMonitoring();
-
-        // Console per debug (nascosta in produzione)
-        window.viewer3DPro = {
-            analytics: Analytics,
-            backup: CloudBackup,
-            versioning: ProjectVersioning,
-            performance: PerformanceMonitor,
-            api: ShareAPI,
-            
-            // Funzioni di debug
-            simulateCollaboratorJoin: function(name, email) {
-                // Assicurati che collaborators sia definito
-                if (!window.collaborators) {
-                    window.collaborators = collaborators;
-                }
-                
-                const newCollab = {
-                    name: name || 'Nuovo Utente',
-                    email: email || 'nuovo@esempio.com',
-                    role: 'viewer',
-                    avatar: (name || 'NU').substring(0,2).toUpperCase(),
-                    status: 'online'
-                };
-                collaborators.push(newCollab);
-                updateCollaboratorList();
-                showNotification(`${newCollab.name} è entrato nel progetto!`, 'success');
-            },
-            
-            getCurrentState: function() {
-                return {
-                    model: currentModel,
-                    tool: currentTool,
-                    viewMode: currentViewMode,
-                    environment: currentEnvironment,
-                    collaborators: collaborators.length,
-                    shareLink: shareLink
-                };
-            }
-        };
-
-        // Inizializzazione del sistema di condivisione
+        // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            initializeApp();
-            simulateCloudConnection();
-            
-            // Inizializza il sistema di routing per link condivisi
-            ShareRouter.init();
-            
-            // Aggiungi pulsante dashboard nella sidebar
-            addShareDashboardButton();
+            setTimeout(init, 100);
         });
-
-        function addShareDashboardButton() {
-            const shareSection = document.querySelector('.share-section');
-            if (shareSection) {
-                const dashboardBtn = document.createElement('button');
-                dashboardBtn.className = 'share-method-btn';
-                dashboardBtn.style.gridColumn = '1 / -1';
-                dashboardBtn.style.marginTop = '8px';
-                dashboardBtn.innerHTML = '📊 Dashboard Progetti';
-                dashboardBtn.onclick = showShareDashboard;
-                
-                shareSection.appendChild(dashboardBtn);
-            }
-        }
-
-        // Funzione di test per verificare il sistema
-        function demonstrateSharing() {
-            console.log('🚀 Dimostrazione sistema di condivisione...');
-            
-            // 1. Carica un modello di esempio
-            loadSample('villa');
-            
-            setTimeout(() => {
-                // 2. Genera un link di condivisione
-                document.getElementById('shareTitle').value = 'Villa Moderna - Demo';
-                document.getElementById('shareMessage').value = 'Ecco il progetto della villa!';
-                
-                generateShareLink().then(() => {
-                    showNotification('✅ Link funzionante generato! Puoi copiarlo e condividerlo.', 'success');
-                    
-                    // 3. Mostra come testare il link
-                    setTimeout(() => {
-                        showNotification('💡 Per testare: copia il link e aprilo in una nuova scheda del browser', 'info');
-                    }, 2000);
-                });
-            }, 1500);
-        }
-
-        // Aggiorna le funzioni esistenti per integrare il nuovo sistema
-        window.viewer3DPro = {
-            ...window.viewer3DPro,
-            shareSystem: ShareSystem,
-            shareRouter: ShareRouter,
-            realTimeShare: RealTimeShare,
-            
-            // Funzioni di test e dimostrazione
-            testSharing: demonstrateSharing,
-            showDashboard: showShareDashboard,
-            
-            // Genera link di test
-            generateTestLink: function() {
-                if (!hasModel()) {
-                    loadSample('villa');
-                    setTimeout(() => this.generateTestLink(), 2000);
-                    return;
-                }
-                
-                return generateShareLink();
-            },
-            
-            // Simula accesso da link condiviso
-            simulateSharedAccess: function(shareId) {
-                if (!shareId && shareLink) {
-                    shareId = shareLink.split('?share=')[1];
-                }
-                if (shareId) {
-                    ShareRouter.handleSharedLink(shareId);
-                } else {
-                    console.log('Genera prima un link con generateTestLink()');
-                }
-            },
-            
-            // Ottieni tutti i progetti condivisi
-            getSharedProjects: function() {
-                return Array.from(ShareSystem.sharedProjects.entries());
-            }
-        };
-
-        // Miglioramenti alle notifiche per il sistema di condivisione
-        const originalShowNotification = showNotification;
-        showNotification = function(message, type = 'info') {
-            // Aggiungi suoni di notifica per eventi di condivisione
-            if (message.includes('condiviso') || message.includes('Link')) {
-                playNotificationSound(type);
-            }
-            
-            return originalShowNotification(message, type);
-        };
-
-        function playNotificationSound(type) {
-            // Simula feedback sonoro (in produzione useresti Web Audio API)
-            if (type === 'success') {
-                console.log('🔊 Suono successo');
-            } else if (type === 'error') {
-                console.log('🔊 Suono errore');
-            }
-        }
-
-        // Sistema di analytics per la condivisione
-        class ShareAnalytics {
-            static events = [];
-
-            static trackShare(method, options) {
-                const event = {
-                    type: 'share_created',
-                    method: method,
-                    options: options,
-                    timestamp: new Date(),
-                    projectName: document.getElementById('fileName').textContent
-                };
-                
-                this.events.push(event);
-                console.log('📊 Share tracked:', event);
-            }
-
-            static trackAccess(shareId, userAgent) {
-                const event = {
-                    type: 'share_accessed',
-                    shareId: shareId,
-                    userAgent: userAgent || navigator.userAgent,
-                    timestamp: new Date()
-                };
-                
-                this.events.push(event);
-                console.log('📊 Access tracked:', event);
-            }
-
-            static getStats() {
-                const shares = this.events.filter(e => e.type === 'share_created').length;
-                const accesses = this.events.filter(e => e.type === 'share_accessed').length;
-                
-                return {
-                    totalShares: shares,
-                    totalAccesses: accesses,
-                    events: this.events
-                };
-            }
-        }
-
-        // Integra analytics nelle funzioni esistenti
-        const originalGenerateShareLink = generateShareLink;
-        generateShareLink = async function() {
-            const result = await originalGenerateShareLink();
-            
-            ShareAnalytics.trackShare('direct_link', {
-                permission: selectedPermission,
-                expiry: selectedExpiry,
-                hasPassword: !!document.getElementById('sharePassword')?.value
-            });
-            
-            return result;
-        };
-
-        // Aggiungi analytics al router
-        ShareRouter.originalHandleSharedLink = ShareRouter.handleSharedLink;
-        ShareRouter.handleSharedLink = function(shareId) {
-            ShareAnalytics.trackAccess(shareId);
-            return ShareRouter.originalHandleSharedLink(shareId);
-        };
-
-        // Funzioni di utilità per debug e monitoraggio
-        function logShareSystemStatus() {
-            console.log('📋 Stato Sistema di Condivisione:');
-            console.log('- Progetti condivisi:', ShareSystem.sharedProjects.size);
-            console.log('- Link attivo:', shareLink || 'Nessuno');
-            console.log('- Analytics:', ShareAnalytics.getStats());
-            console.log('- URL corrente:', window.location.href);
-            
-            const urlParams = new URLSearchParams(window.location.search);
-            const shareId = urlParams.get('share');
-            if (shareId) {
-                console.log('- Modalità condivisione attiva per:', shareId);
-            }
-        }
-
-        // Aggiungi comando di debug
-        window.viewer3DPro.logStatus = logShareSystemStatus;
-        window.viewer3DPro.analytics = ShareAnalytics;
-
-        console.log('✅ Sistema di condivisione funzionante inizializzato!');
-        console.log('🧪 Prova: viewer3DPro.testSharing() per una dimostrazione');
-        console.log('📊 Status: viewer3DPro.logStatus() per verificare lo stato');
-
-        // Auto-test del sistema (opzionale)
-        setTimeout(() => {
-            if (window.location.search === '' && document.getElementById('fileName').textContent === 'Villa_Moderna.glb') {
-                console.log('💡 Sistema pronto! Il link di condivisione funzionerà correttamente.');
-            }
-        }, 3000);
-
-        // Gestione errori globale per il sistema di condivisione
-        window.addEventListener('error', function(e) {
-            if (e.message.includes('share') || e.message.includes('Share')) {
-                console.error('❌ Errore sistema condivisione:', e);
-                showNotification('Errore nel sistema di condivisione. Ricarica la pagina.', 'error');
-            }
-        });
-
-        // Cleanup quando si esce dalla pagina
-        window.addEventListener('beforeunload', function() {
-            ShareSystem.saveToStorage();
-        });
-
-        console.log('🔗 Sistema di link di condivisione FUNZIONANTE caricato!');
     </script>
 </body>
 </html>
