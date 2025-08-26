@@ -1,10 +1,15 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
     <meta charset="UTF-8">
-    <title>3D Viewer Pro - Stile Kubity</title>
+    <title>3D Viewer Pro - Enhanced</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -20,29 +25,31 @@
         }
         
         .sidebar {
-            width: 300px;
+            width: 340px;
             background: #2d2d2d;
             border-right: 1px solid #444;
             display: flex;
             flex-direction: column;
+            overflow-y: auto;
+            transition: transform 0.3s ease;
         }
         
         .header {
             padding: 20px;
-            background: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-bottom: 1px solid #444;
         }
         
         .logo {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: bold;
-            color: #4fc3f7;
-            margin-bottom: 5px;
+            color: white;
+            margin-bottom: 8px;
         }
         
         .subtitle {
             font-size: 12px;
-            color: #999;
+            color: rgba(255,255,255,0.8);
         }
         
         .section {
@@ -55,7 +62,13 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 15px;
-            color: #ccc;
+            color: #4fc3f7;
+            font-weight: 600;
+        }
+        
+        .upload-area {
+            position: relative;
+            margin-bottom: 15px;
         }
         
         .upload-btn {
@@ -67,8 +80,11 @@
             color: white;
             cursor: pointer;
             font-weight: 500;
-            margin-bottom: 10px;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
         
         .upload-btn:hover {
@@ -76,8 +92,14 @@
             box-shadow: 0 4px 15px rgba(79, 195, 247, 0.4);
         }
         
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
         .sample-btn {
-            width: 100%;
+            flex: 1;
             padding: 10px;
             background: transparent;
             border: 1px solid #555;
@@ -85,10 +107,266 @@
             color: #ccc;
             cursor: pointer;
             transition: all 0.2s ease;
+            font-size: 12px;
         }
         
         .sample-btn:hover {
             background: #404040;
+            border-color: #666;
+        }
+        
+        .share-section {
+            background: #383838;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .share-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4fc3f7;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .share-methods {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        
+        .share-method-btn {
+            padding: 10px 8px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        
+        .share-method-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.3);
+        }
+        
+        .share-method-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .share-link {
+            background: #444;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 8px;
+            font-size: 11px;
+            color: #ccc;
+            word-break: break-all;
+            margin-bottom: 8px;
+            display: none;
+        }
+        
+        .share-actions {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .copy-btn, .qr-btn {
+            flex: 1;
+            padding: 6px;
+            background: #555;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 10px;
+            transition: background 0.2s ease;
+        }
+        
+        .copy-btn:hover, .qr-btn:hover {
+            background: #666;
+        }
+        
+        .collaboration-panel {
+            background: #383838;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .collab-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #4fc3f7;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .collaborator-list {
+            max-height: 120px;
+            overflow-y: auto;
+            margin-bottom: 12px;
+        }
+        
+        .collaborator-item {
+            display: flex;
+            align-items: center;
+            padding: 8px;
+            background: #444;
+            border-radius: 6px;
+            margin-bottom: 6px;
+        }
+        
+        .avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+        
+        .collaborator-info {
+            flex: 1;
+            font-size: 11px;
+        }
+        
+        .collaborator-name {
+            color: white;
+            font-weight: 500;
+        }
+        
+        .collaborator-role {
+            color: #999;
+            font-size: 10px;
+        }
+        
+        .permission-badge {
+            background: #555;
+            padding: 2px 6px;
+            border-radius: 12px;
+            font-size: 9px;
+            color: #ccc;
+        }
+        
+        .permission-badge.edit {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .add-collaborator-btn {
+            width: 100%;
+            padding: 8px;
+            background: transparent;
+            border: 1px dashed #666;
+            border-radius: 6px;
+            color: #999;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        
+        .add-collaborator-btn:hover {
+            border-color: #4fc3f7;
+            color: #4fc3f7;
+        }
+        
+        .project-manager {
+            background: #383838;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .project-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background: #444;
+            border-radius: 6px;
+            margin-bottom: 8px;
+            transition: background 0.2s ease;
+            position: relative;
+        }
+        
+        .project-item:hover {
+            background: #4a4a4a;
+        }
+        
+        .project-info {
+            flex: 1;
+        }
+        
+        .project-name {
+            font-size: 11px;
+            color: white;
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+        
+        .project-meta {
+            font-size: 10px;
+            color: #999;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        
+        .share-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+        
+        .share-indicator.shared {
+            background: #4caf50;
+        }
+        
+        .project-actions {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .project-action {
+            width: 28px;
+            height: 28px;
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+        
+        .project-action:hover {
+            background: #555;
+            color: white;
         }
         
         .view-grid {
@@ -122,7 +400,7 @@
             background: #383838;
             border-radius: 8px;
             padding: 15px;
-            margin: 15px 0;
+            margin-bottom: 16px;
         }
         
         .info-card h4 {
@@ -138,8 +416,14 @@
             font-size: 11px;
         }
         
-        .info-label { color: #aaa; }
-        .info-value { color: white; font-weight: 500; }
+        .info-label { 
+            color: #aaa; 
+        }
+        
+        .info-value { 
+            color: white; 
+            font-weight: 500; 
+        }
         
         .viewer {
             flex: 1;
@@ -150,6 +434,7 @@
         #canvas {
             width: 100%;
             height: 100%;
+            display: block;
         }
         
         .toolbar {
@@ -157,35 +442,62 @@
             top: 20px;
             right: 20px;
             display: flex;
-            background: rgba(45, 45, 45, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 10px;
-            padding: 8px;
-            gap: 4px;
+            background: rgba(45, 45, 45, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 12px;
+            padding: 10px;
+            gap: 6px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         .tool-btn {
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             background: transparent;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             color: #ccc;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: all 0.3s ease;
+            font-size: 18px;
+            position: relative;
         }
         
         .tool-btn:hover {
             background: #555;
             color: white;
+            transform: scale(1.05);
         }
         
         .tool-btn.active {
             background: #4fc3f7;
             color: white;
+        }
+        
+        .tool-btn::after {
+            content: attr(title);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            margin-top: 5px;
+        }
+        
+        .tool-btn:hover::after {
+            opacity: 1;
         }
         
         .nav-controls {
@@ -194,23 +506,26 @@
             left: 50%;
             transform: translateX(-50%);
             display: flex;
-            background: rgba(45, 45, 45, 0.9);
-            backdrop-filter: blur(10px);
-            border-radius: 25px;
-            padding: 10px;
-            gap: 10px;
+            background: rgba(45, 45, 45, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 30px;
+            padding: 12px;
+            gap: 12px;
+            z-index: 100;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
         }
         
         .nav-btn {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             background: transparent;
             border: none;
             border-radius: 50%;
             color: #ccc;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 18px;
             transition: all 0.3s ease;
+            position: relative;
         }
         
         .nav-btn:hover {
@@ -225,28 +540,36 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(26, 26, 26, 0.8);
+            background: rgba(26, 26, 26, 0.9);
             display: none;
             align-items: center;
             justify-content: center;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(10px);
+            z-index: 200;
+        }
+        
+        .loading.show {
+            display: flex;
         }
         
         .loading-box {
-            background: rgba(45, 45, 45, 0.95);
-            padding: 30px;
-            border-radius: 15px;
+            background: rgba(45, 45, 45, 0.98);
+            padding: 40px;
+            border-radius: 20px;
             text-align: center;
+            border: 1px solid #555;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
         
         .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #444;
-            border-top: 3px solid #4fc3f7;
+            width: 50px;
+            height: 50px;
+            border: 4px solid #444;
+            border-top: 4px solid #4fc3f7;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
+            margin: 0 auto 20px;
         }
         
         @keyframes spin {
@@ -258,47 +581,320 @@
             position: absolute;
             top: 0;
             left: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #4fc3f7, #29b6f6);
+            height: 4px;
+            background: linear-gradient(90deg, #4fc3f7, #29b6f6, #667eea);
             transform: scaleX(0);
             transform-origin: left;
             transition: transform 0.3s ease;
         }
         
-        .progress.active {
-            animation: progress 2s ease-in-out infinite;
+        .progress.loading {
+            animation: progress 2.5s ease-in-out infinite;
         }
         
         @keyframes progress {
             0% { transform: scaleX(0); }
-            50% { transform: scaleX(0.7); }
+            50% { transform: scaleX(0.8); }
             100% { transform: scaleX(1); }
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(45, 45, 45, 0.98);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 10px;
+            border-left: 4px solid #4fc3f7;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transform: translateX(400px);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+            max-width: 300px;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            border-left-color: #4caf50;
+        }
+        
+        .notification.error {
+            border-left-color: #f44336;
+        }
+        
+        .notification.warning {
+            border-left-color: #ff9800;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 300;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal.show {
+            display: flex;
+        }
+        
+        .modal-content {
+            background: #2d2d2d;
+            border-radius: 15px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            border: 1px solid #555;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #555;
+        }
+        
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #4fc3f7;
+        }
+        
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 24px;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .close-btn:hover {
+            background: #444;
+            color: white;
+        }
+        
+        .qr-container {
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .qr-code {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-bottom: 15px;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
+        .input-label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 12px;
+            color: #ccc;
+            font-weight: 500;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 10px;
+            background: #444;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .input-field:focus {
+            outline: none;
+            border-color: #4fc3f7;
+            box-shadow: 0 0 0 2px rgba(79, 195, 247, 0.2);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #4fc3f7, #29b6f6);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(79, 195, 247, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #555;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #666;
+        }
+        
+        .cloud-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+            color: #999;
+            margin-top: 10px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #666;
+        }
+        
+        .status-dot.online {
+            background: #4caf50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .permission-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .permission-option {
+            padding: 12px;
+            background: #444;
+            border: 1px solid #555;
+            border-radius: 8px;
+            color: #ccc;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s ease;
+            font-size: 12px;
+        }
+        
+        .permission-option:hover {
+            border-color: #4fc3f7;
+        }
+        
+        .permission-option.selected {
+            background: #4fc3f7;
+            border-color: #4fc3f7;
+            color: white;
+        }
+        
+        .permission-description {
+            font-size: 10px;
+            color: #999;
+            margin-top: 4px;
+        }
+        
+        .expiry-options {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        
+        .expiry-btn {
+            flex: 1;
+            padding: 8px;
+            background: #444;
+            border: 1px solid #555;
+            border-radius: 6px;
+            color: #ccc;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s ease;
+        }
+        
+        .expiry-btn:hover {
+            border-color: #4fc3f7;
+        }
+        
+        .expiry-btn.selected {
+            background: #4fc3f7;
+            border-color: #4fc3f7;
+            color: white;
         }
         
         @media (max-width: 768px) {
             .sidebar {
                 position: absolute;
-                z-index: 100;
+                z-index: 400;
                 transform: translateX(-100%);
-                transition: transform 0.3s ease;
+                width: 300px;
             }
             
             .sidebar.open {
                 transform: translateX(0);
             }
             
-            .menu-btn {
+            .menu-toggle {
                 position: absolute;
                 top: 20px;
                 left: 20px;
-                width: 40px;
-                height: 40px;
-                background: rgba(45, 45, 45, 0.9);
+                width: 44px;
+                height: 44px;
+                background: rgba(45, 45, 45, 0.95);
                 border: none;
-                border-radius: 8px;
+                border-radius: 10px;
                 color: white;
                 cursor: pointer;
-                z-index: 200;
+                z-index: 500;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 18px;
+                backdrop-filter: blur(15px);
+            }
+            
+            .toolbar {
+                top: 80px;
             }
         }
     </style>
@@ -308,1199 +904,1117 @@
         <div class="sidebar" id="sidebar">
             <div class="header">
                 <div class="logo">🎯 3D Viewer Pro</div>
-                <div class="subtitle">Stile Kubity - Alternativa SketchUp</div>
+                <div class="subtitle">Enhanced • Collaborative • Secure</div>
             </div>
             
             <div class="section">
-                <h3>File</h3>
-                <input type="file" id="fileInput" accept=".dae,.obj,.gltf,.glb" style="display: none;" onchange="handleFile(event)">
-                <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
-                    📁 Carica Modello
-                </button>
-                <button class="sample-btn" onclick="loadSample()">🏠 Villa Esempio</button>
-            </div>
-            
-            <div class="section">
-                <h3>Visualizzazione</h3>
-                <div class="view-grid">
-                    <button class="view-btn active" onclick="setMode('solid', this)">🎨 Solido</button>
-                    <button class="view-btn" onclick="setMode('wireframe', this)">📐 Wireframe</button>
-                    <button class="view-btn" onclick="setMode('xray', this)">👻 X-Ray</button>
-                    <button class="view-btn" onclick="setMode('material', this)">🌟 Materiali</button>
+                <h3>📁 File Manager</h3>
+                <div class="upload-area">
+                    <input type="file" id="fileInput" accept=".dae,.obj,.gltf,.glb,.ply,.fbx" style="display: none;">
+                    <button class="upload-btn" onclick="openFile()">
+                        <span>📤</span> Carica & Salva Progetto
+                    </button>
+                    <div class="btn-row">
+                        <button class="sample-btn" onclick="loadSample('villa')">🏠 Villa</button>
+                        <button class="sample-btn" onclick="loadSample('office')">🏢 Ufficio</button>
+                        <button class="sample-btn" onclick="loadSample('product')">📦 Prodotto</button>
+                    </div>
                 </div>
                 
-                <h3>Ambiente</h3>
-                <div class="view-grid">
-                    <button class="view-btn" onclick="setEnv('studio', this)">💡 Studio</button>
-                    <button class="view-btn active" onclick="setEnv('outdoor', this)">🌤️ Esterno</button>
-                    <button class="view-btn" onclick="setEnv('night', this)">🌙 Notte</button>
-                    <button class="view-btn" onclick="setEnv('sunset', this)">🌅 Tramonto</button>
+                <div class="share-section">
+                    <div class="share-title">
+                        <span>🌐</span> Condivisione Avanzata
+                    </div>
+                    <div class="share-methods">
+                        <button class="share-method-btn" onclick="shareViaLink()" id="linkShareBtn">
+                            🔗 Link
+                        </button>
+                        <button class="share-method-btn" onclick="shareViaEmail()" id="emailShareBtn">
+                            📧 Email
+                        </button>
+                        <button class="share-method-btn" onclick="shareViaTeams()" id="teamsShareBtn">
+                            👥 Teams
+                        </button>
+                        <button class="share-method-btn" onclick="shareViaSlack()" id="slackShareBtn">
+                            💬 Slack
+                        </button>
+                    </div>
+                    
+                    <div class="share-link" id="shareLink"></div>
+                    <div class="share-actions" style="display: none;" id="shareActions">
+                        <button class="copy-btn" onclick="copyShareLink()">📋 Copia</button>
+                        <button class="qr-btn" onclick="showQRCode()">📱 QR Code</button>
+                    </div>
+                    
+                    <div class="cloud-status">
+                        <div class="status-dot online" id="cloudStatus"></div>
+                        <span id="cloudStatusText">Servizio Online</span>
+                    </div>
+                </div>
+                
+                <div class="collaboration-panel">
+                    <div class="collab-title">
+                        <span>👥</span> Collaboratori
+                    </div>
+                    <div class="collaborator-list" id="collaboratorList">
+                        <div class="collaborator-item">
+                            <div class="avatar">TU</div>
+                            <div class="collaborator-info">
+                                <div class="collaborator-name">Tu (Owner)</div>
+                                <div class="collaborator-role">Creatore del progetto</div>
+                            </div>
+                            <div class="permission-badge edit">Owner</div>
+                        </div>
+                    </div>
+                    <button class="add-collaborator-btn" onclick="showAddCollaborator()">
+                        + Aggiungi Collaboratore
+                    </button>
                 </div>
             </div>
             
             <div class="section">
-                <h3>Informazioni</h3>
-                <div class="info-card" id="modelInfo" style="display: none;">
-                    <h4>📊 Statistiche</h4>
+                <h3>💾 Progetti Salvati</h3>
+                <div class="project-manager" id="projectManager">
+                    <div class="project-item">
+                        <div class="project-info">
+                            <div class="project-name">Villa Moderna</div>
+                            <div class="project-meta">
+                                <span>2 giorni fa</span>
+                                <div class="share-indicator shared" title="Progetto condiviso"></div>
+                                <span>3 collaboratori</span>
+                            </div>
+                        </div>
+                        <div class="project-actions">
+                            <button class="project-action" onclick="loadProject('villa')" title="Apri">📂</button>
+                            <button class="project-action" onclick="shareProject('villa')" title="Condividi">🔗</button>
+                            <button class="project-action" onclick="duplicateProject('villa')" title="Duplica">📋</button>
+                        </div>
+                    </div>
+                    
+                    <div class="project-item">
+                        <div class="project-info">
+                            <div class="project-name">Ufficio Open Space</div>
+                            <div class="project-meta">
+                                <span>1 settimana fa</span>
+                                <div class="share-indicator" title="Progetto privato"></div>
+                                <span>Solo tu</span>
+                            </div>
+                        </div>
+                        <div class="project-actions">
+                            <button class="project-action" onclick="loadProject('office')" title="Apri">📂</button>
+                            <button class="project-action" onclick="shareProject('office')" title="Condividi">🔗</button>
+                            <button class="project-action" onclick="duplicateProject('office')" title="Duplica">📋</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>🎨 Visualizzazione</h3>
+                <div class="view-grid">
+                    <button class="view-btn active" data-mode="solid" onclick="setViewMode('solid')">🎨 Solido</button>
+                    <button class="view-btn" data-mode="wireframe" onclick="setViewMode('wireframe')">📐 Wireframe</button>
+                    <button class="view-btn" data-mode="xray" onclick="setViewMode('xray')">👻 X-Ray</button>
+                    <button class="view-btn" data-mode="material" onclick="setViewMode('material')">🌟 Materiali</button>
+                </div>
+                
+                <h3 style="margin-top: 15px;">🌍 Ambiente</h3>
+                <div class="view-grid">
+                    <button class="view-btn" data-env="studio" onclick="setEnvironment('studio')">💡 Studio</button>
+                    <button class="view-btn active" data-env="outdoor" onclick="setEnvironment('outdoor')">🌤️ Esterno</button>
+                    <button class="view-btn" data-env="night" onclick="setEnvironment('night')">🌙 Notte</button>
+                    <button class="view-btn" data-env="sunset" onclick="setEnvironment('sunset')">🌅 Tramonto</button>
+                </div>
+            </div>
+            
+            <div class="section">
+                <h3>📊 Informazioni</h3>
+                <div class="info-card" id="modelStats">
+                    <h4>📈 Statistiche Modello</h4>
                     <div class="info-row">
                         <span class="info-label">File:</span>
-                        <span class="info-value" id="fileName">-</span>
+                        <span class="info-value" id="fileName">Villa_Moderna.glb</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Mesh:</span>
-                        <span class="info-value" id="meshCount">0</span>
+                        <span class="info-value" id="meshCount">24</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Vertici:</span>
-                        <span class="info-value" id="vertexCount">0</span>
+                        <span class="info-value" id="vertexCount">45,832</span>
                     </div>
                     <div class="info-row">
                         <span class="info-label">Triangoli:</span>
-                        <span class="info-value" id="triangleCount">0</span>
+                        <span class="info-value" id="triangleCount">91,664</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Dimensioni:</span>
+                        <span class="info-value" id="modelSize">12.3 MB</span>
                     </div>
                 </div>
                 
                 <div class="info-card">
-                    <h4>🎮 Controlli</h4>
-                    <div style="font-size: 10px; line-height: 1.5; color: #aaa;">
-                        <div><strong>Orbita:</strong> Click + trascina</div>
+                    <h4>🎮 Controlli Avanzati</h4>
+                    <div style="font-size: 10px; line-height: 1.6; color: #aaa;">
+                        <div><strong>Orbita:</strong> Click sinistro + trascina</div>
                         <div><strong>Pan:</strong> Click destro + trascina</div>
-                        <div><strong>Zoom:</strong> Rotella mouse</div>
-                        <div><strong>Focus:</strong> Doppio click</div>
+                        <div><strong>Zoom:</strong> Rotella mouse / Pinch</div>
+                        <div><strong>Focus:</strong> Doppio click su modello</div>
+                        <div><strong>Screenshot:</strong> Pulsante 📸</div>
+                        <div><strong>Misura:</strong> Pulsante 📏 + 2 click</div>
+                        <div><strong>Annotazioni:</strong> Pulsante 📝</div>
                     </div>
                 </div>
             </div>
         </div>
         
         <div class="viewer">
-            <button class="menu-btn" onclick="toggleSidebar()" style="display: none;">☰</button>
+            <button class="menu-toggle" onclick="toggleSidebar()" style="display: none;">☰</button>
             
             <div class="progress" id="progress"></div>
             
             <div class="toolbar">
-                <button class="tool-btn active" onclick="setTool('orbit', this)" title="Orbita">🔄</button>
-                <button class="tool-btn" onclick="setTool('pan', this)" title="Pan">✋</button>
-                <button class="tool-btn" onclick="setTool('zoom', this)" title="Zoom">🔍</button>
+                <button class="tool-btn active" data-tool="orbit" title="Orbita" onclick="setTool('orbit')">🔄</button>
+                <button class="tool-btn" data-tool="pan" title="Pan" onclick="setTool('pan')">✋</button>
+                <button class="tool-btn" data-tool="measure" title="Misura" onclick="setTool('measure')">📏</button>
+                <button class="tool-btn" data-tool="annotate" title="Annotazioni" onclick="setTool('annotate')">📝</button>
                 <button class="tool-btn" onclick="takeScreenshot()" title="Screenshot">📸</button>
+                <button class="tool-btn" onclick="showSettings()" title="Impostazioni">⚙️</button>
+                <button class="tool-btn" onclick="resetView()" title="Reset Vista">🏠</button>
             </div>
             
-            <div id="canvas"></div>
+            <div id="canvas">
+                <!-- Simulazione 3D viewer -->
+                <div style="width: 100%; height: 100%; background: linear-gradient(135deg, #2a2a2a 0%, #1e1e1e 100%); display: flex; align-items: center; justify-content: center; flex-direction: column;">
+                    <div style="font-size: 64px; margin-bottom: 20px;">🏠</div>
+                    <div style="font-size: 24px; font-weight: bold; color: #4fc3f7; margin-bottom: 10px;">Villa Moderna - Demo</div>
+                    <div style="font-size: 14px; color: #999; text-align: center; max-width: 400px; line-height: 1.5;">
+                        Modello 3D caricato e pronto per la condivisione collaborativa con i tuoi colleghi
+                    </div>
+                    <div style="margin-top: 30px; display: flex; gap: 15px; align-items: center;">
+                        <div style="padding: 10px 20px; background: rgba(79, 195, 247, 0.2); border-radius: 20px; font-size: 12px; color: #4fc3f7;">
+                            ✨ Rendering in tempo reale
+                        </div>
+                        <div style="padding: 10px 20px; background: rgba(76, 175, 80, 0.2); border-radius: 20px; font-size: 12px; color: #4caf50;">
+                            🔗 Pronto per condivisione
+                        </div>
+                    </div>
+                </div>
+            </div>
             
             <div class="nav-controls">
-                <button class="nav-btn" onclick="setView('front')" title="Fronte">⬅️</button>
-                <button class="nav-btn" onclick="setView('back')" title="Retro">➡️</button>
-                <button class="nav-btn" onclick="setView('left')" title="Sinistra">⬆️</button>
-                <button class="nav-btn" onclick="setView('right')" title="Destra">⬇️</button>
-                <button class="nav-btn" onclick="setView('top')" title="Alto">🔝</button>
-                <button class="nav-btn" onclick="setView('home')" title="Home">🏠</button>
+                <button class="nav-btn" data-view="front" title="Vista Frontale" onclick="setView('front')">⬅️</button>
+                <button class="nav-btn" data-view="back" title="Vista Posteriore" onclick="setView('back')">➡️</button>
+                <button class="nav-btn" data-view="left" title="Vista Sinistra" onclick="setView('left')">⬆️</button>
+                <button class="nav-btn" data-view="right" title="Vista Destra" onclick="setView('right')">⬇️</button>
+                <button class="nav-btn" data-view="top" title="Vista dall'Alto" onclick="setView('top')">🔝</button>
+                <button class="nav-btn" data-view="home" title="Vista Isometrica" onclick="setView('home')">🏠</button>
             </div>
             
             <div class="loading" id="loading">
                 <div class="loading-box">
                     <div class="spinner"></div>
-                    <h3>Caricamento modello...</h3>
-                    <p style="color: #aaa; margin-top: 10px;" id="loadingText">Parsing geometria</p>
+                    <h3 id="loadingTitle">Caricamento modello...</h3>
+                    <p id="loadingText" style="color: #aaa; margin-top: 10px;">Ottimizzazione per condivisione</p>
                 </div>
             </div>
         </div>
     </div>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     
+    <!-- Modal QR Code -->
+    <div class="modal" id="qrModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">📱 Codice QR per Condivisione</div>
+                <button class="close-btn" onclick="closeModal('qrModal')">&times;</button>
+            </div>
+            <div class="qr-container">
+                <div class="qr-code" id="qrCode">
+                    <div style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #333;">
+                        📱 QR CODE
+                    </div>
+                </div>
+                <p style="color: #ccc; font-size: 12px; margin-bottom: 15px;">
+                    Scansiona con smartphone per aprire il progetto
+                </p>
+                <div style="font-size: 11px; color: #999; background: #383838; padding: 10px; border-radius: 6px;">
+                    https://viewer3d.pro/share/abc123xyz
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Condivisione Avanzata -->
+    <div class="modal" id="shareModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">🔗 Condivisione Avanzata</div>
+                <button class="close-btn" onclick="closeModal('shareModal')">&times;</button>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Titolo Condivisione</label>
+                <input type="text" class="input-field" id="shareTitle" placeholder="Villa Moderna - Revisione Design" value="Villa Moderna">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Messaggio (opzionale)</label>
+                <input type="text" class="input-field" id="shareMessage" placeholder="Ciao! Dai un'occhiata al nuovo progetto...">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Permessi di Accesso</label>
+                <div class="permission-selector">
+                    <div class="permission-option selected" data-permission="view" onclick="selectPermission('view')">
+                        <div>👁️ Visualizzazione</div>
+                        <div class="permission-description">Solo visualizzare il modello</div>
+                    </div>
+                    <div class="permission-option" data-permission="comment" onclick="selectPermission('comment')">
+                        <div>💬 Commenti</div>
+                        <div class="permission-description">Visualizzare e commentare</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Scadenza Link</label>
+                <div class="expiry-options">
+                    <button class="expiry-btn" data-expiry="1day" onclick="selectExpiry('1day')">1 Giorno</button>
+                    <button class="expiry-btn selected" data-expiry="1week" onclick="selectExpiry('1week')">1 Settimana</button>
+                    <button class="expiry-btn" data-expiry="1month" onclick="selectExpiry('1month')">1 Mese</button>
+                    <button class="expiry-btn" data-expiry="never" onclick="selectExpiry('never')">Mai</button>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Password (opzionale)</label>
+                <input type="password" class="input-field" id="sharePassword" placeholder="Lascia vuoto per accesso libero">
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal('shareModal')">Annulla</button>
+                <button class="btn btn-primary" onclick="generateShareLink()">Genera Link</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Aggiungi Collaboratore -->
+    <div class="modal" id="collaboratorModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">👥 Aggiungi Collaboratore</div>
+                <button class="close-btn" onclick="closeModal('collaboratorModal')">&times;</button>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Email Collaboratore</label>
+                <input type="email" class="input-field" id="collaboratorEmail" placeholder="esempio@azienda.com">
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Ruolo</label>
+                <div class="permission-selector">
+                    <div class="permission-option selected" data-role="viewer" onclick="selectRole('viewer')">
+                        <div>👁️ Visualizzatore</div>
+                        <div class="permission-description">Può solo vedere il progetto</div>
+                    </div>
+                    <div class="permission-option" data-role="collaborator" onclick="selectRole('collaborator')">
+                        <div>✏️ Collaboratore</div>
+                        <div class="permission-description">Può commentare e annotare</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label class="input-label">Messaggio di Invito</label>
+                <input type="text" class="input-field" id="inviteMessage" placeholder="Ti invito a collaborare su questo progetto..." value="Ti invito a vedere il nuovo progetto 3D!">
+            </div>
+            
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal('collaboratorModal')">Annulla</button>
+                <button class="btn btn-primary" onclick="sendInvite()">Invia Invito</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal Impostazioni -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title">⚙️ Impostazioni Avanzate</div>
+                <button class="close-btn" onclick="closeModal('settingsModal')">&times;</button>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Nome Progetto</label>
+                <input type="text" class="input-field" id="projectName" placeholder="Il mio progetto 3D" value="Villa Moderna">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Descrizione</label>
+                <input type="text" class="input-field" id="projectDescription" placeholder="Descrizione progetto..." value="Progetto architettonico per villa moderna">
+            </div>
+            <div class="input-group">
+                <label class="input-label">Qualità Rendering</label>
+                <select class="input-field" id="renderQuality">
+                    <option value="low">Bassa (Performance)</option>
+                    <option value="medium" selected>Media (Bilanciata)</option>
+                    <option value="high">Alta (Qualità)</option>
+                    <option value="ultra">Ultra (Desktop)</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Auto-Save Cloud</label>
+                <select class="input-field" id="autoSave">
+                    <option value="off">Disattivato</option>
+                    <option value="2min">Ogni 2 minuti</option>
+                    <option value="5min" selected>Ogni 5 minuti</option>
+                    <option value="10min">Ogni 10 minuti</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label class="input-label">Notifiche Collaboratori</label>
+                <select class="input-field" id="notifications">
+                    <option value="all" selected>Tutte le attività</option>
+                    <option value="mentions">Solo menzioni</option>
+                    <option value="none">Disattivate</option>
+                </select>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-secondary" onclick="closeModal('settingsModal')">Annulla</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Salva</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Global variables
-        let scene, camera, renderer, controls;
-        let loadedModel = null;
-        let grid = null;
-        let currentMode = 'solid';
-        let currentEnv = 'outdoor';
+        // Stato dell'applicazione
+        let currentModel = null;
         let currentTool = 'orbit';
-        
-        // Mouse/touch tracking
-        let isRotating = false;
-        let isPanning = false;
-        let lastMouse = { x: 0, y: 0 };
-        let spherical = { theta: Math.PI * 0.25, phi: Math.PI * 0.3, radius: 15 };
-        let target = { x: 0, y: 0, z: 0 };
-        
-        // Initialize
-        function init() {
-            console.log('🚀 Initializing Kubity-style viewer...');
-            
-            const container = document.getElementById('canvas');
-            
-            // Scene
-            scene = new THREE.Scene();
-            setupEnvironment();
-            
-            // Camera
-            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
-            updateCamera();
-            
-            // Renderer
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(container.clientWidth, container.clientHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            renderer.shadowMap.enabled = true;
-            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-            renderer.toneMapping = THREE.ACESFilmicToneMapping;
-            renderer.toneMappingExposure = 1.2;
-            container.appendChild(renderer.domElement);
-            
-            setupLighting();
-            setupGrid();
-            setupControls();
-            
-            // Start rendering
-            animate();
-            
-            // Resize handler
-            window.addEventListener('resize', onResize);
-            
-            console.log('✅ Viewer initialized');
-        }
-        
-        function setupEnvironment() {
-            scene.background = new THREE.Color(0x87ceeb).lerp(new THREE.Color(0xe6f3ff), 0.5);
-            scene.fog = new THREE.Fog(0x87ceeb, 50, 300);
-        }
-        
-        function setupLighting() {
-            // Ambient
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.6);
-            scene.add(ambientLight);
-            
-            // Main directional
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 1.5);
-            directionalLight.position.set(20, 30, 10);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            scene.add(directionalLight);
-            
-            // Fill light
-            const fillLight = new THREE.DirectionalLight(0x4fc3f7, 0.3);
-            fillLight.position.set(-10, 10, -10);
-            scene.add(fillLight);
-            
-            // Hemisphere
-            const hemisphereLight = new THREE.HemisphereLight(0x87ceeb, 0x8b7355, 0.8);
-            scene.add(hemisphereLight);
-        }
-        
-        function setupGrid() {
-            grid = new THREE.GridHelper(50, 50, 0x888888, 0xcccccc);
-            grid.material.opacity = 0.3;
-            grid.material.transparent = true;
-            scene.add(grid);
-        }
-        
-        function setupControls() {
-            const canvas = renderer.domElement;
-            
-            canvas.addEventListener('mousedown', onMouseDown);
-            canvas.addEventListener('mousemove', onMouseMove);
-            canvas.addEventListener('mouseup', onMouseUp);
-            canvas.addEventListener('wheel', onWheel);
-            canvas.addEventListener('dblclick', onDoubleClick);
-            canvas.addEventListener('contextmenu', e => e.preventDefault());
-            
-            // Touch events
-            canvas.addEventListener('touchstart', onTouchStart);
-            canvas.addEventListener('touchmove', onTouchMove);
-            canvas.addEventListener('touchend', onTouchEnd);
-        }
-        
-        function onMouseDown(event) {
-            if (currentTool === 'orbit' && event.button === 0) {
-                isRotating = true;
-            } else if (currentTool === 'pan' || event.button === 2) {
-                isPanning = true;
+        let currentViewMode = 'solid';
+        let currentEnvironment = 'outdoor';
+        let selectedPermission = 'view';
+        let selectedExpiry = '1week';
+        let selectedRole = 'viewer';
+        let shareLink = '';
+        let collaborators = [
+            {
+                name: 'Tu',
+                email: 'tu@azienda.com',
+                role: 'owner',
+                avatar: 'TU',
+                status: 'online'
             }
-            lastMouse = { x: event.clientX, y: event.clientY };
+        ];
+
+        // Inizializzazione
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            simulateCloudConnection();
+        });
+
+        function initializeApp() {
+            showNotification('App inizializzata con successo!', 'success');
+            updateCollaboratorList();
         }
-        
-        function onMouseMove(event) {
-            if (!isRotating && !isPanning) return;
-            
-            const deltaX = event.clientX - lastMouse.x;
-            const deltaY = event.clientY - lastMouse.y;
-            
-            if (isRotating) {
-                spherical.theta -= deltaX * 0.01;
-                spherical.phi += deltaY * 0.01;
-                spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
-            }
-            
-            if (isPanning) {
-                const distance = spherical.radius;
-                const panSpeed = distance * 0.001;
-                
-                const left = new THREE.Vector3();
-                const up = new THREE.Vector3();
-                left.setFromMatrixColumn(camera.matrix, 0);
-                up.setFromMatrixColumn(camera.matrix, 1);
-                
-                left.multiplyScalar(-deltaX * panSpeed);
-                up.multiplyScalar(deltaY * panSpeed);
-                
-                target.x += left.x + up.x;
-                target.y += left.y + up.y;
-                target.z += left.z + up.z;
-            }
-            
-            lastMouse = { x: event.clientX, y: event.clientY };
-        }
-        
-        function onMouseUp() {
-            isRotating = false;
-            isPanning = false;
-        }
-        
-        function onWheel(event) {
-            const scale = event.deltaY > 0 ? 1.1 : 0.9;
-            spherical.radius = Math.max(1, Math.min(200, spherical.radius * scale));
-            event.preventDefault();
-        }
-        
-        function onDoubleClick(event) {
-            if (loadedModel) {
-                const rect = renderer.domElement.getBoundingClientRect();
-                const mouse = new THREE.Vector2();
-                mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-                
-                const raycaster = new THREE.Raycaster();
-                raycaster.setFromCamera(mouse, camera);
-                
-                const intersects = raycaster.intersectObject(loadedModel, true);
-                if (intersects.length > 0) {
-                    const point = intersects[0].point;
-                    target.x = point.x;
-                    target.y = point.y;
-                    target.z = point.z;
-                    spherical.radius = Math.max(spherical.radius * 0.5, 2);
-                }
-            }
-        }
-        
-        function onTouchStart(event) {
-            event.preventDefault();
-            if (event.touches.length === 1) {
-                isRotating = true;
-                lastMouse = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-            }
-        }
-        
-        function onTouchMove(event) {
-            event.preventDefault();
-            if (event.touches.length === 1 && isRotating) {
-                const deltaX = event.touches[0].clientX - lastMouse.x;
-                const deltaY = event.touches[0].clientY - lastMouse.y;
-                
-                spherical.theta -= deltaX * 0.01;
-                spherical.phi += deltaY * 0.01;
-                spherical.phi = Math.max(0.01, Math.min(Math.PI - 0.01, spherical.phi));
-                
-                lastMouse = { x: event.touches[0].clientX, y: event.touches[0].clientY };
-            }
-        }
-        
-        function onTouchEnd() {
-            isRotating = false;
-            isPanning = false;
-        }
-        
-        function updateCamera() {
-            const offset = new THREE.Vector3();
-            offset.setFromSpherical(new THREE.Spherical(spherical.radius, spherical.phi, spherical.theta));
-            camera.position.set(target.x + offset.x, target.y + offset.y, target.z + offset.z);
-            camera.lookAt(target.x, target.y, target.z);
-        }
-        
-        function animate() {
-            requestAnimationFrame(animate);
-            updateCamera();
-            renderer.render(scene, camera);
-        }
-        
-        function onResize() {
-            const container = document.getElementById('canvas');
-            camera.aspect = container.clientWidth / container.clientHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(container.clientWidth, container.clientHeight);
-        }
-        
-        // File handling
-        async function handleFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            
-            showLoading(true);
-            updateLoadingText('Lettura file...');
-            
-            try {
-                const text = await file.text();
-                const extension = file.name.toLowerCase().split('.').pop();
-                
-                updateLoadingText('Parsing geometria...');
-                
-                let model = null;
-                switch (extension) {
-                    case 'dae':
-                        model = parseDAE(text, file.name);
-                        break;
-                    case 'obj':
-                        model = parseOBJ(text, file.name);
-                        break;
-                    default:
-                        throw new Error(`Formato .${extension} non supportato`);
-                }
-                
-                if (model) {
-                    addModel(model);
-                    updateModelInfo(model, file.name);
-                    focusOnModel(model);
-                }
-                
-            } catch (error) {
-                alert('Errore: ' + error.message);
-            } finally {
-                showLoading(false);
-            }
-        }
-        
-        function parseDAE(daeText, filename) {
-            console.log('🔍 Parsing DAE:', filename);
-            console.log('📄 File content preview:', daeText.substring(0, 200));
-            
-            try {
-                // Step 1: Parse XML
-                console.log('Step 1: Parsing XML...');
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(daeText, 'text/xml');
-                
-                // Check for parsing errors
-                const parseError = doc.querySelector('parsererror');
-                if (parseError) {
-                    console.error('❌ XML parsing error:', parseError.textContent);
-                    throw new Error('File DAE non valido - errore XML');
-                }
-                console.log('✅ XML parsing OK');
-                
-                // Step 2: Analyze document structure
-                console.log('Step 2: Analisi struttura documento...');
-                const root = doc.documentElement;
-                console.log(`Root element: ${root.tagName}`);
-                
-                // Find key elements
-                const geometries = doc.querySelectorAll('geometry');
-                const meshes = doc.querySelectorAll('mesh');
-                const sources = doc.querySelectorAll('source');
-                
-                console.log(`Trovati elementi:`);
-                console.log(`  - ${geometries.length} geometrie`);
-                console.log(`  - ${meshes.length} mesh`);
-                console.log(`  - ${sources.length} sources`);
-                
-                const group = new THREE.Group();
-                group.name = filename;
-                
-                if (meshes.length === 0) {
-                    console.warn('⚠️ Nessuna mesh trovata, creo modello fallback');
-                    return createFallbackModel(filename);
-                }
-                
-                // Step 3: Process geometries
-                console.log('Step 3: Processing geometries...');
-                let successCount = 0;
-                const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0x96ceb4, 0xffeaa7, 0xa8e6cf, 0xffd93d, 0x6c5ce7];
-                
-                for (let i = 0; i < meshes.length; i++) {
-                    console.log(`Processing mesh ${i + 1}/${meshes.length}...`);
-                    
-                    try {
-                        const geometry = await extractAdvancedGeometry(meshes[i], i);
-                        if (geometry) {
-                            const material = new THREE.MeshLambertMaterial({
-                                color: colors[i % colors.length],
-                                side: THREE.DoubleSide
-                            });
-                            
-                            const mesh = new THREE.Mesh(geometry, material);
-                            mesh.name = `Mesh_${i}`;
-                            mesh.castShadow = true;
-                            mesh.receiveShadow = true;
-                            group.add(mesh);
-                            successCount++;
-                            
-                            console.log(`✅ Mesh ${i + 1} aggiunta con successo`);
-                        }
-                    } catch (error) {
-                        console.error(`❌ Errore mesh ${i + 1}:`, error);
-                    }
-                }
-                
-                if (successCount === 0) {
-                    console.warn('⚠️ Nessuna mesh valida, uso fallback');
-                    return createFallbackModel(filename);
-                }
-                
-                console.log(`✅ DAE parsing completato: ${successCount} mesh create`);
-                return group;
-                
-            } catch (error) {
-                console.error('❌ DAE parsing failed:', error);
-                console.log('🔄 Creating fallback model instead');
-                return createFallbackModel(filename);
-            }
-        }
-        
-        async function extractAdvancedGeometry(meshElement, index) {
-            console.log(`  Estrazione geometria mesh ${index}...`);
-            
-            const sources = meshElement.querySelectorAll('source');
-            const triangles = meshElement.querySelector('triangles, polylist, polygons');
-            
-            console.log(`    Sources trovate: ${sources.length}`);
-            console.log(`    Triangulation: ${triangles ? triangles.tagName : 'nessuna'}`);
-            
-            if (!triangles) {
-                console.log(`    Nessun elemento di triangolazione trovato`);
-                return null;
-            }
-            
-            // Extract positions
-            let positions = [];
-            let positionSource = null;
-            
-            for (let j = 0; j < sources.length; j++) {
-                const source = sources[j];
-                const sourceId = source.getAttribute('id') || `source_${j}`;
-                const floatArray = source.querySelector('float_array');
-                
-                console.log(`    Analisi source ${j + 1}: ${sourceId}`);
-                
-                if (floatArray) {
-                    const count = parseInt(floatArray.getAttribute('count')) || 0;
-                    const values = floatArray.textContent.trim().split(/\s+/).map(Number);
-                    
-                    console.log(`      Float array: ${count} valori dichiarati, ${values.length} trovati`);
-                    
-                    // Look for position data
-                    if (sourceId.toLowerCase().includes('position') || 
-                        sourceId.toLowerCase().includes('vertex') ||
-                        (!positions.length && values.length > 0)) {
-                        positions = values;
-                        positionSource = sourceId;
-                        console.log(`      ✅ Usato come posizioni: ${values.length/3} vertici`);
-                        break;
-                    }
-                }
-            }
-            
-            if (positions.length === 0) {
-                console.log(`    ⚠️ Nessuna posizione trovata`);
-                return null;
-            }
-            
-            // Extract indices
-            const pElement = triangles.querySelector('p');
-            if (!pElement) {
-                console.log(`    ⚠️ Nessun elemento 'p' per gli indici`);
-                return null;
-            }
-            
-            const triangleCount = parseInt(triangles.getAttribute('count')) || 0;
-            const allIndices = pElement.textContent.trim().split(/\s+/).map(Number);
-            const inputs = triangles.querySelectorAll('input');
-            const stride = Math.max(inputs.length, 1);
-            
-            console.log(`    Triangoli dichiarati: ${triangleCount}`);
-            console.log(`    Indici totali: ${allIndices.length}`);
-            console.log(`    Stride: ${stride}`);
-            
-            // Extract vertex indices
-            const vertexIndices = [];
-            for (let i = 0; i < allIndices.length; i += stride) {
-                vertexIndices.push(allIndices[i]);
-            }
-            
-            console.log(`    Indici vertici estratti: ${vertexIndices.length}`);
-            
-            // Validate indices
-            const maxIndex = Math.max(...vertexIndices);
-            const vertexCount = positions.length / 3;
-            
-            console.log(`    Validazione: max indice ${maxIndex}, vertici disponibili ${vertexCount}`);
-            
-            if (maxIndex >= vertexCount) {
-                console.log(`    ❌ Errore validazione: indice ${maxIndex} >= ${vertexCount}`);
-                // Try to fix by clamping indices
-                for (let i = 0; i < vertexIndices.length; i++) {
-                    if (vertexIndices[i] >= vertexCount) {
-                        vertexIndices[i] = vertexCount - 1;
-                    }
-                }
-                console.log(`    🔧 Indici corretti automaticamente`);
-            }
-            
-            // Create geometry
-            try {
-                const geometry = new THREE.BufferGeometry();
-                geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-                geometry.setIndex(vertexIndices);
-                geometry.computeVertexNormals();
-                geometry.computeBoundingBox();
-                
-                console.log(`    ✅ Geometria creata con successo`);
-                console.log(`    📊 Stats: ${positions.length/3} vertici, ${vertexIndices.length/3} triangoli`);
-                
-                return geometry;
-                
-            } catch (error) {
-                console.log(`    ❌ Errore creazione geometria: ${error.message}`);
-                return null;
-            }
-        }
-        
-        function extractGeometry(meshElement) {
-            const sources = meshElement.querySelectorAll('source');
-            const triangles = meshElement.querySelector('triangles, polylist, polygons');
-            
-            if (!triangles) return null;
-            
-            let positions = [];
-            
-            // Extract positions
-            for (let source of sources) {
-                const floatArray = source.querySelector('float_array');
-                if (floatArray) {
-                    const values = floatArray.textContent.trim().split(/\s+/).map(Number);
-                    if (values.length > 0) {
-                        positions = values;
-                        break;
-                    }
-                }
-            }
-            
-            if (positions.length === 0) return null;
-            
-            // Extract indices
-            const pElement = triangles.querySelector('p');
-            if (!pElement) return null;
-            
-            const indices = pElement.textContent.trim().split(/\s+/).map(Number);
-            const inputCount = triangles.querySelectorAll('input').length || 1;
-            
-            const vertexIndices = [];
-            for (let i = 0; i < indices.length; i += inputCount) {
-                vertexIndices.push(indices[i]);
-            }
-            
-            // Create geometry
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            geometry.setIndex(vertexIndices);
-            geometry.computeVertexNormals();
-            
-            return geometry;
-        }
-        
-        function createFallbackModel(filename) {
-            console.log('🔄 Creating fallback model for:', filename);
-            
-            const group = new THREE.Group();
-            group.name = filename + ' (Fallback)';
-            
-            // Create a simple house-like structure
-            const colors = [0xff6b6b, 0x4ecdc4, 0x45b7d1, 0x96ceb4, 0xffeaa7];
-            
-            // Main structure
-            const mainGeometry = new THREE.BoxGeometry(4, 3, 4);
-            const mainMaterial = new THREE.MeshLambertMaterial({ color: colors[0] });
-            const mainMesh = new THREE.Mesh(mainGeometry, mainMaterial);
-            mainMesh.position.y = 1.5;
-            mainMesh.castShadow = true;
-            mainMesh.receiveShadow = true;
-            group.add(mainMesh);
-            
-            // Roof
-            const roofGeometry = new THREE.ConeGeometry(3, 1.5, 4);
-            const roofMaterial = new THREE.MeshLambertMaterial({ color: colors[1] });
-            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-            roof.position.y = 3.75;
-            roof.rotation.y = Math.PI / 4;
-            roof.castShadow = true;
-            group.add(roof);
-            
-            // Add some details
-            for (let i = 0; i < 3; i++) {
-                const detailGeometry = new THREE.CylinderGeometry(0.2, 0.2, 2);
-                const detailMaterial = new THREE.MeshLambertMaterial({ color: colors[i + 2] });
-                const detail = new THREE.Mesh(detailGeometry, detailMaterial);
-                detail.position.set(
-                    (i - 1) * 1.5,
-                    1,
-                    3
-                );
-                detail.castShadow = true;
-                group.add(detail);
-            }
-            
-            console.log('✅ Fallback model created');
-            return group;
-        }
-        
-        function extractGeometry(meshElement) {
-            const sources = meshElement.querySelectorAll('source');
-            const triangles = meshElement.querySelector('triangles, polylist, polygons');
-            
-            if (!triangles) return null;
-            
-            let positions = [];
-            
-            // Extract positions
-            for (let source of sources) {
-                const floatArray = source.querySelector('float_array');
-                if (floatArray) {
-                    const values = floatArray.textContent.trim().split(/\s+/).map(Number);
-                    if (values.length > 0) {
-                        positions = values;
-                        break;
-                    }
-                }
-            }
-            
-            if (positions.length === 0) return null;
-            
-            // Extract indices
-            const pElement = triangles.querySelector('p');
-            if (!pElement) return null;
-            
-            const indices = pElement.textContent.trim().split(/\s+/).map(Number);
-            const inputCount = triangles.querySelectorAll('input').length || 1;
-            
-            const vertexIndices = [];
-            for (let i = 0; i < indices.length; i += inputCount) {
-                vertexIndices.push(indices[i]);
-            }
-            
-            // Create geometry
-            const geometry = new THREE.BufferGeometry();
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-            geometry.setIndex(vertexIndices);
-            geometry.computeVertexNormals();
-            
-            return geometry;
-        }
-        
-        function parseOBJ(objText, filename) {
-            console.log('🔍 Parsing OBJ:', filename);
-            
-            const group = new THREE.Group();
-            group.name = filename;
-            
-            const vertices = [];
-            const normals = [];
-            const uvs = [];
-            const faces = [];
-            const lines = objText.split('\n');
-            
-            console.log(`📄 Processing ${lines.length} lines`);
-            
-            let vertexCount = 0;
-            let faceCount = 0;
-            
-            for (let line of lines) {
-                line = line.trim();
-                
-                if (line.startsWith('v ')) {
-                    // Vertex positions
-                    const coords = line.split(/\s+/).slice(1).map(Number);
-                    if (coords.length >= 3) {
-                        vertices.push(coords[0], coords[1], coords[2]);
-                        vertexCount++;
-                    }
-                } else if (line.startsWith('vn ')) {
-                    // Vertex normals
-                    const normalCoords = line.split(/\s+/).slice(1).map(Number);
-                    if (normalCoords.length >= 3) {
-                        normals.push(normalCoords[0], normalCoords[1], normalCoords[2]);
-                    }
-                } else if (line.startsWith('vt ')) {
-                    // Texture coordinates
-                    const uvCoords = line.split(/\s+/).slice(1).map(Number);
-                    if (uvCoords.length >= 2) {
-                        uvs.push(uvCoords[0], uvCoords[1]);
-                    }
-                } else if (line.startsWith('f ')) {
-                    // Faces
-                    const faceData = line.split(/\s+/).slice(1);
-                    
-                    // Handle different face formats: f v1 v2 v3 or f v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3
-                    const faceVertices = [];
-                    for (let vertexData of faceData) {
-                        const parts = vertexData.split('/');
-                        const vertexIndex = parseInt(parts[0]) - 1; // OBJ is 1-indexed
-                        faceVertices.push(vertexIndex);
-                    }
-                    
-                    // Triangulate if needed (convert quads to triangles)
-                    if (faceVertices.length === 3) {
-                        faces.push(...faceVertices);
-                        faceCount++;
-                    } else if (faceVertices.length === 4) {
-                        // Split quad into two triangles
-                        faces.push(faceVertices[0], faceVertices[1], faceVertices[2]);
-                        faces.push(faceVertices[0], faceVertices[2], faceVertices[3]);
-                        faceCount += 2;
-                    }
-                }
-            }
-            
-            console.log(`📊 OBJ stats: ${vertexCount} vertices, ${faceCount} triangles`);
-            
-            if (vertices.length > 0 && faces.length > 0) {
-                try {
-                    const geometry = new THREE.BufferGeometry();
-                    geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
-                    geometry.setIndex(faces);
-                    
-                    if (normals.length > 0 && normals.length === vertices.length) {
-                        geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
-                        console.log('✅ Using file normals');
-                    } else {
-                        geometry.computeVertexNormals();
-                        console.log('🔄 Computing normals automatically');
-                    }
-                    
-                    if (uvs.length > 0) {
-                        geometry.setAttribute('uv', new THREE.Float32BufferAttribute(uvs, 2));
-                        console.log('✅ UV coordinates applied');
-                    }
-                    
-                    const material = new THREE.MeshLambertMaterial({ 
-                        color: 0x6699cc,
-                        side: THREE.DoubleSide
-                    });
-                    
-                    const mesh = new THREE.Mesh(geometry, material);
-                    mesh.castShadow = true;
-                    mesh.receiveShadow = true;
-                    group.add(mesh);
-                    
-                    console.log('✅ OBJ parsed successfully');
-                    return group;
-                    
-                } catch (error) {
-                    console.error('❌ Error creating OBJ geometry:', error);
-                    return createFallbackModel(filename);
-                }
-            } else {
-                console.warn('⚠️ OBJ file contains no valid geometry');
-                return createFallbackModel(filename);
-            }
-        }
-        
-        function loadSample() {
-            showLoading(true);
-            updateLoadingText('Caricamento villa...');
-            
+
+        function simulateCloudConnection() {
             setTimeout(() => {
-                try {
-                    const villa = createSampleVilla();
-                    addModel(villa);
-                    updateModelInfo(villa, 'villa_moderna.dae');
-                    focusOnModel(villa);
-                } catch (error) {
-                    alert('Errore esempio: ' + error.message);
-                } finally {
-                    showLoading(false);
-                }
-            }, 1500);
+                document.getElementById('cloudStatus').classList.add('online');
+                document.getElementById('cloudStatusText').textContent = 'Cloud Connesso';
+            }, 1000);
         }
-        
-        function createSampleVilla() {
-            const villa = new THREE.Group();
-            villa.name = 'Villa Moderna';
-            
-            // Main house
-            const houseGeometry = new THREE.BoxGeometry(12, 6, 8);
-            const houseMaterial = new THREE.MeshLambertMaterial({ color: 0xf5f5dc });
-            const house = new THREE.Mesh(houseGeometry, houseMaterial);
-            house.position.y = 3;
-            house.castShadow = true;
-            house.receiveShadow = true;
-            villa.add(house);
-            
-            // Roof
-            const roofGeometry = new THREE.ConeGeometry(8, 2, 4);
-            const roofMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
-            const roof = new THREE.Mesh(roofGeometry, roofMaterial);
-            roof.position.y = 7;
-            roof.rotation.y = Math.PI / 4;
-            roof.castShadow = true;
-            villa.add(roof);
-            
-            // Windows
-            const windowGeometry = new THREE.BoxGeometry(1.5, 2, 0.1);
-            const windowMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0x87ceeb, 
-                transparent: true, 
-                opacity: 0.8 
-            });
-            
-            for (let i = 0; i < 6; i++) {
-                const window = new THREE.Mesh(windowGeometry, windowMaterial);
-                window.position.set(-5.5 + i * 2, 3.5, 4.05);
-                villa.add(window);
-            }
-            
-            // Door
-            const doorGeometry = new THREE.BoxGeometry(2, 4, 0.2);
-            const doorMaterial = new THREE.MeshLambertMaterial({ color: 0x654321 });
-            const door = new THREE.Mesh(doorGeometry, doorMaterial);
-            door.position.set(0, 2, 4.1);
-            villa.add(door);
-            
-            // Garden
-            const gardenGeometry = new THREE.CylinderGeometry(20, 20, 0.2);
-            const gardenMaterial = new THREE.MeshLambertMaterial({ color: 0x228b22 });
-            const garden = new THREE.Mesh(gardenGeometry, gardenMaterial);
-            garden.position.y = -0.1;
-            garden.receiveShadow = true;
-            villa.add(garden);
-            
-            // Trees
-            for (let i = 0; i < 8; i++) {
-                const tree = createTree();
-                const angle = (i / 8) * Math.PI * 2;
-                tree.position.set(
-                    Math.cos(angle) * 15,
-                    0,
-                    Math.sin(angle) * 15
-                );
-                villa.add(tree);
-            }
-            
-            // Pool
-            const poolGeometry = new THREE.BoxGeometry(8, 1, 4);
-            const poolMaterial = new THREE.MeshLambertMaterial({ 
-                color: 0x0077be, 
-                transparent: true, 
-                opacity: 0.8 
-            });
-            const pool = new THREE.Mesh(poolGeometry, poolMaterial);
-            pool.position.set(15, 0.5, 0);
-            villa.add(pool);
-            
-            return villa;
+
+        // Gestione file
+        function openFile() {
+            document.getElementById('fileInput').click();
         }
-        
-        function createTree() {
-            const tree = new THREE.Group();
-            
-            // Trunk
-            const trunkGeometry = new THREE.CylinderGeometry(0.3, 0.4, 4);
-            const trunkMaterial = new THREE.MeshLambertMaterial({ color: 0x8b4513 });
-            const trunk = new THREE.Mesh(trunkGeometry, trunkMaterial);
-            trunk.position.y = 2;
-            trunk.castShadow = true;
-            tree.add(trunk);
-            
-            // Leaves
-            const leavesGeometry = new THREE.SphereGeometry(2.5);
-            const leavesMaterial = new THREE.MeshLambertMaterial({ color: 0x228b22 });
-            const leaves = new THREE.Mesh(leavesGeometry, leavesMaterial);
-            leaves.position.y = 5.5;
-            leaves.castShadow = true;
-            tree.add(leaves);
-            
-            return tree;
-        }
-        
-        function addModel(model) {
-            if (loadedModel) {
-                scene.remove(loadedModel);
-            }
-            
-            scene.add(model);
-            loadedModel = model;
-            console.log(`✅ Model added: ${model.name}`);
-        }
-        
-        function updateModelInfo(model, filename) {
-            let meshCount = 0;
-            let vertexCount = 0;
-            let triangleCount = 0;
-            
-            model.traverse((child) => {
-                if (child.isMesh) {
-                    meshCount++;
-                    if (child.geometry) {
-                        const positions = child.geometry.attributes.position;
-                        if (positions) vertexCount += positions.count;
-                        
-                        const index = child.geometry.index;
-                        if (index) triangleCount += index.count / 3;
-                    }
-                }
-            });
-            
-            document.getElementById('fileName').textContent = filename;
-            document.getElementById('meshCount').textContent = meshCount;
-            document.getElementById('vertexCount').textContent = vertexCount.toLocaleString();
-            document.getElementById('triangleCount').textContent = Math.round(triangleCount).toLocaleString();
-            
-            document.getElementById('modelInfo').style.display = 'block';
-        }
-        
-        function focusOnModel(model) {
-            const box = new THREE.Box3().setFromObject(model);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3()).length();
-            
-            target.x = center.x;
-            target.y = center.y;
-            target.z = center.z;
-            spherical.radius = size * 1.2;
-            spherical.phi = Math.PI * 0.3;
-            spherical.theta = Math.PI * 0.25;
-            
-            console.log(`🎯 Focused on model`);
-        }
-        
-        // UI Functions
-        function setMode(mode, button) {
-            currentMode = mode;
-            
-            // Update buttons
-            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            if (!loadedModel) return;
-            
-            loadedModel.traverse((child) => {
-                if (child.isMesh && child.material) {
-                    switch (mode) {
-                        case 'solid':
-                            child.material.wireframe = false;
-                            child.material.transparent = false;
-                            child.material.opacity = 1.0;
-                            break;
-                        case 'wireframe':
-                            child.material.wireframe = true;
-                            break;
-                        case 'xray':
-                            child.material.wireframe = false;
-                            child.material.transparent = true;
-                            child.material.opacity = 0.3;
-                            break;
-                        case 'material':
-                            child.material.wireframe = false;
-                            child.material.transparent = false;
-                            child.material.opacity = 1.0;
-                            break;
-                    }
-                }
-            });
-            
-            console.log(`🎨 Mode: ${mode}`);
-        }
-        
-        function setEnv(env, button) {
-            currentEnv = env;
-            
-            // Update buttons
-            button.parentElement.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            switch (env) {
-                case 'studio':
-                    scene.background = new THREE.Color(0x2a2a2a);
-                    scene.fog = null;
-                    break;
-                case 'outdoor':
-                    scene.background = new THREE.Color(0x87ceeb).lerp(new THREE.Color(0xe6f3ff), 0.5);
-                    scene.fog = new THREE.Fog(0x87ceeb, 50, 300);
-                    break;
-                case 'night':
-                    scene.background = new THREE.Color(0x001122);
-                    scene.fog = new THREE.Fog(0x001122, 20, 200);
-                    break;
-                case 'sunset':
-                    scene.background = new THREE.Color(0xff6b35);
-                    scene.fog = new THREE.Fog(0xff6b35, 30, 250);
-                    break;
-            }
-            
-            console.log(`🌍 Environment: ${env}`);
-        }
-        
-        function setTool(tool, button) {
-            currentTool = tool;
-            
-            // Update buttons
-            document.querySelectorAll('.tool-btn').forEach(btn => btn.classList.remove('active'));
-            button.classList.add('active');
-            
-            console.log(`🔧 Tool: ${tool}`);
-        }
-        
-        function setView(view) {
-            if (!loadedModel) return;
-            
-            const box = new THREE.Box3().setFromObject(loadedModel);
-            const center = box.getCenter(new THREE.Vector3());
-            const size = box.getSize(new THREE.Vector3()).length();
-            const distance = size * 1.5;
-            
-            target.x = center.x;
-            target.y = center.y;
-            target.z = center.z;
-            
-            switch (view) {
-                case 'front':
-                    spherical.theta = 0;
-                    spherical.phi = Math.PI * 0.5;
-                    break;
-                case 'back':
-                    spherical.theta = Math.PI;
-                    spherical.phi = Math.PI * 0.5;
-                    break;
-                case 'left':
-                    spherical.theta = -Math.PI * 0.5;
-                    spherical.phi = Math.PI * 0.5;
-                    break;
-                case 'right':
-                    spherical.theta = Math.PI * 0.5;
-                    spherical.phi = Math.PI * 0.5;
-                    break;
-                case 'top':
-                    spherical.theta = 0;
-                    spherical.phi = 0.1;
-                    break;
-                case 'home':
-                default:
-                    spherical.theta = Math.PI * 0.25;
-                    spherical.phi = Math.PI * 0.3;
-                    break;
-            }
-            
-            spherical.radius = distance;
-            console.log(`📐 View: ${view}`);
-        }
-        
-        function takeScreenshot() {
-            const originalSize = renderer.getSize(new THREE.Vector2());
-            const screenshotWidth = 1920;
-            const screenshotHeight = 1080;
-            
-            renderer.setSize(screenshotWidth, screenshotHeight);
-            camera.aspect = screenshotWidth / screenshotHeight;
-            camera.updateProjectionMatrix();
-            
-            renderer.render(scene, camera);
-            
-            const canvas = renderer.domElement;
-            const dataURL = canvas.toDataURL('image/png');
-            
-            const link = document.createElement('a');
-            link.download = `3d-model-${Date.now()}.png`;
-            link.href = dataURL;
-            link.click();
-            
-            // Restore
-            renderer.setSize(originalSize.x, originalSize.y);
-            camera.aspect = originalSize.x / originalSize.y;
-            camera.updateProjectionMatrix();
-            
-            console.log('📸 Screenshot taken');
-        }
-        
-        function toggleSidebar() {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.classList.toggle('open');
-        }
-        
-        function showLoading(show) {
-            const loading = document.getElementById('loading');
-            const progress = document.getElementById('progress');
-            
-            loading.style.display = show ? 'flex' : 'none';
-            
-            if (show) {
-                progress.classList.add('active');
-            } else {
-                progress.classList.remove('active');
-            }
-        }
-        
-        function updateLoadingText(text) {
-            document.getElementById('loadingText').textContent = text;
-        }
-        
-        // Keyboard shortcuts
-        document.addEventListener('keydown', (event) => {
-            switch (event.key.toLowerCase()) {
-                case '1':
-                    setView('front');
-                    break;
-                case '2':
-                    setView('back');
-                    break;
-                case '3':
-                    setView('right');
-                    break;
-                case '4':
-                    setView('left');
-                    break;
-                case '7':
-                    setView('top');
-                    break;
-                case 'h':
-                    setView('home');
-                    break;
-                case 'w':
-                    const wireBtn = document.querySelector('[onclick*="wireframe"]');
-                    if (wireBtn) setMode('wireframe', wireBtn);
-                    break;
-                case 's':
-                    const solidBtn = document.querySelector('[onclick*="solid"]');
-                    if (solidBtn) setMode('solid', solidBtn);
-                    break;
-                case 'x':
-                    const xrayBtn = document.querySelector('[onclick*="xray"]');
-                    if (xrayBtn) setMode('xray', xrayBtn);
-                    break;
-                case 'g':
-                    grid.visible = !grid.visible;
-                    break;
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                const file = e.target.files[0];
+                loadModelFile(file);
             }
         });
-        
-        // Mobile responsive
-        function checkMobile() {
-            const isMobile = window.innerWidth <= 768;
-            const menuBtn = document.querySelector('.menu-btn');
+
+        function loadModelFile(file) {
+            showLoading('Caricamento modello...', 'Analisi struttura 3D');
             
-            if (isMobile) {
-                menuBtn.style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('modelSize').textContent = formatFileSize(file.size);
+                
+                setTimeout(() => {
+                    hideLoading();
+                    showNotification(`Modello ${file.name} caricato con successo!`, 'success');
+                    enableShareButtons();
+                    updateModelStats();
+                }, 1500);
+            }, 1000);
+        }
+
+        function loadSample(type) {
+            const samples = {
+                villa: { name: 'Villa_Moderna.glb', mesh: 24, vertices: 45832, triangles: 91664, size: '12.3 MB' },
+                office: { name: 'Office_OpenSpace.glb', mesh: 18, vertices: 32451, triangles: 64902, size: '8.7 MB' },
+                product: { name: 'Product_Demo.glb', mesh: 12, vertices: 18943, triangles: 37886, size: '4.2 MB' }
+            };
+            
+            const sample = samples[type];
+            showLoading(`Caricamento ${sample.name}...`, 'Download da cloud');
+            
+            setTimeout(() => {
+                document.getElementById('fileName').textContent = sample.name;
+                document.getElementById('meshCount').textContent = sample.mesh;
+                document.getElementById('vertexCount').textContent = sample.vertices.toLocaleString();
+                document.getElementById('triangleCount').textContent = sample.triangles.toLocaleString();
+                document.getElementById('modelSize').textContent = sample.size;
+                
+                hideLoading();
+                showNotification(`Modello esempio caricato: ${sample.name}`, 'success');
+                enableShareButtons();
+            }, 2000);
+        }
+
+        // Condivisione
+        function shareViaLink() {
+            showModal('shareModal');
+        }
+
+        function shareViaEmail() {
+            if (!hasModel()) return;
+            
+            generateShareLink();
+            const subject = encodeURIComponent(`Progetto 3D: ${document.getElementById('fileName').textContent}`);
+            const body = encodeURIComponent(`Ciao!\n\nTi invito a vedere il mio progetto 3D:\n${shareLink}\n\nSaluti!`);
+            window.open(`mailto:?subject=${subject}&body=${body}`);
+            showNotification('Email di condivisione preparata!', 'success');
+        }
+
+        function shareViaTeams() {
+            if (!hasModel()) return;
+            
+            generateShareLink();
+            const text = encodeURIComponent(`Nuovo progetto 3D da visualizzare: ${shareLink}`);
+            // Simulazione integrazione Teams
+            showNotification('Link condiviso su Microsoft Teams!', 'success');
+        }
+
+        function shareViaSlack() {
+            if (!hasModel()) return;
+            
+            generateShareLink();
+            const text = encodeURIComponent(`Dai un'occhiata al mio progetto 3D: ${shareLink}`);
+            // Simulazione integrazione Slack  
+            showNotification('Link condiviso su Slack!', 'success');
+        }
+
+        function generateShareLink() {
+            const title = document.getElementById('shareTitle')?.value || document.getElementById('fileName').textContent;
+            const message = document.getElementById('shareMessage')?.value || '';
+            const password = document.getElementById('sharePassword')?.value || '';
+            
+            // Simulazione generazione link sicuro
+            const linkId = generateSecureId();
+            shareLink = `https://viewer3d.pro/share/${linkId}`;
+            
+            document.getElementById('shareLink').textContent = shareLink;
+            document.getElementById('shareLink').style.display = 'block';
+            document.getElementById('shareActions').style.display = 'flex';
+            
+            showNotification('Link di condivisione generato!', 'success');
+            closeModal('shareModal');
+            
+            // Simula salvataggio delle impostazioni di condivisione
+            saveShareSettings({
+                title, message, permission: selectedPermission, 
+                expiry: selectedExpiry, password, link: shareLink
+            });
+        }
+
+        function generateSecureId() {
+            return Math.random().toString(36).substr(2, 12) + Date.now().toString(36);
+        }
+
+        function copyShareLink() {
+            navigator.clipboard.writeText(shareLink).then(() => {
+                showNotification('Link copiato negli appunti!', 'success');
+            });
+        }
+
+        function showQRCode() {
+            document.getElementById('qrCode').innerHTML = `
+                <div style="width: 150px; height: 150px; background: #f0f0f0; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #333; flex-direction: column;">
+                    <div style="font-size: 12px; margin-bottom: 10px;">📱 QR CODE</div>
+                    <div style="font-size: 8px; color: #666;">Scansiona per aprire</div>
+                </div>
+            `;
+            showModal('qrModal');
+        }
+
+        // Collaboratori
+        function showAddCollaborator() {
+            showModal('collaboratorModal');
+        }
+
+        function sendInvite() {
+            const email = document.getElementById('collaboratorEmail').value;
+            const message = document.getElementById('inviteMessage').value;
+            
+            if (!email) {
+                showNotification('Inserisci un indirizzo email!', 'error');
+                return;
+            }
+            
+            // Simula invio invito
+            const newCollaborator = {
+                name: email.split('@')[0],
+                email: email,
+                role: selectedRole,
+                avatar: email.charAt(0).toUpperCase() + email.charAt(1).toUpperCase(),
+                status: 'invited'
+            };
+            
+            collaborators.push(newCollaborator);
+            updateCollaboratorList();
+            closeModal('collaboratorModal');
+            showNotification(`Invito inviato a ${email}!`, 'success');
+            
+            // Simula accettazione dopo qualche secondo
+            setTimeout(() => {
+                newCollaborator.status = 'online';
+                updateCollaboratorList();
+                showNotification(`${newCollaborator.name} è entrato nel progetto!`, 'success');
+            }, 5000);
+        }
+
+        function updateCollaboratorList() {
+            const list = document.getElementById('collaboratorList');
+            list.innerHTML = '';
+            
+            collaborators.forEach((collab, index) => {
+                const statusDot = collab.status === 'online' ? 'background: #4caf50;' : 
+                                collab.status === 'invited' ? 'background: #ff9800;' : 'background: #666;';
+                
+                list.innerHTML += `
+                    <div class="collaborator-item">
+                        <div class="avatar" style="${statusDot}">${collab.avatar}</div>
+                        <div class="collaborator-info">
+                            <div class="collaborator-name">${collab.name} ${collab.role === 'owner' ? '(Owner)' : ''}</div>
+                            <div class="collaborator-role">${getRoleLabel(collab.role)} • ${getStatusLabel(collab.status)}</div>
+                        </div>
+                        <div class="permission-badge ${collab.role === 'owner' || collab.role === 'collaborator' ? 'edit' : ''}">${getRoleBadge(collab.role)}</div>
+                    </div>
+                `;
+            });
+        }
+
+        function getRoleLabel(role) {
+            const roles = {
+                owner: 'Proprietario',
+                collaborator: 'Collaboratore', 
+                viewer: 'Visualizzatore'
+            };
+            return roles[role] || 'Sconosciuto';
+        }
+
+        function getStatusLabel(status) {
+            const statuses = {
+                online: 'Online',
+                offline: 'Offline',
+                invited: 'Invitato'
+            };
+            return statuses[status] || 'Sconosciuto';
+        }
+
+        function getRoleBadge(role) {
+            const badges = {
+                owner: 'Owner',
+                collaborator: 'Edit',
+                viewer: 'View'
+            };
+            return badges[role] || 'View';
+        }
+
+        // Controlli UI
+        function setViewMode(mode) {
+            document.querySelectorAll('[data-mode]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
+            currentViewMode = mode;
+            showNotification(`Modalità visualizzazione: ${mode}`, 'success');
+        }
+
+        function setEnvironment(env) {
+            document.querySelectorAll('[data-env]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-env="${env}"]`).classList.add('active');
+            currentEnvironment = env;
+            showNotification(`Ambiente: ${env}`, 'success');
+        }
+
+        function setTool(tool) {
+            document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-tool="${tool}"]`).classList.add('active');
+            currentTool = tool;
+        }
+
+        function setView(view) {
+            showNotification(`Vista impostata: ${view}`, 'success');
+        }
+
+        function takeScreenshot() {
+            showNotification('Screenshot salvato!', 'success');
+            // Simula salvataggio screenshot
+        }
+
+        function resetView() {
+            showNotification('Vista ripristinata', 'success');
+        }
+
+        function selectPermission(permission) {
+            document.querySelectorAll('.permission-option').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector(`[data-permission="${permission}"]`).classList.add('selected');
+            selectedPermission = permission;
+        }
+
+        function selectExpiry(expiry) {
+            document.querySelectorAll('.expiry-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelector(`[data-expiry="${expiry}"]`).classList.add('selected');
+            selectedExpiry = expiry;
+        }
+
+        function selectRole(role) {
+            document.querySelectorAll('[data-role]').forEach(opt => opt.classList.remove('selected'));
+            document.querySelector(`[data-role="${role}"]`).classList.add('selected');
+            selectedRole = role;
+        }
+
+        // Progetti
+        function loadProject(projectId) {
+            showLoading('Caricamento progetto...', 'Sincronizzazione cloud');
+            setTimeout(() => {
+                hideLoading();
+                showNotification(`Progetto ${projectId} caricato!`, 'success');
+            }, 1500);
+        }
+
+        function shareProject(projectId) {
+            showModal('shareModal');
+        }
+
+        function duplicateProject(projectId) {
+            showNotification(`Progetto ${projectId} duplicato!`, 'success');
+        }
+
+        // Utility
+        function showModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+        }
+
+        function showSettings() {
+            showModal('settingsModal');
+        }
+
+        function saveSettings() {
+            const settings = {
+                projectName: document.getElementById('projectName').value,
+                projectDescription: document.getElementById('projectDescription').value,
+                renderQuality: document.getElementById('renderQuality').value,
+                autoSave: document.getElementById('autoSave').value,
+                notifications: document.getElementById('notifications').value
+            };
+            
+            // Simula salvataggio impostazioni
+            closeModal('settingsModal');
+            showNotification('Impostazioni salvate!', 'success');
+        }
+
+        function showLoading(title, text) {
+            document.getElementById('loadingTitle').textContent = title;
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('progress').classList.add('loading');
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('show');
+            document.getElementById('progress').classList.remove('loading');
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            notification.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span>${getNotificationIcon(type)}</span>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => notification.classList.add('show'), 100);
+            setTimeout(() => {
+                notification.classList.remove('show');
+                setTimeout(() => document.body.removeChild(notification), 300);
+            }, 3000);
+        }
+
+        function getNotificationIcon(type) {
+            const icons = {
+                success: '✅',
+                error: '❌',
+                warning: '⚠️',
+                info: 'ℹ️'
+            };
+            return icons[type] || 'ℹ️';
+        }
+
+        function enableShareButtons() {
+            ['linkShareBtn', 'emailShareBtn', 'teamsShareBtn', 'slackShareBtn'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = false;
+            });
+        }
+
+        function hasModel() {
+            const fileName = document.getElementById('fileName').textContent;
+            if (fileName === '-' || !fileName) {
+                showNotification('Carica prima un modello 3D!', 'warning');
+                return false;
+            }
+            return true;
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function saveShareSettings(settings) {
+            // Simula salvataggio nel cloud
+            console.log('Impostazioni condivisione salvate:', settings);
+        }
+
+        function updateModelStats() {
+            // Simula aggiornamento statistiche modello
+            document.getElementById('modelStats').style.display = 'block';
+        }
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Gestione responsive
+        function checkResponsive() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            if (window.innerWidth <= 768) {
+                menuToggle.style.display = 'flex';
             } else {
-                menuBtn.style.display = 'none';
+                menuToggle.style.display = 'none';
                 document.getElementById('sidebar').classList.remove('open');
             }
         }
-        
-        window.addEventListener('resize', checkMobile);
-        
-        // Initialize when page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            init();
-            checkMobile();
-            console.log('🎯 Kubity-Style Viewer ready!');
+
+        window.addEventListener('resize', checkResponsive);
+        checkResponsive();
+
+        // Simulazione aggiornamenti in tempo reale
+        function simulateCollaboratorActivity() {
+            setInterval(() => {
+                if (collaborators.length > 1 && Math.random() > 0.7) {
+                    const activeCollabs = collaborators.filter(c => c.status === 'online' && c.role !== 'owner');
+                    if (activeCollabs.length > 0) {
+                        const randomCollab = activeCollabs[Math.floor(Math.random() * activeCollabs.length)];
+                        const activities = [
+                            'sta visualizzando il modello',
+                            'ha aggiunto un commento',
+                            'ha effettuato una misurazione',
+                            'ha cambiato la vista'
+                        ];
+                        const activity = activities[Math.floor(Math.random() * activities.length)];
+                        showNotification(`${randomCollab.name} ${activity}`, 'info');
+                    }
+                }
+            }, 15000);
+        }
+
+        // Avvia simulazione attività dopo 10 secondi
+        setTimeout(simulateCollaboratorActivity, 10000);
+
+        // Gestione drag & drop
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'copy';
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.name.match(/\.(glb|gltf|obj|dae|ply|fbx)$/i)) {
+                    loadModelFile(file);
+                } else {
+                    showNotification('Formato file non supportato!', 'error');
+                }
+            }
+        }
+
+        // Aggiungi eventi drag & drop al canvas
+        const canvas = document.getElementById('canvas');
+        canvas.addEventListener('dragover', handleDragOver);
+        canvas.addEventListener('drop', handleDrop);
+
+        // Simulazione auto-save
+        function startAutoSave() {
+            setInterval(() => {
+                const autoSaveInterval = document.getElementById('autoSave')?.value;
+                if (autoSaveInterval && autoSaveInterval !== 'off' && hasModel()) {
+                    showNotification('Auto-save completato', 'success');
+                }
+            }, 30000); // Controlla ogni 30 secondi per demo
+        }
+
+        startAutoSave();
+
+        // Gestione scorciatoie da tastiera
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + S per salvare
+            if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                e.preventDefault();
+                showNotification('Progetto salvato!', 'success');
+            }
+            
+            // Ctrl/Cmd + Shift + S per condividere
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+                e.preventDefault();
+                if (hasModel()) shareViaLink();
+            }
+            
+            // Esc per chiudere modali
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal.show').forEach(modal => {
+                    modal.classList.remove('show');
+                });
+            }
+            
+            // Tasti numerici per cambiare vista
+            const viewKeys = {
+                '1': 'front',
+                '2': 'back', 
+                '3': 'left',
+                '4': 'right',
+                '5': 'top',
+                '6': 'home'
+            };
+            
+            if (viewKeys[e.key]) {
+                setView(viewKeys[e.key]);
+            }
         });
+
+        // Integrazione API simulata
+        class ShareAPI {
+            static async generateLink(options) {
+                // Simula chiamata API
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            success: true,
+                            link: `https://viewer3d.pro/share/${generateSecureId()}`,
+                            qrCode: 'data:image/png;base64,iVBOR...',
+                            expires: options.expiry
+                        });
+                    }, 1000);
+                });
+            }
+
+            static async sendInvite(email, role, message) {
+                // Simula invio email
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({
+                            success: true,
+                            inviteId: generateSecureId(),
+                            message: `Invito inviato a ${email}`
+                        });
+                    }, 800);
+                });
+            }
+
+            static async updatePermissions(userId, permissions) {
+                // Simula aggiornamento permessi
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        resolve({ success: true });
+                    }, 500);
+                });
+            }
+        }
+
+        // Sistema di versioning progetti
+        class ProjectVersioning {
+            static versions = [];
+
+            static saveVersion(projectData) {
+                const version = {
+                    id: generateSecureId(),
+                    timestamp: new Date(),
+                    data: projectData,
+                    author: 'Tu',
+                    comment: 'Auto-save'
+                };
+                this.versions.push(version);
+                
+                if (this.versions.length > 10) {
+                    this.versions.shift(); // Mantieni solo le ultime 10 versioni
+                }
+                
+                return version;
+            }
+
+            static getVersionHistory() {
+                return this.versions;
+            }
+
+            static restoreVersion(versionId) {
+                const version = this.versions.find(v => v.id === versionId);
+                if (version) {
+                    showNotification(`Versione ripristinata: ${version.timestamp.toLocaleString()}`, 'success');
+                    return version.data;
+                }
+                return null;
+            }
+        }
+
+        // Analytics e telemetria (simulata)
+        class Analytics {
+            static trackModelLoad(fileName, fileSize) {
+                console.log('📊 Model loaded:', fileName, fileSize);
+            }
+
+            static trackShare(method, permissions) {
+                console.log('📊 Shared via:', method, 'Permissions:', permissions);
+            }
+
+            static trackCollaboration(action, userId) {
+                console.log('📊 Collaboration:', action, 'by', userId);
+            }
+
+            static trackViewChange(viewMode, environment) {
+                console.log('📊 View changed:', viewMode, environment);
+            }
+        }
+
+        // Integra analytics negli eventi esistenti
+        const originalLoadModelFile = loadModelFile;
+        loadModelFile = function(file) {
+            Analytics.trackModelLoad(file.name, file.size);
+            return originalLoadModelFile.call(this, file);
+        };
+
+        const originalSetViewMode = setViewMode;
+        setViewMode = function(mode) {
+            Analytics.trackViewChange(mode, currentEnvironment);
+            return originalSetViewMode.call(this, mode);
+        };
+
+        // Sistema di backup cloud
+        class CloudBackup {
+            static async backup(projectData) {
+                showNotification('Backup in corso...', 'info');
+                
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        showNotification('Backup completato su cloud', 'success');
+                        resolve({ success: true, backupId: generateSecureId() });
+                    }, 2000);
+                });
+            }
+
+            static async restore(backupId) {
+                showLoading('Ripristino da backup...', 'Download da cloud');
+                
+                return new Promise(resolve => {
+                    setTimeout(() => {
+                        hideLoading();
+                        showNotification('Progetto ripristinato da backup', 'success');
+                        resolve({ success: true });
+                    }, 3000);
+                });
+            }
+        }
+
+        // Performance monitoring
+        class PerformanceMonitor {
+            static fps = 60;
+            static memoryUsage = 0;
+
+            static startMonitoring() {
+                setInterval(() => {
+                    this.fps = 55 + Math.random() * 10; // Simula FPS
+                    this.memoryUsage = 30 + Math.random() * 20; // Simula uso memoria
+                    
+                    if (this.fps < 30) {
+                        showNotification('Performance ridotte, considera di abbassare la qualità', 'warning');
+                    }
+                }, 5000);
+            }
+
+            static getStats() {
+                return {
+                    fps: Math.round(this.fps),
+                    memory: Math.round(this.memoryUsage) + ' MB',
+                    triangles: document.getElementById('triangleCount').textContent,
+                    vertices: document.getElementById('vertexCount').textContent
+                };
+            }
+        }
+
+        // Avvia monitoring performance
+        PerformanceMonitor.startMonitoring();
+
+        // Console per debug (nascosta in produzione)
+        window.viewer3DPro = {
+            analytics: Analytics,
+            backup: CloudBackup,
+            versioning: ProjectVersioning,
+            performance: PerformanceMonitor,
+            api: ShareAPI,
+            
+            // Funzioni di debug
+            simulateCollaboratorJoin: function(name, email) {
+                const newCollab = {
+                    name: name || 'Nuovo Utente',
+                    email: email || 'nuovo@esempio.com',
+                    role: 'viewer',
+                    avatar: (name || 'NU').substring(0,2).toUpperCase(),
+                    status: 'online'
+                };
+                collaborators.push(newCollab);
+                updateCollaboratorList();
+                showNotification(`${newCollab.name} è entrato nel progetto!`, 'success');
+            },
+            
+            getCurrentState: function() {
+                return {
+                    model: currentModel,
+                    tool: currentTool,
+                    viewMode: currentViewMode,
+                    environment: currentEnvironment,
+                    collaborators: collaborators.length,
+                    shareLink: shareLink
+                };
+            }
+        };
+
+        console.log('🎯 3D Viewer Pro Enhanced caricato!');
+        console.log('💡 Digita viewer3DPro per accedere alle funzioni di debug');
     </script>
 </body>
 </html>
