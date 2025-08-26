@@ -618,14 +618,159 @@
             }, 3000);
         }
 
-        // File upload handler
+        // File upload handler with OBJ parser
         document.getElementById('fileInput').addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 const file = e.target.files[0];
-                document.getElementById('fileName').textContent = file.name;
-                showNotification('File ' + file.name + ' selezionato (parser non implementato)', 'success');
+                loadOBJFile(file);
             }
         });
+
+        function loadOBJFile(file) {
+            const fileName = file.name.toLowerCase();
+            
+            if (!fileName.endsWith('.obj')) {
+                showNotification('Formato non supportato. Usa file .obj', 'error');
+                return;
+            }
+
+            showNotification('Caricamento ' + file.name + '...', 'success');
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const objData = e.target.result;
+                    const geometry = parseOBJ(objData);
+                    
+                    if (currentModel) {
+                        scene.remove(currentModel);
+                    }
+                    
+                    const material = new THREE.MeshLambertMaterial({ 
+                        color: 0x4fc3f7,
+                        side: THREE.DoubleSide 
+                    });
+                    
+                    currentModel = new THREE.Mesh(geometry, material);
+                    currentModel.castShadow = true;
+                    currentModel.receiveShadow = true;
+                    
+                    // Center the model
+                    const box = new THREE.Box3().setFromObject(currentModel);
+                    const center = box.getCenter(new THREE.Vector3());
+                    currentModel.position.sub(center);
+                    
+                    // Scale if too big
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    if (maxDim > 10) {
+                        const scale = 10 / maxDim;
+                        currentModel.scale.set(scale, scale, scale);
+                    }
+                    
+                    scene.add(currentModel);
+                    
+                    document.getElementById('fileName').textContent = file.name;
+                    resetView();
+                    showNotification('File OBJ caricato con successo!', 'success');
+                    
+                } catch (error) {
+                    console.error('Errore parsing OBJ:', error);
+                    showNotification('Errore nel caricamento del file OBJ', 'error');
+                }
+            };
+            
+            reader.onerror = function() {
+                showNotification('Errore nella lettura del file', 'error');
+            };
+            
+            reader.readAsText(file);
+        }
+
+        function parseOBJ(data) {
+            const vertices = [];
+            const faces = [];
+            const normals = [];
+            const uvs = [];
+            
+            const lines = data.split('\n');
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                if (line.startsWith('v ')) {
+                    // Vertex
+                    const parts = line.split(/\s+/);
+                    vertices.push(
+                        parseFloat(parts[1]),
+                        parseFloat(parts[2]),
+                        parseFloat(parts[3])
+                    );
+                } else if (line.startsWith('vn ')) {
+                    // Normal
+                    const parts = line.split(/\s+/);
+                    normals.push(
+                        parseFloat(parts[1]),
+                        parseFloat(parts[2]),
+                        parseFloat(parts[3])
+                    );
+                } else if (line.startsWith('vt ')) {
+                    // UV
+                    const parts = line.split(/\s+/);
+                    uvs.push(
+                        parseFloat(parts[1]),
+                        parseFloat(parts[2])
+                    );
+                } else if (line.startsWith('f ')) {
+                    // Face
+                    const parts = line.split(/\s+/);
+                    parts.shift(); // Remove 'f'
+                    
+                    // Convert to triangles if needed
+                    if (parts.length === 3) {
+                        // Already a triangle
+                        for (let j = 0; j < 3; j++) {
+                            const vertexData = parts[j].split('/');
+                            faces.push(parseInt(vertexData[0]) - 1); // OBJ is 1-indexed
+                        }
+                    } else if (parts.length === 4) {
+                        // Quad - convert to two triangles
+                        const indices = [];
+                        for (let j = 0; j < 4; j++) {
+                            const vertexData = parts[j].split('/');
+                            indices.push(parseInt(vertexData[0]) - 1);
+                        }
+                        
+                        // Triangle 1: 0,1,2
+                        faces.push(indices[0], indices[1], indices[2]);
+                        // Triangle 2: 0,2,3
+                        faces.push(indices[0], indices[2], indices[3]);
+                    }
+                }
+            }
+            
+            const geometry = new THREE.BufferGeometry();
+            
+            if (vertices.length > 0) {
+                geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            }
+            
+            if (faces.length > 0) {
+                geometry.setIndex(faces);
+            }
+            
+            // Compute normals if not provided
+            if (normals.length === 0) {
+                geometry.computeVertexNormals();
+            } else {
+                geometry.setAttribute('normal', new THREE.Float32BufferAttribute(normals, 3));
+            }
+            
+            // Center geometry
+            geometry.center();
+            
+            return geometry;
+        }
 
         // Initialize when page loads
         document.addEventListener('DOMContentLoaded', function() {
