@@ -1,343 +1,123 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Multi-format 3D Import & Export (DAE / OBJ / FBX → GLB)</title>
-
-  <!-- Tailwind per styling rapido (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-
+  <meta charset="UTF-8">
+  <title>Universal 3D Viewer</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/ColladaLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   <style>
-    body { -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; }
-    #canvas-container { width:100%; height:70vh; min-height:480px; background:linear-gradient(180deg,#eef2ff,#fff); border-radius:12px; overflow:hidden; }
-    .btn { @apply px-4 py-2 rounded-md shadow text-sm font-medium; }
+    body { margin:0; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; }
+    #viewer { width:100%; height:80vh; background:#111; }
+    #controls { margin:1em; }
   </style>
 </head>
-<body class="p-6 bg-slate-50 text-slate-900">
-  <div class="max-w-6xl mx-auto space-y-4">
-    <header class="flex items-center justify-between">
-      <h1 class="text-2xl font-semibold">Importatore 3D: .dae, .obj, .fbx → Esporta GLB</h1>
-      <div class="text-sm text-slate-500">Copia questo file in GitHub → Pages per condividere</div>
-    </header>
-
-    <section class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-      <div class="lg:col-span-2">
-        <div id="canvas-container" class="mb-3"></div>
-
-        <div class="flex gap-2 items-center">
-          <label class="btn bg-white border cursor-pointer">
-            Seleziona file
-            <input id="file-input" type="file" accept=".dae,.xml,.obj,.fbx,.zip,.gltf,.glb" style="display:none" />
-          </label>
-          <button id="btn-reset" class="btn bg-white border">Reset scena</button>
-          <button id="btn-export" class="btn bg-emerald-600 text-white">Esporta GLB</button>
-          <button id="btn-zip" class="btn bg-blue-600 text-white">Package (ZIP) per condivisione</button>
-          <div id="status" class="ml-3 text-sm text-slate-500"></div>
-        </div>
-
-        <div class="mt-3 text-xs text-slate-600">
-          Drag & drop file nella pagina supportato. Formati principali: <strong>.dae .obj .fbx</strong>. Verrà esportato come <strong>.glb</strong>.
-        </div>
-      </div>
-
-      <aside class="space-y-3">
-        <div class="p-4 bg-white rounded-lg shadow">
-          <div class="font-medium mb-2">Dettagli modello</div>
-          <div id="details" class="text-sm text-slate-600">Nessun modello caricato</div>
-        </div>
-
-        <div class="p-4 bg-white rounded-lg shadow">
-          <div class="font-medium mb-2">Istruzioni veloci</div>
-          <ol class="text-sm text-slate-600 list-decimal pl-5 space-y-1">
-            <li>Carica un `.dae`, `.obj` o `.fbx` (o `.glb/.gltf` direttamente).</li>
-            <li>Controlla il modello nella viewport.</li>
-            <li>Clicca <strong>Esporta GLB</strong> per scaricare il .glb.</li>
-            <li>Clicca <strong>Package (ZIP)</strong> per scaricare un .zip pronto da caricare su GitHub (index + modello).</li>
-          </ol>
-        </div>
-
-        <div class="p-4 bg-white rounded-lg shadow text-xs text-slate-600">
-          Nota: alcuni file FBX complessi potrebbero non conservare esattamente tutte le animazioni/materiali durante l'export client-side. Per lavoro di produzione consigliato usare Blender o pipeline server-side per ottimizzazioni.
-        </div>
-      </aside>
-    </section>
-
-    <footer class="text-xs text-slate-500">
-      Powered by three.js — loaders: ColladaLoader, OBJLoader, FBXLoader. Exporter: GLTFExporter. Zip packaging via JSZip.
-    </footer>
-  </div>
-
-  <!-- three.js e loaders (module) -->
-  <script type="module">
-    import * as THREE from 'https://unpkg.com/three@0.152.2/build/three.module.js';
-    import { OrbitControls } from 'https://unpkg.com/three@0.152.2/examples/jsm/controls/OrbitControls.js';
-    import { ColladaLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/ColladaLoader.js';
-    import { OBJLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/OBJLoader.js';
-    import { FBXLoader } from 'https://unpkg.com/three@0.152.2/examples/jsm/loaders/FBXLoader.js';
-    import { GLTFExporter } from 'https://unpkg.com/three@0.152.2/examples/jsm/exporters/GLTFExporter.js';
-
-    // JSZip (non-module) — caricato come script globale sotto
-    // -> useremo JSZip globale
-
-    // Scena, renderer, camera
-    const container = document.getElementById('canvas-container');
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.setPixelRatio(window.devicePixelRatio);
-    container.appendChild(renderer.domElement);
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf8fafc);
-
-    const camera = new THREE.PerspectiveCamera(45, 2, 0.1, 2000);
-    camera.position.set(0, 1.5, 3);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-
-    // Light
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x444444, 0.8);
-    hemi.position.set(0, 20, 0);
-    scene.add(hemi);
-
-    const dir = new THREE.DirectionalLight(0xffffff, 0.8);
-    dir.position.set(5, 10, 7.5);
-    dir.castShadow = true;
-    scene.add(dir);
-
-    // ground
-    const ground = new THREE.Mesh(
-      new THREE.PlaneGeometry(200, 200),
-      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 1, metalness: 0 })
-    );
-    ground.rotation.x = -Math.PI/2;
-    ground.position.y = -0.001;
-    ground.receiveShadow = true;
-    scene.add(ground);
-
-    window.addEventListener('resize', onWindowResize);
-    function onWindowResize() {
-      const w = container.clientWidth;
-      const h = container.clientHeight;
-      renderer.setSize(w, h);
-      camera.aspect = w / Math.max(h, 1);
-      camera.updateProjectionMatrix();
-    }
-    onWindowResize();
-
-    function animate() {
-      requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
-    }
-    animate();
-
-    // Loaders
-    const colladaLoader = new ColladaLoader();
-    const objLoader = new OBJLoader();
-    const fbxLoader = new FBXLoader();
-    const gltfExporter = new GLTFExporter();
-
-    let currentModel = null;
-    const detailsEl = document.getElementById('details');
-    const statusEl = document.getElementById('status');
-
-    function clearScene() {
-      if (currentModel) {
-        scene.remove(currentModel);
-        currentModel.traverse((c) => {
-          if (c.geometry) c.geometry.dispose && c.geometry.dispose();
-          if (c.material) {
-            if (Array.isArray(c.material)) c.material.forEach(m => m.dispose && m.dispose());
-            else c.material.dispose && c.material.dispose();
-          }
-        });
-        currentModel = null;
-      }
-      detailsEl.innerText = 'Nessun modello caricato';
-    }
-
-    function addModelToScene(obj) {
-      clearScene();
-      currentModel = new THREE.Group();
-      currentModel.add(obj);
-      // Centra e scala
-      const box = new THREE.Box3().setFromObject(currentModel);
-      const size = new THREE.Vector3();
-      box.getSize(size);
-      const maxDim = Math.max(size.x, size.y, size.z);
-      if (maxDim > 0) {
-        const scale = 1.6 / maxDim; // scala ragionevole
-        currentModel.scale.set(scale, scale, scale);
-      }
-      // recentra
-      box.setFromObject(currentModel);
-      const center = new THREE.Vector3();
-      box.getCenter(center);
-      currentModel.position.sub(center);
-      scene.add(currentModel);
-      detailsEl.innerText = `Oggetto: ${Math.round(size.x*100)/100} × ${Math.round(size.y*100)/100} × ${Math.round(size.z*100)/100} (scala automatica applicata)`;
-      statusEl.innerText = '';
-    }
-
-    // File handling
-    const fileInput = document.getElementById('file-input');
-    fileInput.addEventListener('change', (ev) => {
-      const f = ev.target.files[0];
-      if (f) handleFile(f);
-      fileInput.value = '';
-    });
-
-    // Drag & drop
-    window.addEventListener('dragover', (e) => { e.preventDefault(); });
-    window.addEventListener('drop', (e) => {
-      e.preventDefault();
-      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-    });
-
-    async function handleFile(file) {
-      statusEl.innerText = 'Caricamento...';
-      const name = file.name;
-      const ext = name.split('.').pop().toLowerCase();
-      const buffer = await file.arrayBuffer();
-      try {
-        if (ext === 'dae' || ext === 'xml') {
-          // Collada: expects string
-          const text = new TextDecoder().decode(buffer);
-          const collada = colladaLoader.parse(text);
-          const model = collada.scene || collada;
-          addModelToScene(model);
-        } else if (ext === 'obj') {
-          const text = new TextDecoder().decode(buffer);
-          const obj = objLoader.parse(text);
-          addModelToScene(obj);
-        } else if (ext === 'fbx') {
-          // FBXLoader expects ArrayBuffer
-          const fbx = fbxLoader.parse(buffer, file.name);
-          addModelToScene(fbx);
-        } else if (ext === 'gltf' || ext === 'glb') {
-          // use GLTFLoader? but for simplicity use GLTFLoader dynamic import
-          const { GLTFLoader } = await import('https://unpkg.com/three@0.152.2/examples/jsm/loaders/GLTFLoader.js');
-          const loader = new GLTFLoader();
-          loader.parse(buffer, '', (gltf) => {
-            addModelToScene(gltf.scene);
-          }, (e) => {
-            statusEl.innerText = 'Errore parsing GLTF: ' + e;
-          });
-        } else {
-          statusEl.innerText = 'Formato non supportato: ' + ext;
-          return;
-        }
-      } catch (err) {
-        console.error(err);
-        statusEl.innerText = 'Errore caricamento: ' + (err.message || err);
-        return;
-      }
-      statusEl.innerText = 'Modello caricato';
-    }
-
-    // Export GLB
-    document.getElementById('btn-export').addEventListener('click', () => {
-      if (!currentModel) { alert('Nessun modello da esportare.'); return; }
-      statusEl.innerText = 'Esportazione GLB...';
-      // clonare il nodo per esportazione pulita
-      const clone = currentModel.clone(true);
-      // preparare scene temporanea
-      const exportScene = new THREE.Scene();
-      exportScene.add(clone);
-      const options = { binary: true, embedImages: true };
-      gltfExporter.parse(exportScene, (result) => {
-        let arrayBuffer;
-        if (result instanceof ArrayBuffer) arrayBuffer = result;
-        else {
-          const output = JSON.stringify(result, null, 2);
-          arrayBuffer = new TextEncoder().encode(output).buffer;
-        }
-        const blob = new Blob([arrayBuffer], { type: 'model/gltf-binary' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'model.glb';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        statusEl.innerText = 'Export pronto: scaricato model.glb';
-      }, (err) => {
-        console.error('Export err', err);
-        statusEl.innerText = 'Errore durante export: ' + err;
-      }, options);
-    });
-
-    // Reset scena
-    document.getElementById('btn-reset').addEventListener('click', () => {
-      clearScene();
-      statusEl.innerText = 'Scena resettata';
-    });
-
-    // Package ZIP (index + model.glb) — per condivisione su GitHub
-    document.getElementById('btn-zip').addEventListener('click', async () => {
-      if (!currentModel) { alert('Carica prima un modello.'); return; }
-      statusEl.innerText = 'Creazione GLB per lo zip...';
-      const clone = currentModel.clone(true);
-      const exportScene = new THREE.Scene();
-      exportScene.add(clone);
-
-      const options = { binary: true, embedImages: true };
-      gltfExporter.parse(exportScene, async (result) => {
-        let arrayBuffer;
-        if (result instanceof ArrayBuffer) arrayBuffer = result;
-        else {
-          const output = JSON.stringify(result, null, 2);
-          arrayBuffer = new TextEncoder().encode(output).buffer;
-        }
-        // usa JSZip (global)
-        if (typeof JSZip === 'undefined') {
-          alert('JSZip non caricato; impossibile creare ZIP.');
-          statusEl.innerText = 'JSZip mancante';
-          return;
-        }
-        const zip = new JSZip();
-        zip.file('model.glb', arrayBuffer);
-
-        // index.html minimale per mostrare il glb con model-viewer (o con three.js)
-        const shareIndex = `<!doctype html>
-<html>
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Shared 3D Model</title>
-<script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-<style>body{margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#f8fafc;}model-viewer{width:100%;height:100vh;}</style>
-</head>
 <body>
-<model-viewer src="model.glb" ar ar-modes="webxr scene-viewer quick-look" camera-controls auto-rotate environment-image="https://modelviewer.dev/shared-assets/environments/studio.hdr"></model-viewer>
-</body>
-</html>`;
+  <h1>Universal 3D Viewer (.dae / .glb / .obj)</h1>
+  <input type="file" id="fileInput" accept=".dae,.glb,.gltf,.obj" />
+  <div id="controls">
+    <button id="shareBtn">Condividi progetto</button>
+    <span id="status"></span>
+  </div>
+  <div id="viewer"></div>
 
-        zip.file('index.html', shareIndex);
+<script>
+let scene, camera, renderer, controls, currentObject, currentFile;
 
-        statusEl.innerText = 'Creazione ZIP (potrebbe impiegare qualche secondo)...';
-        const content = await zip.generateAsync({ type: 'blob' });
-        const url = URL.createObjectURL(content);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'shared-model.zip';
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-        statusEl.innerText = 'ZIP creato: scaricato shared-model.zip';
-      }, (err) => {
-        console.error(err);
-        statusEl.innerText = 'Errore export: ' + err;
-      }, options);
-    });
+// setup base scene
+scene = new THREE.Scene();
+camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
+camera.position.set(0,2,5);
+renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(window.innerWidth, window.innerHeight*0.8);
+document.getElementById("viewer").appendChild(renderer.domElement);
 
-  </script>
+const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+scene.add(light);
+const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+dirLight.position.set(5,10,7);
+scene.add(dirLight);
 
-  <!-- JSZip (global) -->
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+function animate(){
+  requestAnimationFrame(animate);
+  renderer.render(scene, camera);
+}
+animate();
+
+// load model
+document.getElementById("fileInput").addEventListener("change", e=>{
+  const file = e.target.files[0];
+  if (!file) return;
+  const ext = file.name.split(".").pop().toLowerCase();
+  const reader = new FileReader();
+  reader.onload = ev=>{
+    if (currentObject) { scene.remove(currentObject); currentObject=null; }
+    const data = ev.target.result;
+    if (ext==="glb" || ext==="gltf"){
+      new THREE.GLTFLoader().parse(data, "", gltf=>{
+        currentObject=gltf.scene; scene.add(currentObject);
+      });
+    } else if (ext==="obj"){
+      const text=new TextDecoder().decode(data);
+      currentObject=new THREE.OBJLoader().parse(text);
+      scene.add(currentObject);
+    } else if (ext==="dae"){
+      const parser=new DOMParser().parseFromString(new TextDecoder().decode(data), "application/xml");
+      currentObject=new THREE.ColladaLoader().parse(parser);
+      scene.add(currentObject.scene);
+    }
+    currentFile = file;
+  };
+  if (ext==="glb") reader.readAsArrayBuffer(file);
+  else reader.readAsText(file);
+});
+
+// share project
+document.getElementById("shareBtn").addEventListener("click", ()=>{
+  if (!currentFile) { alert("Nessun modello caricato"); return; }
+  const zip = new JSZip();
+  // add model
+  zip.file(currentFile.name, currentFile);
+  // add simple viewer page
+  const shareIndex = `
+<!DOCTYPE html><html><head>
+  <meta charset="utf-8"><title>Shared Model</title>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/GLTFLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/OBJLoader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/ColladaLoader.js"></script>
+  <style>body{margin:0;}canvas{width:100%;height:100%}</style></head>
+<body><script>
+  const scene=new THREE.Scene();
+  const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
+  camera.position.set(0,2,5);
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+  const light=new THREE.HemisphereLight(0xffffff,0x444444,1.2);scene.add(light);
+  const dirLight=new THREE.DirectionalLight(0xffffff,0.8);dirLight.position.set(5,10,7);scene.add(dirLight);
+  fetch("${currentFile.name}").then(r=>{
+    const ext="${currentFile.name.split('.').pop().toLowerCase()}";
+    if(ext==="glb"||ext==="gltf"){
+      r.arrayBuffer().then(b=>new THREE.GLTFLoader().parse(b,"",g=>{scene.add(g.scene);}));
+    }else if(ext==="obj"){
+      r.text().then(t=>{scene.add(new THREE.OBJLoader().parse(t));});
+    }else if(ext==="dae"){
+      r.text().then(t=>{const p=new DOMParser().parseFromString(t,"application/xml");scene.add(new THREE.ColladaLoader().parse(p).scene);});
+    }
+  });
+  function animate(){requestAnimationFrame(animate);renderer.render(scene,camera);} animate();
+</script></body></html>`;
+  zip.file("index.html", shareIndex);
+  document.getElementById("status").innerText="Creazione ZIP...";
+  zip.generateAsync({type:"blob"}).then(content=>{
+    saveAs(content,"shared-model.zip");
+    document.getElementById("status").innerText="ZIP pronto (scaricato)";
+  });
+});
+</script>
 </body>
 </html>
