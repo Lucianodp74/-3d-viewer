@@ -4,50 +4,59 @@
   <meta charset="UTF-8">
   <title>Universal 3D Viewer</title>
   <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/controls/OrbitControls.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/GLTFLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/OBJLoader.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/ColladaLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
   <style>
-    body { margin:0; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; }
-    #viewer { width:100%; height:80vh; background:#111; }
-    #controls { margin:1em; }
+    body { margin:0; font-family:sans-serif; background:#111; color:#eee; }
+    #topbar { padding:10px; background:#222; }
+    #viewer { width:100%; height:calc(100vh - 50px); }
   </style>
 </head>
 <body>
-  <h1>Universal 3D Viewer (.dae / .glb / .obj)</h1>
-  <input type="file" id="fileInput" accept=".dae,.glb,.gltf,.obj" />
-  <div id="controls">
-    <button id="shareBtn">Condividi progetto</button>
-    <span id="status"></span>
+  <div id="topbar">
+    <input type="file" id="fileInput" accept=".dae,.glb,.gltf,.obj" />
+    <span>Carica un modello (.dae, .glb, .gltf, .obj)</span>
   </div>
   <div id="viewer"></div>
 
 <script>
-let scene, camera, renderer, controls, currentObject, currentFile;
+let scene, camera, renderer, controls, currentObject;
 
-// setup base scene
+// Setup scena
 scene = new THREE.Scene();
+scene.background = new THREE.Color(0x111111);
+
 camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 1000);
 camera.position.set(0,2,5);
+
 renderer = new THREE.WebGLRenderer({antialias:true});
-renderer.setSize(window.innerWidth, window.innerHeight*0.8);
+renderer.setSize(window.innerWidth, window.innerHeight-50);
 document.getElementById("viewer").appendChild(renderer.domElement);
 
-const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
-scene.add(light);
+controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+const hemiLight = new THREE.HemisphereLight(0xffffff, 0x444444, 1.2);
+scene.add(hemiLight);
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
 dirLight.position.set(5,10,7);
 scene.add(dirLight);
 
 function animate(){
   requestAnimationFrame(animate);
+  controls.update();
   renderer.render(scene, camera);
 }
 animate();
 
-// load model
+window.addEventListener("resize", ()=>{
+  camera.aspect = window.innerWidth/(window.innerHeight-50);
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight-50);
+});
+
+// Caricamento modello
 document.getElementById("fileInput").addEventListener("change", e=>{
   const file = e.target.files[0];
   if (!file) return;
@@ -55,68 +64,22 @@ document.getElementById("fileInput").addEventListener("change", e=>{
   const reader = new FileReader();
   reader.onload = ev=>{
     if (currentObject) { scene.remove(currentObject); currentObject=null; }
-    const data = ev.target.result;
     if (ext==="glb" || ext==="gltf"){
-      new THREE.GLTFLoader().parse(data, "", gltf=>{
+      new THREE.GLTFLoader().parse(ev.target.result, "", gltf=>{
         currentObject=gltf.scene; scene.add(currentObject);
       });
     } else if (ext==="obj"){
-      const text=new TextDecoder().decode(data);
+      const text=new TextDecoder().decode(ev.target.result);
       currentObject=new THREE.OBJLoader().parse(text);
       scene.add(currentObject);
     } else if (ext==="dae"){
-      const parser=new DOMParser().parseFromString(new TextDecoder().decode(data), "application/xml");
-      currentObject=new THREE.ColladaLoader().parse(parser);
-      scene.add(currentObject.scene);
+      const parser=new DOMParser().parseFromString(new TextDecoder().decode(ev.target.result),"application/xml");
+      currentObject=new THREE.ColladaLoader().parse(parser).scene;
+      scene.add(currentObject);
     }
-    currentFile = file;
   };
   if (ext==="glb") reader.readAsArrayBuffer(file);
   else reader.readAsText(file);
-});
-
-// share project
-document.getElementById("shareBtn").addEventListener("click", ()=>{
-  if (!currentFile) { alert("Nessun modello caricato"); return; }
-  const zip = new JSZip();
-  // add model
-  zip.file(currentFile.name, currentFile);
-  // add simple viewer page
-  const shareIndex = `
-<!DOCTYPE html><html><head>
-  <meta charset="utf-8"><title>Shared Model</title>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/build/three.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/GLTFLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/OBJLoader.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/three@0.156.1/examples/js/loaders/ColladaLoader.js"></script>
-  <style>body{margin:0;}canvas{width:100%;height:100%}</style></head>
-<body><script>
-  const scene=new THREE.Scene();
-  const camera=new THREE.PerspectiveCamera(60,window.innerWidth/window.innerHeight,0.1,1000);
-  camera.position.set(0,2,5);
-  const renderer=new THREE.WebGLRenderer({antialias:true});
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
-  const light=new THREE.HemisphereLight(0xffffff,0x444444,1.2);scene.add(light);
-  const dirLight=new THREE.DirectionalLight(0xffffff,0.8);dirLight.position.set(5,10,7);scene.add(dirLight);
-  fetch("${currentFile.name}").then(r=>{
-    const ext="${currentFile.name.split('.').pop().toLowerCase()}";
-    if(ext==="glb"||ext==="gltf"){
-      r.arrayBuffer().then(b=>new THREE.GLTFLoader().parse(b,"",g=>{scene.add(g.scene);}));
-    }else if(ext==="obj"){
-      r.text().then(t=>{scene.add(new THREE.OBJLoader().parse(t));});
-    }else if(ext==="dae"){
-      r.text().then(t=>{const p=new DOMParser().parseFromString(t,"application/xml");scene.add(new THREE.ColladaLoader().parse(p).scene);});
-    }
-  });
-  function animate(){requestAnimationFrame(animate);renderer.render(scene,camera);} animate();
-</script></body></html>`;
-  zip.file("index.html", shareIndex);
-  document.getElementById("status").innerText="Creazione ZIP...";
-  zip.generateAsync({type:"blob"}).then(content=>{
-    saveAs(content,"shared-model.zip");
-    document.getElementById("status").innerText="ZIP pronto (scaricato)";
-  });
 });
 </script>
 </body>
