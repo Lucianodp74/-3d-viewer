@@ -3,25 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 3D Model Viewer - GitHub Pages</title>
-    <meta name="description" content="Visualizzatore 3D per modelli .gltf e .glb - Carica e visualizza i tuoi modelli 3D direttamente nel browser">
-    <meta name="keywords" content="3d, viewer, gltf, glb, three.js, modelli 3d">
-    <meta name="author" content="3D Model Viewer">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚀</text></svg>">
+    <title>🚀 3D Model Viewer - Fixed</title>
     <style>
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
             color: white;
             overflow: hidden;
-            -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
         }
 
         .container {
@@ -57,33 +47,17 @@
             pointer-events: auto;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-        }
-
-        .header h1 {
-            font-size: 1.5rem;
-            font-weight: 700;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
-        }
-
-        .header p {
-            color: #ccc;
-            font-size: 0.9rem;
         }
 
         .controls {
             position: absolute;
             bottom: 20px;
-            left: 20px;
-            right: 20px;
+            left: 50%;
+            transform: translateX(-50%);
             display: flex;
-            justify-content: center;
             gap: 15px;
             flex-wrap: wrap;
+            justify-content: center;
             pointer-events: auto;
         }
 
@@ -97,30 +71,7 @@
             font-size: 14px;
             font-weight: 600;
             transition: all 0.3s ease;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
             user-select: none;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s;
-        }
-
-        .btn:hover::before {
-            left: 100%;
         }
 
         .btn:hover {
@@ -129,18 +80,15 @@
         }
 
         .btn:active {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
+            transform: translateY(0);
         }
 
         .btn.secondary {
             background: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
         }
 
         .btn.secondary:hover {
             background: rgba(255, 255, 255, 0.2);
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
         }
 
         .upload-zone {
@@ -168,33 +116,6 @@
             border-color: #764ba2;
             background: rgba(102, 126, 234, 0.15);
             transform: translate(-50%, -50%) scale(1.05);
-            box-shadow: 0 20px 60px rgba(102, 126, 234, 0.3);
-        }
-
-        .upload-zone .upload-icon {
-            font-size: 5rem;
-            margin-bottom: 25px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .upload-zone h2 {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 15px;
-            background: linear-gradient(45deg, #667eea, #764ba2);
-            background-clip: text;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .upload-zone p {
-            color: #ccc;
-            margin-bottom: 30px;
-            font-size: 1.1rem;
-            line-height: 1.6;
         }
 
         #fileInput {
@@ -212,30 +133,6 @@
             display: none;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            min-width: 220px;
-        }
-
-        .info h3 {
-            color: #667eea;
-            margin-bottom: 15px;
-            font-size: 1.1rem;
-        }
-
-        .info-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-size: 0.95rem;
-        }
-
-        .info-item .label {
-            color: #ccc;
-        }
-
-        .info-item .value {
-            font-weight: 600;
-            color: white;
         }
 
         .status {
@@ -270,152 +167,41 @@
             100% { transform: rotate(360deg); }
         }
 
-        .github-link {
+        .test-info {
             position: absolute;
             top: 100px;
             left: 20px;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.7);
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 8px;
             pointer-events: auto;
-            backdrop-filter: blur(10px);
+            font-size: 12px;
             border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
-        .github-link a {
-            color: #ffeb3b;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .github-link a:hover {
-            color: #fff176;
-        }
-
-        .version {
-            position: absolute;
-            bottom: 20px;
-            left: 20px;
-            color: #666;
-            font-size: 0.8rem;
-            pointer-events: auto;
-        }
-
-        /* Animazioni */
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .header, .info, .github-link {
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        /* Responsive Design */
         @media (max-width: 768px) {
-            .header {
-                left: 10px;
-                right: 10px;
-                top: 10px;
-                padding: 15px;
-            }
-
-            .header h1 {
-                font-size: 1.3rem;
-            }
-
             .controls {
-                bottom: 10px;
-                left: 10px;
-                right: 10px;
-                gap: 10px;
+                bottom: 20px;
+                left: 20px;
+                right: 20px;
+                transform: none;
+                flex-direction: column;
             }
             
             .btn {
                 padding: 16px 20px;
                 font-size: 16px;
-                flex: 1;
-                min-width: 0;
-                justify-content: center;
+                width: 100%;
             }
             
             .upload-zone {
                 padding: 40px 20px;
                 width: 95%;
-                border-radius: 15px;
             }
 
-            .upload-zone .upload-icon {
-                font-size: 4rem;
-                margin-bottom: 20px;
-            }
-
-            .upload-zone h2 {
-                font-size: 1.5rem;
-                margin-bottom: 12px;
-            }
-
-            .upload-zone p {
-                font-size: 1rem;
-                margin-bottom: 25px;
-            }
-
-            .info {
-                top: 10px;
-                right: 10px;
-                left: 10px;
-                padding: 15px;
-            }
-
-            .github-link {
-                display: none; /* Nascondi su mobile per risparmiare spazio */
-            }
-
-            .version {
+            .test-info {
                 display: none;
             }
-        }
-
-        @media (max-width: 480px) {
-            .controls {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-
-        /* Stili per dispositivi ad alta risoluzione */
-        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
-            .btn, .upload-zone, .header, .info, .github-link {
-                border-width: 0.5px;
-            }
-        }
-
-        /* Dark mode support (già implementato) */
-        @media (prefers-color-scheme: dark) {
-            body {
-                color-scheme: dark;
-            }
-        }
-
-        /* Reduced motion support */
-        @media (prefers-reduced-motion: reduce) {
-            *, ::before, ::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-
-        /* Focus styles per accessibilità */
-        .btn:focus-visible {
-            outline: 2px solid #667eea;
-            outline-offset: 2px;
         }
     </style>
 </head>
@@ -426,462 +212,461 @@
         <div class="ui">
             <div class="header">
                 <h1 id="title">🚀 3D Model Viewer</h1>
-                <p id="subtitle">Visualizzatore 3D per GitHub Pages - Pronto per l'uso</p>
+                <p id="subtitle">Pronto per il caricamento</p>
             </div>
 
-            <div class="github-link">
-                <a href="https://github.com/your-username/3d-model-viewer" target="_blank" rel="noopener noreferrer">
-                    📁 Visualizza su GitHub
-                </a>
+            <div class="test-info" id="testInfo">
+                <div>Status: <span id="status">Inizializzazione...</span></div>
+                <div>File Input: <span id="fileStatus">Test...</span></div>
+                <div>Click Count: <span id="clickCount">0</span></div>
             </div>
 
             <div class="info" id="info">
-                <h3>📊 Informazioni Modello</h3>
-                <div class="info-item">
-                    <span class="label">Triangoli:</span>
-                    <span class="value" id="triangles">-</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Vertici:</span>
-                    <span class="value" id="vertices">-</span>
-                </div>
-                <div class="info-item">
-                    <span class="label">Materiali:</span>
-                    <span class="value" id="materials">-</span>
-                </div>
+                <h3>📊 Info Modello</h3>
+                <div>Triangoli: <span id="triangles">-</span></div>
+                <div>Vertici: <span id="vertices">-</span></div>
+                <div>Materiali: <span id="materials">-</span></div>
             </div>
 
             <div class="controls">
-                <button class="btn" id="loadFileBtn">
-                    📂 Carica File
-                </button>
-                <button class="btn secondary" id="resetBtn" style="display:none;">
-                    🔄 Reset Vista
-                </button>
-                <button class="btn secondary" id="wireframeBtn" style="display:none;">
-                    🔲 Wireframe
-                </button>
-                <button class="btn secondary" onclick="location.reload()">
-                    🔄 Ricarica
-                </button>
+                <button class="btn" id="loadBtn">📂 CARICA FILE</button>
+                <button class="btn secondary" id="resetBtn" style="display:none;">🔄 Reset</button>
+                <button class="btn secondary" id="wireframeBtn" style="display:none;">🔲 Wireframe</button>
+                <button class="btn secondary" onclick="location.reload()">🔄 Ricarica</button>
             </div>
 
             <div class="upload-zone" id="uploadZone">
-                <div class="upload-icon">📦</div>
-                <h2>Carica il tuo modello 3D</h2>
-                <p>
-                    Trascina qui un file <strong>.gltf</strong> o <strong>.glb</strong><br>
-                    oppure clicca il pulsante per selezionare<br>
-                    <small>(Dimensione massima: 50MB)</small>
-                </p>
-                <button class="btn" id="selectFileBtn">
-                    📂 Seleziona File
-                </button>
-                <div class="status" id="status"></div>
-            </div>
-
-            <div class="version">
-                v1.0.0 - Powered by Three.js
+                <div style="font-size: 4rem; margin-bottom: 20px;">📦</div>
+                <h2>Carica Modello 3D</h2>
+                <p>Trascina file .gltf, .glb o .dae<br><small>(Max 50MB)</small></p>
+                <br>
+                <button class="btn" id="selectBtn">📂 SELEZIONA FILE</button>
+                <div class="status" id="uploadStatus"></div>
             </div>
         </div>
 
-        <input type="file" id="fileInput" accept=".gltf,.glb" aria-label="Seleziona modello 3D">
+        <!-- File input SEMPRE visibile per debug -->
+        <input type="file" id="fileInput" accept=".gltf,.glb,.dae" style="position: absolute; top: -1000px; left: -1000px;">
     </div>
 
-    <!-- Three.js Libraries -->
+    <!-- Three.js -->
     <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/build/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/controls/OrbitControls.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/loaders/ColladaLoader.js"></script>
 
     <script>
-        'use strict';
-
-        console.log('🚀 3D Model Viewer v1.0.0 - Avvio...');
+        console.log('🚀 Avvio 3D Viewer...');
 
         // Variabili globali
         let scene, camera, renderer, controls, model;
         let wireframeMode = false;
-        let appReady = false;
+        let clickCount = 0;
 
         // Elementi DOM
-        const canvas = document.getElementById('canvas');
         const fileInput = document.getElementById('fileInput');
+        const loadBtn = document.getElementById('loadBtn');
+        const selectBtn = document.getElementById('selectBtn');
         const uploadZone = document.getElementById('uploadZone');
-        const status = document.getElementById('status');
-        const info = document.getElementById('info');
+        const uploadStatus = document.getElementById('uploadStatus');
 
-        // Attesa caricamento Three.js con retry
-        function waitForThree() {
-            return new Promise((resolve, reject) => {
-                let attempts = 0;
-                const maxAttempts = 150; // 15 secondi
-                
-                const check = () => {
-                    attempts++;
-                    
-                    if (typeof THREE !== 'undefined' && 
-                        THREE.Scene && 
-                        THREE.OrbitControls && 
-                        THREE.GLTFLoader) {
-                        console.log('✅ Three.js caricato completamente');
-                        resolve();
-                    } else if (attempts < maxAttempts) {
-                        setTimeout(check, 100);
-                    } else {
-                        reject(new Error('Timeout caricamento Three.js'));
-                    }
-                };
-                
-                check();
-            });
-        }
-
-        // Inizializzazione Three.js
-        function initThree() {
-            console.log('🎮 Inizializzazione Three.js...');
+        // Test immediato file input
+        function testFileInput() {
+            console.log('🧪 Test file input...');
+            document.getElementById('fileStatus').textContent = fileInput ? 'Trovato ✅' : 'Errore ❌';
             
+            // Test click programmatico
             try {
-                // Scena
-                scene = new THREE.Scene();
-                scene.background = new THREE.Color(0x1a1a1a);
-
-                // Camera con FOV ottimizzato
-                camera = new THREE.PerspectiveCamera(
-                    75, 
-                    window.innerWidth / window.innerHeight, 
-                    0.01, 
-                    1000
-                );
-                camera.position.set(5, 5, 5);
-
-                // Renderer con impostazioni ottimali
-                renderer = new THREE.WebGLRenderer({ 
-                    canvas: canvas, 
-                    antialias: true,
-                    alpha: true,
-                    powerPreference: 'high-performance'
-                });
-                renderer.setSize(window.innerWidth, window.innerHeight);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                renderer.shadowMap.enabled = true;
-                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-                renderer.toneMapping = THREE.ACESFilmicToneMapping;
-                renderer.toneMappingExposure = 1;
-
-                // Controlli ottimizzati
-                controls = new THREE.OrbitControls(camera, renderer.domElement);
-                controls.enableDamping = true;
-                controls.dampingFactor = 0.05;
-                controls.minDistance = 0.1;
-                controls.maxDistance = 100;
-                controls.enablePan = true;
-                controls.enableZoom = true;
-                controls.enableRotate = true;
-
-                // Sistema di illuminazione professionale
-                setupLighting();
-
-                console.log('✅ Three.js inizializzato con successo');
-                return true;
+                const testClick = () => fileInput.click();
+                testClick();
+                console.log('✅ Click programmatico funziona');
+                document.getElementById('fileStatus').textContent = 'Click OK ✅';
             } catch (error) {
-                console.error('❌ Errore inizializzazione Three.js:', error);
-                return false;
+                console.error('❌ Errore click:', error);
+                document.getElementById('fileStatus').textContent = 'Click Errore ❌';
             }
         }
 
-        // Setup illuminazione
-        function setupLighting() {
-            // Luce ambientale
-            const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
-            scene.add(ambientLight);
-
-            // Luce direzionale principale
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-            directionalLight.position.set(10, 10, 5);
-            directionalLight.castShadow = true;
-            directionalLight.shadow.mapSize.width = 2048;
-            directionalLight.shadow.mapSize.height = 2048;
-            directionalLight.shadow.camera.near = 0.1;
-            directionalLight.shadow.camera.far = 50;
-            scene.add(directionalLight);
-
-            // Luce di riempimento
-            const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
-            fillLight.position.set(-10, -10, -5);
-            scene.add(fillLight);
-
-            // Luce posteriore
-            const backLight = new THREE.DirectionalLight(0x80caff, 0.3);
-            backLight.position.set(0, 0, -10);
-            scene.add(backLight);
-        }
-
-        // Setup eventi con error handling
+        // Setup eventi SEMPLIFICATO
         function setupEvents() {
-            console.log('🔧 Configurazione eventi...');
+            console.log('🔧 Setup eventi...');
 
-            try {
-                // Pulsanti carica file
-                document.getElementById('loadFileBtn').addEventListener('click', handleLoadClick);
-                document.getElementById('selectFileBtn').addEventListener('click', handleLoadClick);
-
-                // Controlli modello
-                document.getElementById('resetBtn').addEventListener('click', resetCamera);
-                document.getElementById('wireframeBtn').addEventListener('click', toggleWireframe);
-
-                // File input
-                fileInput.addEventListener('change', handleFileSelect);
-
-                // Drag & Drop
-                setupDragAndDrop();
-
-                // Resize
-                window.addEventListener('resize', onWindowResize);
-
-                // Keyboard shortcuts
-                document.addEventListener('keydown', handleKeyboard);
-
-                console.log('✅ Eventi configurati');
-                return true;
-            } catch (error) {
-                console.error('❌ Errore configurazione eventi:', error);
-                return false;
-            }
-        }
-
-        // Handler click carica file
-        function handleLoadClick() {
-            console.log('🖱️ Click: Carica File');
-            try {
-                fileInput.click();
-            } catch (error) {
-                console.error('❌ Errore apertura file picker:', error);
-                showError('Errore nell\'apertura del selettore file');
-            }
-        }
-
-        // Handler selezione file
-        function handleFileSelect(event) {
-            console.log('📁 File selezionato');
-            const files = event.target.files;
-            if (files && files.length > 0) {
-                loadModel(files[0]);
-            }
-        }
-
-        // Keyboard shortcuts
-        function handleKeyboard(event) {
-            if (!model) return;
-
-            switch(event.key.toLowerCase()) {
-                case 'r':
-                    if (event.ctrlKey || event.metaKey) {
-                        event.preventDefault();
-                        resetCamera();
-                    }
-                    break;
-                case 'w':
-                    if (event.ctrlKey || event.metaKey) {
-                        event.preventDefault();
-                        toggleWireframe();
-                    }
-                    break;
-            }
-        }
-
-        // Setup Drag & Drop avanzato
-        function setupDragAndDrop() {
-            console.log('🖱️ Configurazione Drag & Drop...');
-
-            const dragEvents = ['dragenter', 'dragover', 'dragleave', 'drop'];
-            
-            dragEvents.forEach(eventName => {
-                document.addEventListener(eventName, preventDefaults, false);
-                uploadZone.addEventListener(eventName, preventDefaults, false);
-            });
-
-            ['dragenter', 'dragover'].forEach(eventName => {
-                document.addEventListener(eventName, () => {
-                    uploadZone.classList.add('dragover');
-                }, false);
-            });
-
-            ['dragleave', 'drop'].forEach(eventName => {
-                document.addEventListener(eventName, () => {
-                    uploadZone.classList.remove('dragover');
-                }, false);
-            });
-
-            document.addEventListener('drop', (event) => {
-                const files = event.dataTransfer.files;
-                if (files.length > 0) {
-                    console.log('📦 File rilasciato:', files[0].name);
-                    loadModel(files[0]);
-                }
-            }, false);
-        }
-
-        function preventDefaults(event) {
-            event.preventDefault();
-            event.stopPropagation();
-        }
-
-        // Caricamento modello con validazione avanzata
-        function loadModel(file) {
-            console.log('📂 Avvio caricamento:', file.name, 'Dimensione:', formatFileSize(file.size));
-
-            // Validazioni
-            const validExtensions = ['gltf', 'glb'];
-            const fileExtension = file.name.split('.').pop().toLowerCase();
-            
-            if (!validExtensions.includes(fileExtension)) {
-                showError(`Formato "${fileExtension}" non supportato. Usa file .gltf o .glb`);
-                return;
-            }
-
-            const maxSize = 50 * 1024 * 1024; // 50MB
-            if (file.size > maxSize) {
-                showError(`File troppo grande (${formatFileSize(file.size)}). Massimo consentito: ${formatFileSize(maxSize)}`);
-                return;
-            }
-
-            if (file.size === 0) {
-                showError('Il file sembra essere vuoto');
-                return;
-            }
-
-            // UI feedback
-            showLoading(`Caricando ${file.name}...`);
-            
-            // Lettura file
-            const reader = new FileReader();
-            
-            reader.onload = function(event) {
-                console.log('📖 File letto, creazione blob...');
+            // METODO DIRETTO - pulsante principale
+            loadBtn.onclick = function() {
+                clickCount++;
+                document.getElementById('clickCount').textContent = clickCount;
+                console.log('🖱️ CLICK loadBtn - tentativo', clickCount);
+                
                 try {
-                    const arrayBuffer = event.target.result;
-                    const blob = new Blob([arrayBuffer]);
-                    const url = URL.createObjectURL(blob);
-                    load3DFile(url, file.name);
+                    fileInput.click();
+                    console.log('✅ fileInput.click() eseguito');
                 } catch (error) {
-                    console.error('❌ Errore elaborazione file:', error);
-                    showError('Errore nell\'elaborazione del file');
+                    console.error('❌ Errore click:', error);
                 }
             };
-            
-            reader.onerror = function() {
-                console.error('❌ Errore lettura file');
-                showError('Errore nella lettura del file');
+
+            // METODO DIRETTO - pulsante upload zone  
+            selectBtn.onclick = function() {
+                clickCount++;
+                document.getElementById('clickCount').textContent = clickCount;
+                console.log('🖱️ CLICK selectBtn - tentativo', clickCount);
+                
+                try {
+                    fileInput.click();
+                    console.log('✅ fileInput.click() eseguito');
+                } catch (error) {
+                    console.error('❌ Errore click:', error);
+                }
             };
+
+            // File input change
+            fileInput.onchange = function(e) {
+                console.log('📁 FILE CHANGE EVENT:', e.target.files);
+                if (e.target.files && e.target.files.length > 0) {
+                    const file = e.target.files[0];
+                    console.log('📄 File selezionato:', file.name);
+                    loadModel(file);
+                } else {
+                    console.log('❌ Nessun file selezionato');
+                }
+            };
+
+            // Altri controlli
+            document.getElementById('resetBtn').onclick = resetCamera;
+            document.getElementById('wireframeBtn').onclick = toggleWireframe;
+
+            // Drag & Drop semplificato
+            document.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadZone.classList.add('dragover');
+            });
+
+            document.addEventListener('dragleave', () => {
+                uploadZone.classList.remove('dragover');
+            });
+
+            document.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadZone.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length > 0) {
+                    const file = e.dataTransfer.files[0];
+                    console.log('📦 File droppato:', file.name);
+                    loadModel(file);
+                }
+            });
+
+            // Window resize
+            window.addEventListener('resize', onWindowResize);
+
+            console.log('✅ Eventi configurati');
+        }
+
+        // Carica modello
+        function loadModel(file) {
+            console.log('📂 Caricamento:', file.name);
+
+            // Validazione
+            const validExts = ['gltf', 'glb', 'dae'];
+            const ext = file.name.split('.').pop().toLowerCase();
             
+            if (!validExts.includes(ext)) {
+                showError(`Formato .${ext} non supportato. Usa .gltf, .glb o .dae`);
+                return;
+            }
+
+            if (file.size > 50 * 1024 * 1024) {
+                showError('File troppo grande (max 50MB)');
+                return;
+            }
+
+            showLoading(`Caricando ${file.name}...`);
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const url = URL.createObjectURL(new Blob([e.target.result]));
+                load3DModel(url, file.name, ext);
+            };
             reader.readAsArrayBuffer(file);
         }
 
-        // Caricamento file 3D con progress
-        function load3DFile(url, filename) {
-            console.log('🎮 Caricamento modello 3D...');
-            
-            const loader = new THREE.GLTFLoader();
-            
+        // Carica modello 3D
+        function load3DModel(url, filename, ext) {
+            console.log(`🎮 Caricamento .${ext}...`);
+
+            let loader;
+            switch(ext) {
+                case 'gltf':
+                case 'glb':
+                    loader = new THREE.GLTFLoader();
+                    break;
+                case 'dae':
+                    loader = new THREE.ColladaLoader();
+                    break;
+                default:
+                    showError('Loader non disponibile');
+                    return;
+            }
+
             loader.load(
                 url,
-                function(gltf) {
-                    onModelLoaded(gltf, filename, url);
+                (result) => {
+                    console.log('✅ Modello caricato');
+                    
+                    // Rimuovi modello precedente
+                    if (model) {
+                        scene.remove(model);
+                    }
+
+                    // Estrai scena
+                    model = ext === 'dae' ? result.scene : result.scene;
+
+                    // Setup modello
+                    setupModel();
+                    
+                    // Aggiorna UI
+                    document.getElementById('title').textContent = filename;
+                    document.getElementById('subtitle').textContent = 'Modello caricato - usa mouse per navigare';
+                    uploadZone.classList.add('hidden');
+                    document.getElementById('resetBtn').style.display = 'block';
+                    document.getElementById('wireframeBtn').style.display = 'block';
+                    document.getElementById('info').style.display = 'block';
+                    
+                    updateStats();
+                    resetCamera();
+                    uploadStatus.innerHTML = '';
+
+                    URL.revokeObjectURL(url);
                 },
-                function(progress) {
+                (progress) => {
                     if (progress.lengthComputable) {
                         const percent = Math.round((progress.loaded / progress.total) * 100);
-                        console.log(`📊 Progresso: ${percent}%`);
                         showLoading(`Caricando ${filename}... ${percent}%`);
                     }
                 },
-                function(error) {
-                    console.error('❌ Errore caricamento 3D:', error);
-                    showError(`Errore nel caricamento: ${error.message}`);
+                (error) => {
+                    console.error('❌ Errore:', error);
+                    showError('Errore nel caricamento');
                     URL.revokeObjectURL(url);
                 }
             );
         }
 
-        // Gestione modello caricato
-        function onModelLoaded(gltf, filename, url) {
-            console.log('✅ Modello caricato con successo:', filename);
-
-            try {
-                // Rimuovi modello precedente
-                if (model) {
-                    scene.remove(model);
-                    console.log('🗑️ Modello precedente rimosso');
-                }
-
-                model = gltf.scene;
-
-                // Configura ombre e materiali
-                model.traverse(function(child) {
-                    if (child.isMesh) {
-                        child.castShadow = true;
-                        child.receiveShadow = true;
-                        
-                        // Migliora materiali
-                        if (child.material) {
-                            if (Array.isArray(child.material)) {
-                                child.material.forEach(mat => {
-                                    if (mat.isMeshStandardMaterial) {
-                                        mat.needsUpdate = true;
-                                    }
-                                });
-                            } else if (child.material.isMeshStandardMaterial) {
-                                child.material.needsUpdate = true;
-                            }
-                        }
-                    }
-                });
-
-                // Centra e scala modello
-                centerAndScaleModel();
-                
-                scene.add(model);
-                console.log('➕ Modello aggiunto alla scena');
-
-                // Aggiorna UI
-                updateUI(gltf, filename);
-                
-                // Pulisci URL
-                URL.revokeObjectURL(url);
-                
-                console.log('🎉 Caricamento completato!');
-                
-            } catch (error) {
-                console.error('❌ Errore post-caricamento:', error);
-                showError('Errore nell\'elaborazione del modello');
-                URL.revokeObjectURL(url);
-            }
-        }
-
-        // Centra e scala il modello
-        function centerAndScaleModel() {
+        // Setup modello
+        function setupModel() {
+            // Centra e scala
             const box = new THREE.Box3().setFromObject(model);
             const center = box.getCenter(new THREE.Vector3());
             const size = box.getSize(new THREE.Vector3());
 
-            // Centra il modello
             model.position.sub(center);
-
-            // Scala per adattare alla vista
+            
             const maxDim = Math.max(size.x, size.y, size.z);
             if (maxDim > 0) {
-                const targetSize = 4;
-                const scale = targetSize / maxDim;
-                model.scale.setScalar(scale);
-                console.log(`📏 Modello scalato: ${scale.toFixed(3)}x`);
+                model.scale.multiplyScalar(4 / maxDim);
+            }
+
+            // Ombre
+            model.traverse((child) => {
+                if (child.isMesh) {
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+                }
+            });
+
+            scene.add(model);
+        }
+
+        // Aggiorna statistiche
+        function updateStats() {
+            let triangles = 0, vertices = 0;
+            const materials = new Set();
+
+            if (model) {
+                model.traverse((child) => {
+                    if (child.isMesh && child.geometry) {
+                        if (child.geometry.index) {
+                            triangles += child.geometry.index.count / 3;
+                        } else {
+                            triangles += child.geometry.attributes.position.count / 3;
+                        }
+                        vertices += child.geometry.attributes.position.count;
+                        
+                        if (child.material) {
+                            if (Array.isArray(child.material)) {
+                                child.material.forEach(m => materials.add(m.uuid));
+                            } else {
+                                materials.add(child.material.uuid);
+                            }
+                        }
+                    }
+                });
+            }
+
+            document.getElementById('triangles').textContent = Math.floor(triangles).toLocaleString();
+            document.getElementById('vertices').textContent = vertices.toLocaleString();
+            document.getElementById('materials').textContent = materials.size;
+        }
+
+        // Reset camera
+        function resetCamera() {
+            if (model && camera && controls) {
+                const box = new THREE.Box3().setFromObject(model);
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                
+                const distance = maxDim * 2.5;
+                camera.position.set(distance, distance, distance);
+                camera.lookAt(0, 0, 0);
+                controls.target.set(0, 0, 0);
+                controls.update();
             }
         }
 
-        // Aggiorna UI dopo caricamento
-        function updateUI(gltf, filename) {
-            // Header
-            document.getElementById('title').textContent = filename;
-            document.getElementById('subtitle').textContent = 'Usa mouse/touch per navigare • Ctrl+R: Reset • Ctrl+W: Wireframe';
+        // Toggle wireframe
+        function toggleWireframe() {
+            if (!model) return;
+
+            wireframeMode = !wireframeMode;
             
-            // Nascondi upload zone
-            uploadZone.classList.add('hidden');
+            model.traverse((child) => {
+                if (child.isMesh && child.material) {
+                    if (Array.isArray(child.material)) {
+                        child.material.forEach(m => m.wireframe = wireframeMode);
+                    } else {
+                        child.material.wireframe = wireframeMode;
+                    }
+                }
+            });
+
+            document.getElementById('wireframeBtn').textContent = 
+                wireframeMode ? '🔳 Solid' : '🔲 Wireframe';
+        }
+
+        // UI helpers
+        function showLoading(msg) {
+            uploadStatus.innerHTML = `<div class="spinner"></div><div class="loading">${msg}</div>`;
+        }
+
+        function showError(msg) {
+            uploadStatus.innerHTML = `<div class="error">❌ ${msg}</div>`;
+            setTimeout(() => uploadStatus.innerHTML = '', 5000);
+        }
+
+        function onWindowResize() {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        }
+
+        // Inizializzazione Three.js
+        function initThree() {
+            console.log('🎮 Init Three.js...');
+
+            const canvas = document.getElementById('canvas');
+
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(5, 5, 5);
+
+            renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Luci
+            scene.add(new THREE.AmbientLight(0x404040, 0.4));
+            
+            const light1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            light1.position.set(10, 10, 5);
+            light1.castShadow = true;
+            scene.add(light1);
+
+            const light2 = new THREE.DirectionalLight(0xffffff, 0.4);
+            light2.position.set(-10, -10, -5);
+            scene.add(light2);
+
+            console.log('✅ Three.js inizializzato');
+        }
+
+        // Loop rendering
+        function animate() {
+            requestAnimationFrame(animate);
+            if (controls && renderer && scene && camera) {
+                controls.update();
+                renderer.render(scene, camera);
+            }
+        }
+
+        // Attendi Three.js
+        function waitForThree() {
+            return new Promise((resolve) => {
+                let attempts = 0;
+                const check = () => {
+                    attempts++;
+                    if (typeof THREE !== 'undefined' && THREE.OrbitControls && THREE.GLTFLoader && THREE.ColladaLoader) {
+                        resolve();
+                    } else if (attempts < 100) {
+                        setTimeout(check, 100);
+                    } else {
+                        resolve(); // Procedi comunque
+                    }
+                };
+                check();
+            });
+        }
+
+        // Inizializzazione principale
+        async function init() {
+            console.log('🏁 Inizializzazione...');
+
+            try {
+                // Attendi Three.js
+                await waitForThree();
+                document.getElementById('status').textContent = 'Three.js OK ✅';
+
+                // Test file input
+                testFileInput();
+
+                // Init Three.js
+                initThree();
+
+                // Setup eventi
+                setupEvents();
+
+                // Avvia rendering
+                animate();
+
+                document.getElementById('status').textContent = 'Pronto ✅';
+                document.getElementById('subtitle').textContent = 'Clicca "📂 CARICA FILE" per iniziare';
+
+                console.log('🎉 Inizializzazione completata!');
+
+                // Nascondi info test dopo 3 secondi
+                setTimeout(() => {
+                    document.getElementById('testInfo').style.display = 'none';
+                }, 3000);
+
+            } catch (error) {
+                console.error('💥 Errore:', error);
+                document.getElementById('status').textContent = 'Errore ❌';
+            }
+        }
+
+        // Avvia quando pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
