@@ -287,7 +287,7 @@
                         <li>Clicca "Sfoglia" o "Choose Files" sopra</li>
                         <li>Oppure trascina i file direttamente qui</li>
                         <li>Formati supportati: .gltf, .glb, .dae</li>
-                        <li>Dimensione massima: 50MB</li>
+                        <li>Dimensione massima: 2GB (limite browser)</li>
                     </ul>
                 </div>
 
@@ -442,8 +442,9 @@
                 return;
             }
 
-            if (file.size > 50 * 1024 * 1024) {
-                showError(`File troppo grande (${formatFileSize(file.size)}). Massimo 50MB`);
+            // Limite rimosso per file molto grandi
+            if (file.size > 2 * 1024 * 1024 * 1024) { // 2GB - limite browser
+                showError(`File troppo grande (${formatFileSize(file.size)}). Il browser potrebbe crashare oltre 2GB`);
                 return;
             }
 
