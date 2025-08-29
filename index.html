@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🚀 3D Model Viewer - Working Version</title>
+    <title>🚀 MARIOPRO 3D Viewer</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -257,8 +257,8 @@
         
         <div class="ui">
             <div class="header">
-                <h1 id="title">🚀 3D Model Viewer</h1>
-                <p id="subtitle">Versione con input file visibile - Funziona sempre!</p>
+                <h1 id="title">🚀 MARIOPRO 3D Viewer</h1>
+                <p id="subtitle">Visualizzatore 3D professionale - Funziona sempre!</p>
             </div>
 
             <div class="info" id="info">
@@ -303,7 +303,7 @@
     <script src="https://cdn.jsdelivr.net/npm/three@0.140.0/examples/js/loaders/ColladaLoader.js"></script>
 
     <script>
-        console.log('🚀 3D Model Viewer - Working Version');
+        console.log('🚀 MARIOPRO 3D Viewer - Inizializzazione');
 
         // Variabili globali
         let scene, camera, renderer, controls, model;
@@ -733,7 +733,7 @@
                 setupEvents();
                 animate();
 
-                console.log('🎉 Viewer pronto!');
+                console.log('🎉 MARIOPRO 3D Viewer pronto!');
                 document.getElementById('subtitle').textContent = 'Usa il pulsante "Sfoglia" sopra per caricare un modello';
                 
             } catch (error) {
@@ -748,7 +748,7 @@
             init();
         }
 
-        console.log('📋 ISTRUZIONI:');
+        console.log('📋 MARIOPRO 3D Viewer - ISTRUZIONI:');
         console.log('1. Clicca il pulsante "Sfoglia" o "Choose Files"');
         console.log('2. Oppure trascina un file direttamente nell\'area');
         console.log('3. Formati supportati: .gltf, .glb, .dae');
